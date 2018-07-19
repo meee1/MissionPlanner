@@ -29,10 +29,12 @@ build_script:
     cd bin\Release\net461
 
     for /f %%f in ('dir /a-d /b plugins') do if exist .\%%f del .\plugins\%%f
+    
+    
 
     copy version.txt c:\mp\
 
-    7z a -tzip ..\..\..\MissionPlannerBeta.zip *  
+    7z a -tzip ..\..\..\MissionPlannerBeta.zip *  -xr!gdal -xr!x64 -xr!x86 -xr!*SkiaSharp* -xr!dlls
 
     cd ..
 
