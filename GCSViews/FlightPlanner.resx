@@ -845,7 +845,7 @@
     <value>False</value>
   </data>
   <data name="coordZone.Width" type="System.Int32, mscorlib">
-    <value>66</value>
+    <value>45</value>
   </data>
   <metadata name="coordEasting.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -875,7 +875,7 @@
     <value>False</value>
   </data>
   <data name="coordNorthing.Width" type="System.Int32, mscorlib">
-    <value>85</value>
+    <value>64</value>
   </data>
   <metadata name="MGRS.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -885,9 +885,6 @@
   </data>
   <data name="MGRS.MinimumWidth" type="System.Int32, mscorlib">
     <value>75</value>
-  </data>
-  <data name="MGRS.Visible" type="System.Boolean, mscorlib">
-    <value>False</value>
   </data>
   <data name="MGRS.Width" type="System.Int32, mscorlib">
     <value>75</value>
@@ -985,9 +982,6 @@
   </data>
   <data name="Dist.MinimumWidth" type="System.Int32, mscorlib">
     <value>50</value>
-  </data>
-  <data name="Dist.ToolTipText" xml:space="preserve">
-    <value>Distance</value>
   </data>
   <data name="Dist.Width" type="System.Int32, mscorlib">
     <value>50</value>

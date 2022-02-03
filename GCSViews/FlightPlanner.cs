@@ -1395,8 +1395,8 @@ namespace MissionPlanner.GCSViews
         {
             using (SaveFileDialog fd = new SaveFileDialog())
             {
-                fd.Filter = "Mission|*.waypoints;*.txt|Mission JSON|*.mission";
-                fd.DefaultExt = ".waypoints";
+                fd.Filter = "Mission|*.wp;*.waypoints;*.txt|Mission JSON|*.mission";
+                fd.DefaultExt = ".wp";
                 fd.FileName = wpfilename;
                 DialogResult result = fd.ShowDialog();
                 string file = fd.FileName;
@@ -2625,7 +2625,7 @@ namespace MissionPlanner.GCSViews
         {
             using (OpenFileDialog fd = new OpenFileDialog())
             {
-                fd.Filter = "All Supported Types|*.txt;*.waypoints;*.shp;*.plan";
+                fd.Filter = "All Supported Types|*.wp;*.waypoints;*.txt;*.shp;*.plan";
                 DialogResult result = fd.ShowDialog();
                 string file = fd.FileName;
 
@@ -5677,8 +5677,8 @@ namespace MissionPlanner.GCSViews
         {
             using (OpenFileDialog fd = new OpenFileDialog())
             {
-                fd.Filter = "Ardupilot Mission|*.waypoints;*.txt";
-                fd.DefaultExt = ".waypoints";
+                fd.Filter = "Ardupilot Mission|*.wp;*.waypoints;*.txt";
+                fd.DefaultExt = ".wp";
                 DialogResult result = fd.ShowDialog();
                 string file = fd.FileName;
                 if (file != "")
