@@ -1,6 +1,7 @@
-﻿using System.IO;
-using System.Windows.Forms;
+﻿using System;
 using MissionPlanner.Utilities;
+using System.IO;
+using System.Windows.Forms;
 
 namespace MissionPlanner.Log
 {
@@ -26,7 +27,14 @@ namespace MissionPlanner.Log
                 {
                     foreach (string logfile in openFileDialog1.FileNames)
                     {
-                        MissionPlanner.Log.MatLab.tlog(logfile);
+                        try
+                        {
+                            MissionPlanner.Log.MatLab.tlog(logfile);
+                        }
+                        catch (Exception ex)
+                        {
+                            CustomMessageBox.Show("Error converting file " + ex.ToString(), Strings.ERROR);
+                        }
                     }
                 }
             }
@@ -36,7 +44,7 @@ namespace MissionPlanner.Log
         {
             using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
             {
-                openFileDialog1.Filter = "Log Files|*.log;*.bin";
+                openFileDialog1.Filter = "Log Files|*.log;*.bin;*.BIN;*.LOG";
                 openFileDialog1.FilterIndex = 2;
                 openFileDialog1.RestoreDirectory = true;
                 openFileDialog1.Multiselect = true;
@@ -52,7 +60,14 @@ namespace MissionPlanner.Log
                 {
                     foreach (string logfile in openFileDialog1.FileNames)
                     {
-                        MissionPlanner.Log.MatLab.ProcessLog(logfile);
+                        try
+                        {
+                            MissionPlanner.Log.MatLab.ProcessLog(logfile);
+                        }
+                        catch (Exception ex)
+                        {
+                            CustomMessageBox.Show("Error converting file " + ex.ToString(), Strings.ERROR);
+                        }
                     }
                 }
             }

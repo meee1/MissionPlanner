@@ -25,8 +25,8 @@ namespace MissionPlanner.Mavlink
         public void AddHiddenList(byte sysid, byte compid)
         {
             int id = GetID((byte)sysid, (byte)compid);
-
-            hiddenlist[id] = new MAVState(parent, sysid, compid);
+            lock (locker)
+                hiddenlist[id] = new MAVState(parent, sysid, compid);
         }
 
         public MAVState this[int sysid, int compid]
@@ -102,15 +102,18 @@ namespace MissionPlanner.Mavlink
         {
             int id = GetID((byte)sysid, (byte)compid);
 
-            // move from hidden to visible
-            if (hiddenlist.ContainsKey(id))
-            {
-                masterlist[id] = hiddenlist[id];
-                hiddenlist.Remove(id);
-            }
+            lock (locker) 
+            { 
+                // move from hidden to visible
+                if (hiddenlist.ContainsKey(id))
+                {
+                    masterlist[id] = hiddenlist[id];
+                    hiddenlist.Remove(id);
+                }
 
-            if (!masterlist.ContainsKey(id))
-                masterlist[id] = new MAVState(parent, sysid, compid);
+                if (!masterlist.ContainsKey(id))
+                    masterlist[id] = new MAVState(parent, sysid, compid);
+            }
         }
 
         public IEnumerator<MAVState> GetEnumerator()
@@ -131,16 +134,24 @@ namespace MissionPlanner.Mavlink
            return  sysid*256 + compid;
         }
 
+        public static (byte sysid, byte compid) FromID(int id)
+        {
+            return ((byte)(id / 256), (byte)(id & 0xff));
+        }
+
         public void Dispose()
         {
-            foreach (var MAV in hiddenlist)
-            {
-                MAV.Value.Dispose();
-            }
+            lock (locker) 
+            { 
+                foreach (var MAV in hiddenlist)
+                {
+                    MAV.Value.Dispose();
+                }
 
-            foreach (var MAV in masterlist)
-            {
-                MAV.Value.Dispose();
+                foreach (var MAV in masterlist)
+                {
+                    MAV.Value.Dispose();
+                }
             }
         }
     }

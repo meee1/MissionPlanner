@@ -1,5 +1,8 @@
 ﻿namespace MissionPlanner.ArduPilot
 {
+    /// <summary>
+    /// https://github.com/ArduPilot/ardupilot/blob/master/libraries/AP_Motors/AP_Motors_Class.h
+    /// </summary>
     public enum motor_frame_class
     {
         MOTOR_FRAME_UNDEFINED = 0,

@@ -1,3 +1,6 @@
+using AltitudeAngelWings.Extra;
+using GMap.NET;
+using GMap.NET.WindowsForms;
 using System;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -5,19 +8,12 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using AltitudeAngel.IsolatedPlugin.Common.Maps;
-using AltitudeAngelWings;
-using GMap.NET;
-using GMap.NET.WindowsForms;
-using MissionPlanner.Maps;
-using SharpKml.Dom;
 using Feature = GeoJSON.Net.Feature.Feature;
-using Timer = System.Windows.Forms.Timer;
 using Unit = System.Reactive.Unit;
 
 namespace MissionPlanner.Utilities.AltitudeAngel
 {
-    class MapAdapter : IMap, IDisposable
+    internal class MapAdapter : IMap, IDisposable
     {
         public MapAdapter(GMapControl mapControl)
         {
@@ -114,7 +110,7 @@ namespace MissionPlanner.Utilities.AltitudeAngel
         {
             if (item is Feature)
             {
-                var prop = ((Feature) item).Properties;
+                var prop = ((Feature)item).Properties;
 
                 var display = prop["display"] as Newtonsoft.Json.Linq.JObject;
 
@@ -185,7 +181,7 @@ namespace MissionPlanner.Utilities.AltitudeAngel
             {
                 _context.Send(_ => pointLatLng = _mapControl.Position, null);
             }
-            catch (Exception ex)
+            catch
             {
             }
 
@@ -199,7 +195,7 @@ namespace MissionPlanner.Utilities.AltitudeAngel
             {
                 _context.Send(_ => rectLatLng = _mapControl.ViewArea, null);
             }
-            catch (Exception ex)
+            catch
             {
             }
             if (rectLatLng.WidthLng < 0.03)
@@ -256,7 +252,7 @@ namespace MissionPlanner.Utilities.AltitudeAngel
                     result = new OverlayAdapter(overlay);
                 }, null);
             }
-            catch (Exception ex)
+            catch
             {
             }
 

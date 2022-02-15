@@ -1,27 +1,14 @@
-﻿using System;
+﻿using log4net;
+using MissionPlanner.Utilities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Reflection;
-using System.Text;
-using System.Windows.Forms;
-using System.IO.Ports;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using KMLib;
-using KMLib.Feature;
-using KMLib.Geometry;
-using Core.Geometry;
-using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.Checksums;
-using ICSharpCode.SharpZipLib.Core;
-using log4net;
-using MissionPlanner.Comms;
-using MissionPlanner.Utilities;
-using System.Diagnostics;
-using System.Threading;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace MissionPlanner.Log
 {
@@ -58,7 +45,7 @@ namespace MissionPlanner.Log
 
             ThemeManager.ApplyThemeTo(this);
 
-            MissionPlanner.Utilities.Tracking.AddPage(this.GetType().ToString(), this.Text);            
+            MissionPlanner.Utilities.Tracking.AddPage(this.GetType().ToString(), this.Text);
         }
 
         private void Log_Load(object sender, EventArgs e)
@@ -206,7 +193,7 @@ namespace MissionPlanner.Log
             }
         }
 
-        string GetLog(ushort no, string fileName)
+        async Task<string> GetLog(ushort no, string fileName)
         {
             log.Info("GetLog " + no);
 
@@ -214,69 +201,52 @@ namespace MissionPlanner.Log
 
             status = SerialStatus.Reading;
 
-            // used for log fn
-            MAVLink.MAVLinkMessage hbpacket = MainV2.comPort.getHeartBeat();
-
-            if (hbpacket != null)
-                log.Info("Got hbpacket length: " + hbpacket.Length);
-
             // get df log from mav
-            using (var ms = MainV2.comPort.GetLog(no))
+            var fn = await MainV2.comPort.GetLog(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, no)
+                .ConfigureAwait(false);
+
+            GC.Collect();
+            status = SerialStatus.Done;
+
+            logfile = Settings.Instance.LogDir + Path.DirectorySeparatorChar
+                                               + MainV2.comPort.MAV.aptype.ToString() + Path.DirectorySeparatorChar
+                                               + MainV2.comPort.MAV.sysid + Path.DirectorySeparatorChar + no + " " +
+                                               MakeValidFileName(fileName) + ".bin";
+
+            // make log dir
+            Directory.CreateDirectory(Path.GetDirectoryName(logfile));
+
+            log.Info("about to move " + fn + " to: " + logfile);
+            try
             {
-                if (ms != null)
-                    log.Info("Got Log length: " + ms.Length);
-
-                ms.Seek(0, SeekOrigin.Begin);
-
-                status = SerialStatus.Done;
-
-                MAVLink.mavlink_heartbeat_t hb = (MAVLink.mavlink_heartbeat_t)MainV2.comPort.DebugPacket(hbpacket);
-
-                logfile = Settings.Instance.LogDir + Path.DirectorySeparatorChar
-                          + MainV2.comPort.MAV.aptype.ToString() + Path.DirectorySeparatorChar
-                          + hbpacket.sysid + Path.DirectorySeparatorChar + no + " " + MakeValidFileName(fileName) + ".bin";
-
-                // make log dir
-                Directory.CreateDirectory(Path.GetDirectoryName(logfile));
-
-                log.Info("about to write: " + logfile);
-                // save memorystream to file
-                using (BinaryWriter bw = new BinaryWriter(File.OpenWrite(logfile)))
-                {
-                    byte[] buffer = new byte[256 * 1024];
-                    while (ms.Position < ms.Length)
-                    {
-                        int read = ms.Read(buffer, 0, buffer.Length);
-                        bw.Write(buffer, 0, read);
-                    }
-                }
+                File.Move(fn, logfile);
             }
-
-            log.Info("about to convertbin: " + logfile);
-
-            // create ascii log
-            BinaryLog.ConvertBin(logfile, logfile + ".log");
-
-            //update the new filename
-            logfile = logfile + ".log";
+            catch
+            {
+                CustomMessageBox.Show(Strings.ErrorRenameFile + " " + logfile + "\nto " + logfile,
+                    Strings.ERROR);
+            }
 
             // rename file if needed
             log.Info("about to GetFirstGpsTime: " + logfile);
             // get gps time of assci log
-            DateTime logtime = new DFLog().GetFirstGpsTime(logfile);
+            var dflb = new DFLogBuffer(logfile);
+            DateTime logtime = dflb.dflog.gpsstarttime;
+            dflb.Clear();
+            GC.Collect();
 
             // rename log is we have a valid gps time
             if (logtime != DateTime.MinValue)
             {
                 string newlogfilename = Settings.Instance.LogDir + Path.DirectorySeparatorChar
-                                        + MainV2.comPort.MAV.aptype.ToString() + Path.DirectorySeparatorChar
-                                        + hbpacket.sysid + Path.DirectorySeparatorChar +
-                                        logtime.ToString("yyyy-MM-dd HH-mm-ss") + ".log";
+                                                                 + MainV2.comPort.MAV.aptype.ToString() +
+                                                                 Path.DirectorySeparatorChar
+                                                                 + MainV2.comPort.MAV.sysid +
+                                                                 Path.DirectorySeparatorChar +
+                                                                 logtime.ToString("yyyy-MM-dd HH-mm-ss") + ".bin";
                 try
                 {
                     File.Move(logfile, newlogfilename);
-                    // rename bin as well
-                    File.Move(logfile.Replace(".log", ""), newlogfilename.Replace(".log", ".bin"));
                     logfile = newlogfilename;
                 }
                 catch
@@ -326,7 +296,7 @@ namespace MissionPlanner.Log
             UpdateProgress(0, totalBytes, tallyBytes + receivedbytes);
         }
 
-        void CreateLog(string logfile)
+        void CreateKML(string logfile)
         {
             TextReader tr = new StreamReader(logfile);
             //
@@ -351,7 +321,7 @@ namespace MissionPlanner.Log
             status = SerialStatus.Done;
         }
 
-        private void DownloadThread(int[] selectedLogs)
+        private async void DownloadThread(int[] selectedLogs)
         {
             try
             {
@@ -374,13 +344,11 @@ namespace MissionPlanner.Log
 
                     AppendSerialLog(string.Format(LogStrings.FetchingLog, fileName));
 
-                    var logname = GetLog(entry.id, fileName);
-
-                    CreateLog(logname);
+                    await GetLog(entry.id, fileName).ConfigureAwait(false);
 
                     tallyBytes += receivedbytes;
                     receivedbytes = 0;
-                    UpdateProgress(0, totalBytes, tallyBytes);                    
+                    UpdateProgress(0, totalBytes, tallyBytes);
                 }
 
                 UpdateProgress(0, totalBytes, totalBytes);
@@ -417,6 +385,8 @@ namespace MissionPlanner.Log
             }
         }
 
+        DateTime start = DateTime.Now;
+
         private void UpdateProgress(uint min, uint max, uint current)
         {
             RunOnUIThread(() =>
@@ -426,9 +396,24 @@ namespace MissionPlanner.Log
                 progressBar1.Value = (int)current;
                 progressBar1.Visible = (current < max);
 
+                if (current == 0)
+                    start = DateTime.Now;
+
                 if (current < max)
                 {
-                    labelBytes.Text = current.ToString();
+                    var per = (current / (double)max) * 100;
+                    
+                    var elapsed = DateTime.Now - start;
+                    if (elapsed.TotalSeconds == 0)
+                        elapsed = TimeSpan.FromSeconds(1);
+                    var avgbps = current / elapsed.TotalSeconds;
+                    if (avgbps == 0)
+                        avgbps = 1;
+                    var left = max - current;
+                    var eta = DateTime.Now.AddSeconds(left / avgbps);
+                    
+
+                    labelBytes.Text = current.ToString() + " " + per.ToString("N1") + "% " + eta.ToString("hh:mm t") + " ETA";
                 }
                 else
                 {
@@ -591,7 +576,7 @@ namespace MissionPlanner.Log
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.Filter = "Binary Log|*.bin";
+                ofd.Filter = "Binary Log|*.bin;*.BIN";
 
                 ofd.ShowDialog();
 
@@ -599,7 +584,7 @@ namespace MissionPlanner.Log
                 {
                     using (SaveFileDialog sfd = new SaveFileDialog())
                     {
-                        sfd.Filter = "log|*.log";
+                        sfd.Filter = "log|*.log;*.LOG";
 
                         DialogResult res = sfd.ShowDialog();
 

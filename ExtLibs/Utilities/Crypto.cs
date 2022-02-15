@@ -55,6 +55,7 @@ namespace MissionPlanner.Utilities
 
             this.algorithm = new RijndaelManaged();
             this.algorithm.Mode = CipherMode.CBC;
+            this.algorithm.Padding = PaddingMode.PKCS7;
             this.algorithm.Key = Key;
             this.algorithm.IV = IV;
         }

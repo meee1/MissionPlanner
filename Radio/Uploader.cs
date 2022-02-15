@@ -1,9 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading;
-using MissionPlanner;
 using MissionPlanner.Comms;
 
-namespace uploader
+namespace MissionPlanner.Radio
 {
     public class Uploader
     {
@@ -19,9 +19,12 @@ namespace uploader
             DEVICE_ID_RFD900 = 0X42,
             DEVICE_ID_RFD900A = 0X43,
 
+            DEVICE_ID_HB1060 = 0X50,
+
             DEVICE_ID_RFD900U = 0X80 | 0x01,
             DEVICE_ID_RFD900P = 0x80 | 0x02,
-            DEVICE_ID_RFD900Plus = 0x80 | 0x03,
+            DEVICE_ID_RFD900X = 0x80 | 0x03,
+            DEVICE_ID_RFD900UX = 0x80 | 0x08,
 
             FAILED = 0x11
         }
@@ -131,13 +134,13 @@ namespace uploader
 
         private void upload_and_verify(IHex image_data)
         {
-            if (image_data.bankingDetected && ((byte) id & 0x80) != 0x80)
+            if (image_data.bankingDetected && ((byte)id & 0x80) != 0x80)
             {
                 log("This Firmware requires banking support");
                 throw new Exception("This Firmware requires banking support");
             }
 
-            if (((byte) id & 0x80) == 0x80)
+            if (((byte)id & 0x80) == 0x80)
             {
                 banking = true;
                 log("Using 24bit addresses");
@@ -177,7 +180,7 @@ namespace uploader
 
                 verify_block_multi(kvp.Value);
                 bytes_processed += kvp.Value.GetLength(0);
-                progress((double) bytes_processed/bytes_to_process);
+                progress((double)bytes_processed / bytes_to_process);
             }
             log("Success\n");
         }
@@ -187,7 +190,7 @@ namespace uploader
             foreach (var b in data)
             {
                 cmdProgram_Single(b);
-                progress((double) ++bytes_processed/bytes_to_process);
+                progress((double)++bytes_processed / bytes_to_process);
             }
         }
 
@@ -210,7 +213,7 @@ namespace uploader
                 offset += to_send;
 
                 bytes_processed += to_send;
-                progress((double) bytes_processed/bytes_to_process);
+                progress((double)bytes_processed / bytes_to_process);
             }
         }
 
@@ -233,7 +236,7 @@ namespace uploader
                 offset += to_verf;
 
                 bytes_processed += to_verf;
-                progress((double) bytes_processed/bytes_to_process);
+                progress((double)bytes_processed / bytes_to_process);
             }
         }
 
@@ -287,9 +290,9 @@ namespace uploader
             if (banking)
             {
                 send(Code.LOAD_ADDRESS);
-                send((byte) (address & 0xff));
-                send((byte) ((address >> 8) & 0xff));
-                send((byte) ((address >> 16) & 0xff));
+                send((byte)(address & 0xff));
+                send((byte)((address >> 8) & 0xff));
+                send((byte)((address >> 16) & 0xff));
                 send(Code.EOC);
 
                 log("Bank Programming address " + (address >> 16));
@@ -297,7 +300,7 @@ namespace uploader
             else
             {
                 send(Code.LOAD_ADDRESS);
-                send((ushort) address);
+                send((ushort)address);
                 send(Code.EOC);
             }
             getSync();
@@ -321,7 +324,7 @@ namespace uploader
         private void cmdProgramMulti(byte[] data, int offset, int length)
         {
             send(Code.PROG_MULTI);
-            send((byte) length);
+            send((byte)length);
             //for (int i = 0; i < length; i++)
             //send (data [offset + i]);
             send(data, offset, length);
@@ -353,7 +356,7 @@ namespace uploader
         private void cmdVerifyMulti(byte[] data, int offset, int length)
         {
             send(Code.READ_MULTI);
-            send((byte) length);
+            send((byte)length);
             send(Code.EOC);
 
             for (var i = 0; i < length; i++)
@@ -378,14 +381,13 @@ namespace uploader
             send(Code.GET_DEVICE);
             send(Code.EOC);
 
-            id = (Board) recv();
-            freq = (Frequency) recv();
+            id = (Board)recv();
+            freq = (Frequency)recv();
 
             log("Connected to board " + id + " freq " + freq);
 
             // XXX should be getting valid board/frequency data from firmware file
-            if ((id != Board.DEVICE_ID_HM_TRP) && (id != Board.DEVICE_ID_RF50) && (id != Board.DEVICE_ID_RFD900) &&
-                (id != Board.DEVICE_ID_RFD900A))
+            if (!Enum.IsDefined(typeof(Board), id))
                 throw new Exception("bootloader device ID mismatch - device:" + id);
 
             getSync();
@@ -393,11 +395,15 @@ namespace uploader
 
         public void getDevice(ref Board device, ref Frequency freq)
         {
+            send(Code.EOC);
+            Thread.Sleep(100);
+            port.DiscardInBuffer();
+            cmdSync();
             send(Code.GET_DEVICE);
             send(Code.EOC);
 
-            device = (Board) recv();
-            freq = (Frequency) recv();
+            device = (Board)recv();
+            freq = (Frequency)recv();
 
             getSync();
         }
@@ -416,16 +422,16 @@ namespace uploader
             {
                 Code c;
 
-                c = (Code) recv();
+                c = (Code)recv();
                 if (c != Code.INSYNC)
                 {
-                    log(string.Format("got {0:X} when expecting {1:X}\n", (int) c, (int) Code.INSYNC), 2);
+                    log(string.Format("got {0:X} when expecting {1:X}\n", (int)c, (int)Code.INSYNC), 2);
                     throw new Exception("BAD SYNC");
                 }
-                c = (Code) recv();
+                c = (Code)recv();
                 if (c != Code.OK)
                 {
-                    log(string.Format("got {0:X} when expecting {1:X}\n", (int) c, (int) Code.EOC), 2);
+                    log(string.Format("got {0:X} when expecting {1:X}\n", (int)c, (int)Code.EOC), 2);
                     throw new Exception("BAD STATUS");
                 }
             }
@@ -445,7 +451,7 @@ namespace uploader
         /// </param>
         private void send(Code code)
         {
-            byte[] b = {(byte) code};
+            byte[] b = { (byte)code };
 
             log("send ", 5);
             foreach (var x in b)
@@ -465,7 +471,7 @@ namespace uploader
         /// </param>
         private void send(byte data)
         {
-            byte[] b = {data};
+            byte[] b = { data };
 
             log("send ", 5);
             foreach (var x in b)
@@ -502,7 +508,7 @@ namespace uploader
         /// </param>
         private void send(ushort data)
         {
-            var b = new byte[2] {(byte) (data & 0xff), (byte) (data >> 8)};
+            var b = new byte[2] { (byte)(data & 0xff), (byte)(data >> 8) };
 
             log("send ", 5);
             foreach (var x in b)
@@ -529,7 +535,7 @@ namespace uploader
             if (port.BytesToRead == 0)
                 throw new Exception("Timeout");
 
-            b = (byte) port.ReadByte();
+            b = (byte)port.ReadByte();
 
             log(string.Format("recv {0:X}\n", b), 5);
 

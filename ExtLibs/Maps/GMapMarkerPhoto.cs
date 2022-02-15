@@ -28,7 +28,7 @@ namespace MissionPlanner.Maps
         public double Pitch { get; internal set; }
         public double Yaw { get; internal set; }
 
-        public bool drawfootprint = true;
+        public bool drawfootprint = false;
 
         MAVLink.mavlink_camera_feedback_t local;
 
@@ -62,7 +62,7 @@ namespace MissionPlanner.Maps
             footprintpoly.Stroke = Pens.Crimson;
         }
 
-        public override void OnRender(Graphics g)
+        public override void OnRender(IGraphics g)
         {
             if (shotBellowMinInterval)
                 g.DrawImageUnscaled(localcache2, LocalPosition.X, LocalPosition.Y);

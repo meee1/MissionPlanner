@@ -4,7 +4,7 @@ using System.Drawing.Drawing2D;
 using GMap.NET;
 using GMap.NET.WindowsForms;
 
-namespace MissionPlanner.Maps
+namespace GMap.NET.WindowsForms
 {
     /// <summary>
     /// used to override the drawing of the waypoint box bounding
@@ -26,9 +26,11 @@ namespace MissionPlanner.Maps
 
         Color? initcolor = null;
 
+        public Color? FillColor = null;
+
         public GMapMarker InnerMarker;
 
-        public int wprad = 0;
+        public double wprad = 0; 
 
         public void ResetColor()
         {
@@ -49,7 +51,7 @@ namespace MissionPlanner.Maps
             Offset = new System.Drawing.Point(-Size.Width/2, -Size.Height/2 - 20);
         }
 
-        public override void OnRender(Graphics g)
+        public override void OnRender(IGraphics g)
         {
             base.OnRender(g);
 
@@ -76,12 +78,23 @@ namespace MissionPlanner.Maps
             GPoint loc = new GPoint((int) (LocalPosition.X - (m2pixelwidth*wprad*2)), LocalPosition.Y);
             // MainMap.FromLatLngToLocal(wpradposition);
 
-            if (m2pixelheight > 0.5 && !double.IsInfinity(m2pixelheight))
-                g.DrawArc(Pen,
-                    new System.Drawing.Rectangle(
-                        LocalPosition.X - Offset.X - (int) (Math.Abs(loc.X - LocalPosition.X)/2),
-                        LocalPosition.Y - Offset.Y - (int) Math.Abs(loc.X - LocalPosition.X)/2,
-                        (int) Math.Abs(loc.X - LocalPosition.X), (int) Math.Abs(loc.X - LocalPosition.X)), 0, 360);
+            if (m2pixelheight > 0.001 && !double.IsInfinity(m2pixelheight))
+            {
+                var rect = new System.Drawing.Rectangle(
+                    LocalPosition.X - Offset.X - (int) (Math.Abs(loc.X - LocalPosition.X) / 2),
+                    LocalPosition.Y - Offset.Y - (int) Math.Abs(loc.X - LocalPosition.X) / 2,
+                    (int) Math.Abs(loc.X - LocalPosition.X), (int) Math.Abs(loc.X - LocalPosition.X));
+
+                if (rect.Height == 0 || rect.Width == 0)
+                    return;
+
+                g.DrawArc(Pen, rect, 0, 360);
+
+                if (FillColor.HasValue)
+                {
+                    g.FillPie(new SolidBrush(FillColor.Value), rect, 0, 360);
+                }
+            }
         }
     }
 }

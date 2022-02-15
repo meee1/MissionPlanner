@@ -1,20 +1,46 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Serialization;
-using GMap.NET;
-using log4net;
+﻿using log4net;
 using MissionPlanner.ArduPilot;
-using MissionPlanner.Maps;
 using MissionPlanner.Utilities;
 using Newtonsoft.Json;
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Runtime.Serialization;
+using MissionPlanner.ArduPilot.Mavlink;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MissionPlanner
 {
     public class MAVState : MAVLink, IDisposable
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public string ParamCachePath
+        {
+            get
+            {
+                try
+                {
+                    return Path.Combine(Settings.GetDataDirectory(), "paramcache",
+                        aptype.ToString(),
+                        cs.uid2,
+                        sysid.ToString(),
+                        compid.ToString(),
+                        "param.json");
+                }   
+                catch (Exception e)
+                {
+                    log.Error(e);
+                }
+
+                return "";
+            }
+        }
 
         [JsonIgnore]
         [IgnoreDataMember]
@@ -25,13 +51,46 @@ namespace MissionPlanner
             this.parent = mavLinkInterface;
             this.sysid = sysid;
             this.compid = compid;
-            this.packetspersecond = new Dictionary<uint, double>();
-            this.packetspersecondbuild = new Dictionary<uint, DateTime>();
+            this.packetspersecond = new Dictionary<uint, double>(byte.MaxValue);
+            this.packetspersecondbuild = new Dictionary<uint, DateTime>(byte.MaxValue);
             this.lastvalidpacket = DateTime.MinValue;
             sendlinkid = (byte)(new Random().Next(256));
             signing = false;
             this.param = new MAVLinkParamList();
-            this.packets = new Dictionary<uint, MAVLinkMessage>();
+            bool queuewrite = false;
+            this.param.PropertyChanged += (s, a) =>
+            {
+                lock (param)
+                {
+                    if (queuewrite == true)
+                        return;
+
+                    queuewrite = true;
+                }
+
+                new Timer((o) =>
+                {
+                    try
+                    {
+                        if (cs.uid2 == null || cs.uid2 == "" || sysid == 0)
+                            return;
+                        if (!Directory.Exists(Path.GetDirectoryName(ParamCachePath)))
+                            Directory.CreateDirectory(Path.GetDirectoryName(ParamCachePath));
+
+                        lock (this.param)
+                            File.WriteAllText(ParamCachePath, param.ToJSON());
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error(e);
+                    }
+
+                    queuewrite = false;
+
+                }, null, 2000, -1);
+            };
+            this.packets = new Dictionary<uint, Queue<MAVLinkMessage>>(byte.MaxValue);
+            this.packetsLast = new Dictionary<uint, MAVLinkMessage>(byte.MaxValue);
             this.aptype = 0;
             this.apname = 0;
             this.recvpacketcount = 0;
@@ -43,8 +102,6 @@ namespace MissionPlanner
                 this.Proximity = new Proximity(this);
 
             camerapoints.Clear();
-
-            GMapMarkerOverlapCount.Clear();
 
             this.packetslost = 0f;
             this.packetsnotlost = 0f;
@@ -67,14 +124,12 @@ namespace MissionPlanner
         // AC frame type
         public string FrameString { get; set; }
 
-        public string Guid { get; set; }
-
         /// <summary>
         /// the static global state of the currently connected MAV
         /// </summary>
         public CurrentState cs = new CurrentState();
 
-        private byte _sysid;
+        private byte _sysid = 0;
         /// <summary>
         /// mavlink remote sysid
         /// </summary>
@@ -87,7 +142,7 @@ namespace MissionPlanner
         /// <summary>
         /// mavlink remove compid
         /// </summary>
-        public byte compid { get; set; }
+        public byte compid { get; set; } = 0;
 
         public byte linkid { get; set; }
 
@@ -117,15 +172,28 @@ namespace MissionPlanner
         /// </summary>
         [JsonIgnore]
         [IgnoreDataMember]
-        public MAVLinkParamList param { get; set; }
-        [JsonIgnore]
+        public MAVLinkParamList param
+        {
+            get;
+            private set;
+
+        }
+
+        /// <summary>
+        /// cache of all Types seen
+        /// </summary>
+        [JsonIgnore] 
         [IgnoreDataMember]
-        public Dictionary<string, MAV_PARAM_TYPE> param_types = new Dictionary<string, MAV_PARAM_TYPE>();
+        public ConcurrentDictionary<string, MAV_PARAM_TYPE> param_types = new ConcurrentDictionary<string, MAV_PARAM_TYPE>();
 
         /// <summary>
         /// storage of a previous packet recevied of a specific type
         /// </summary>
-        Dictionary<uint, MAVLinkMessage> packets { get; set; }
+        Dictionary<uint, Queue<MAVLinkMessage>> packets { get; set; }
+        /// <summary>
+        /// the last valid packet of this type.
+        /// </summary>
+        Dictionary<uint, MAVLinkMessage> packetsLast { get; set; }
 
         object packetslock = new object();
 
@@ -136,7 +204,23 @@ namespace MissionPlanner
             {
                 if (packets.ContainsKey(mavlinkid))
                 {
-                    return packets[mavlinkid];
+                    if (packets[mavlinkid].Count > 0)
+                    {
+                        return packets[mavlinkid].Dequeue();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public MAVLinkMessage getPacketLast(uint mavlinkid)
+        {
+            lock (packetslock)
+            {
+                if (packetsLast.ContainsKey(mavlinkid))
+                {
+                    return packetsLast[mavlinkid];
                 }
             }
 
@@ -147,7 +231,19 @@ namespace MissionPlanner
         {
             lock (packetslock)
             {
-                packets[msg.msgid] = msg;
+                // create queue if it does not exist
+                if (!packets.ContainsKey(msg.msgid))
+                {
+                    packets[msg.msgid] = new Queue<MAVLinkMessage>();
+                }
+                // cleanup queue if not polling this message
+                while (packets[msg.msgid].Count > 5)
+                {
+                    packets[msg.msgid].Dequeue();
+                }
+
+                packets[msg.msgid].Enqueue(msg);
+                packetsLast[msg.msgid] = msg;
             }
         }
 
@@ -157,7 +253,7 @@ namespace MissionPlanner
             {
                 if (packets.ContainsKey(mavlinkid))
                 {
-                    packets[mavlinkid] = null;
+                    packets[mavlinkid].Clear();;
                 }
             }
         }
@@ -194,6 +290,8 @@ namespace MissionPlanner
 
         public MAV_AUTOPILOT apname { get; set; }
 
+        public bool CANNode { get; set; } = false;
+
         public ap_product Product_ID
         {
             get
@@ -206,25 +304,24 @@ namespace MissionPlanner
         /// <summary>
         /// used as a snapshot of what is loaded on the ap atm. - derived from the stream
         /// </summary>
-        public ConcurrentDictionary<int, mavlink_mission_item_t> wps = new ConcurrentDictionary<int, mavlink_mission_item_t>();
+        public ConcurrentDictionary<int, mavlink_mission_item_int_t> wps = new ConcurrentDictionary<int, mavlink_mission_item_int_t>();
 
-        public ConcurrentDictionary<int, mavlink_rally_point_t> rallypoints = new ConcurrentDictionary<int, mavlink_rally_point_t>();
+        public ConcurrentDictionary<int, mavlink_mission_item_int_t> rallypoints = new ConcurrentDictionary<int, mavlink_mission_item_int_t>();
 
-        public ConcurrentDictionary<int, mavlink_fence_point_t> fencepoints = new ConcurrentDictionary<int, mavlink_fence_point_t>();
+        public ConcurrentDictionary<int, mavlink_mission_item_int_t> fencepoints = new ConcurrentDictionary<int, mavlink_mission_item_int_t>();
 
         public List<mavlink_camera_feedback_t> camerapoints = new List<mavlink_camera_feedback_t>();
-
-        public GMapMarkerOverlapCount GMapMarkerOverlapCount = new GMapMarkerOverlapCount(PointLatLng.Empty);
 
         /// <summary>
         /// Store the guided mode wp location
         /// </summary>
-        public mavlink_mission_item_t GuidedMode = new mavlink_mission_item_t();
+        public mavlink_mission_item_int_t GuidedMode = new mavlink_mission_item_int_t();
 
         public Proximity Proximity;
 
         internal int recvpacketcount = 0;
         public Int64 time_offset_ns { get; set; }
+        public CameraProtocol Camera { get; set; }
 
         public override string ToString()
         {

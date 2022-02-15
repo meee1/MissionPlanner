@@ -41,6 +41,7 @@
             this.BUT_matlab = new MissionPlanner.Controls.MyButton();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.but_cs = new MissionPlanner.Controls.MyButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -118,7 +119,6 @@
             this.treeView1.CheckBoxes = true;
             resources.ApplyResources(this.treeView1, "treeView1");
             this.treeView1.Name = "treeView1";
-            this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             this.treeView1.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeView1_NodeMouseClick);
             // 
             // splitContainer1
@@ -134,10 +134,17 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.treeView1);
             // 
+            // but_cs
+            // 
+            resources.ApplyResources(this.but_cs, "but_cs");
+            this.but_cs.Name = "but_cs";
+            this.but_cs.UseVisualStyleBackColor = true;
+            this.but_cs.Click += new System.EventHandler(this.but_cs_Click);
+            // 
             // MavlinkLog
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             resources.ApplyResources(this, "$this");
+            this.Controls.Add(this.but_cs);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.BUT_matlab);
             this.Controls.Add(this.BUT_getwpsfromlog);
@@ -148,7 +155,6 @@
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.BUT_redokml);
             this.Name = "MavlinkLog";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Log_FormClosing);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -170,5 +176,6 @@
         private Controls.MyButton BUT_matlab;
         private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.SplitContainer splitContainer1;
+        private Controls.MyButton but_cs;
     }
 }

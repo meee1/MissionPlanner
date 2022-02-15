@@ -10,30 +10,34 @@ namespace MissionPlanner.Utilities
 {
     public class ZeroConf
     {
-        public static List<IZeroconfHost> Hosts = new List<IZeroconfHost>();
+        public static List<IZeroconfHost> RtspHosts = new List<IZeroconfHost>();
+
+        public delegate void ZeroConfHost(IZeroconfHost zeroconfHost);
+
+        public static event ZeroConfHost StartUDPMavlink;
 
         public static void ProbeForRTSP()
         {
-            Thread th = new Thread(resolverAsync);
-            th.IsBackground = true;
-            th.Start();
+            if(!System.Diagnostics.Debugger.IsAttached)
+                resolverAsync();
         }
 
-        private static void resolverAsync()
+        private static async Task resolverAsync()
         {
+            await Task.Delay(6000).ConfigureAwait(false);
             while (true)
             {
                 try
                 {
-                    var results = ZeroconfResolver.ResolveAsync("_rtsp._udp.local.");
+                    var results = await ZeroconfResolver.ResolveAsync("_rtsp._udp.local.").ConfigureAwait(false);
 
                     if (results != null)
                     {
-                        foreach (var zeroconfHost in results.Result)
+                        foreach (var zeroconfHost in results)
                         {
                             Console.WriteLine("Stream " + zeroconfHost);
-                            if (!Hosts.Contains(zeroconfHost))
-                                Hosts.Add(zeroconfHost);
+                            if (!RtspHosts.Contains(zeroconfHost))
+                                RtspHosts.Add(zeroconfHost);
                         }
                     }
                 }
@@ -41,8 +45,8 @@ namespace MissionPlanner.Utilities
                 {
                     
                 }
-
-                Thread.Sleep(4000);
+                
+                await Task.Delay(30000).ConfigureAwait(false);
             }
         }
 
@@ -52,6 +56,42 @@ namespace MissionPlanner.Utilities
             var responses = await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key));
             foreach (var resp in responses)
                 Console.WriteLine(resp);
+        }
+
+        public static void ProbeForMavlink()
+        {
+            if (!System.Diagnostics.Debugger.IsAttached)
+                resolverMavlinkAsync();
+        }
+
+        private static async Task resolverMavlinkAsync()
+        {
+            while (true)
+            {
+                try
+                {
+                    var results = await ZeroconfResolver.ResolveAsync("_mavlink._udp.local.").ConfigureAwait(false);
+
+                    if (results != null)
+                    {
+                        foreach (var zeroconfHost in results)
+                        {
+                            Console.WriteLine("Mavlink " + zeroconfHost);
+                            var service = zeroconfHost.Services.Where(a => a.Key == "_mavlink._udp.local.");
+                            if (service.Any())
+                            {
+                                StartUDPMavlink?.Invoke(zeroconfHost);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+
+                await Task.Delay(30000).ConfigureAwait(false);
+            }
         }
     }
 }

@@ -77,9 +77,14 @@ namespace wix
             if (args.Length > 1)
                 outputfilename = args[1];
 
+            string exepath = Path.GetFullPath(path) + Path.DirectorySeparatorChar + "MissionPlanner.exe";
+            string version = Assembly.LoadFile(exepath).GetName().Version.ToString();
+
+            System.Diagnostics.FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(exepath);
+
             sw = new StreamWriter(file);
 
-            header();
+            header(fvi.ProductVersion);
 
             sw.WriteLine("    <Directory Id=\"INSTALLDIR\" Name=\"Mission Planner\">");
 
@@ -96,10 +101,7 @@ namespace wix
 
             sw.Close();
 
-            string exepath = Path.GetFullPath(path) + Path.DirectorySeparatorChar + "MissionPlanner.exe";
-            string version = Assembly.LoadFile(exepath).GetName().Version.ToString();
-
-            System.Diagnostics.FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(exepath);
+    
 
             string fn = outputfilename + "-" + fvi.ProductVersion;
 
@@ -113,7 +115,7 @@ namespace wix
 
             st.WriteLine("pause");
 
-            st.WriteLine(@"""C:\Program Files\7-Zip\7z.exe"" a -tzip -xr!*.log -xr!*.log* -xr!beta.bat -xr!cameras.xml -xr!firmware.hex -xr!*.zip -xr!stats.xml -xr!*.bin -xr!*.xyz -xr!*.sqlite -xr!*.dxf -xr!*.zip -xr!*.h -xr!*.param -xr!ParameterMetaData.xml -xr!translation -xr!mavelous_web -xr!stats.xml -xr!driver -xr!*.etag -xr!srtm -xr!*.rlog -xr!*.zip -xr!*.tlog -xr!config.xml -xr!gmapcache -xr!eeprom.bin -xr!dataflash.bin -xr!*.new -xr!*.log -xr!ArdupilotPlanner.log* -xr!cameras.xml -xr!firmware.hex -xr!*.zip -xr!stats.xml -xr!ParameterMetaData.xml -xr!*.etag -xr!*.rlog -xr!*.tlog -xr!config.xml -xr!gmapcache -xr!eeprom.bin -xr!dataflash.bin -xr!*.new " + fn + @".zip " + path + "*");
+            st.WriteLine(@"""C:\Program Files\7-Zip\7z.exe"" a -tzip -xr!beta.bat -xr!cameras.xml -xr!firmware.hex -xr!*.zip -xr!stats.xml -xr!*.bin -xr!*.xyz -xr!*.sqlite -xr!*.dxf -xr!*.zip -xr!*.h -xr!*.param -xr!ParameterMetaData.xml -xr!translation -xr!mavelous_web -xr!stats.xml -xr!driver -xr!*.etag -xr!srtm -xr!*.rlog -xr!*.zip -xr!*.tlog -xr!config.xml -xr!gmapcache -xr!eeprom.bin -xr!dataflash.bin -xr!*.new -xr!*.log -xr!ArdupilotPlanner.log* -xr!cameras.xml -xr!firmware.hex -xr!*.zip -xr!stats.xml -xr!ParameterMetaData.xml -xr!*.etag -xr!*.rlog -xr!*.tlog -xr!config.xml -xr!gmapcache -xr!eeprom.bin -xr!dataflash.bin -xr!*.new " + fn + @".zip " + path + "*");
 
             st.WriteLine("About to upload!!!!!!!!!");
             st.WriteLine("pause");
@@ -124,11 +126,11 @@ namespace wix
             st.WriteLine(@"c:\cygwin\bin\ln.exe -f -s " + fn + ".zip " + outputfilename + "-latest.zip");
             st.WriteLine(@"c:\cygwin\bin\ln.exe -f -s " + fn + ".msi " + outputfilename + "-latest.msi");
 
-            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl' " + fn + ".zip michael@mega.ardupilot.org:MissionPlanner/");
-            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl' " + fn + ".msi michael@mega.ardupilot.org:MissionPlanner/");
+            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl' " + fn + ".zip michael@mega2.ardupilot.org:MissionPlanner/");
+            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl' " + fn + ".msi michael@mega2.ardupilot.org:MissionPlanner/");
 
-            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl'   -l MissionPlanner-latest.zip michael@mega.ardupilot.org:MissionPlanner/");
-            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl'   -l MissionPlanner-latest.msi michael@mega.ardupilot.org:MissionPlanner/");
+            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl'   -l MissionPlanner-latest.zip michael@mega2.ardupilot.org:MissionPlanner/");
+            st.WriteLine(@"c:\cygwin\bin\rsync.exe -Pv -e '/usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /cygdrive/c/Users/michael/sitl'   -l MissionPlanner-latest.msi michael@mega2.ardupilot.org:MissionPlanner/");
 
             st.Close();
 
@@ -147,27 +149,11 @@ namespace wix
             P.Start();
         }
 
-        static void header()
+        static void header(string version)
         {
             string newid = System.Guid.NewGuid().ToString();
 
             newid = "*";
-
-            StreamReader sr = new StreamReader(File.OpenRead("../MissionPlanner.csproj"));
-
-            string version = "0";
-
-            while (!sr.EndOfStream)
-            {
-                string line = sr.ReadLine();
-                if (line.Contains("<Version>"))
-                {
-                    string[] items = line.Split(new char[] {' ','"', '<', '>'}, StringSplitOptions.RemoveEmptyEntries);
-                    version = items[1];
-                    break;
-                }
-            }
-            sr.Close();
 
             string data = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"" xmlns:netfx=""http://schemas.microsoft.com/wix/NetFxExtension"" xmlns:difx=""http://schemas.microsoft.com/wix/DifxAppExtension"" xmlns:iis='http://schemas.microsoft.com/wix/IIsExtension' >
@@ -213,16 +199,20 @@ namespace wix
 
     <Binary Id=""signedcer""  SourceFile=""..\Drivers\signed.cer"" />
   
+    <CustomAction  Id='Drivercleanup' Execute='deferred' 
+    Directory='Drivers'  ExeCommand='[Drivers]DriverCleanup.exe' Return='ignore' Impersonate='no'/>
+
     <CustomAction  Id='Install_signed_Driver86' Execute='deferred' 
     Directory='Drivers'  ExeCommand='[Drivers]DPInstx86.exe' Return='ignore' Impersonate='no'/>
     <CustomAction  Id='Install_signed_Driver64' Execute='deferred' 
     Directory='Drivers'  ExeCommand='[Drivers]DPInstx64.exe' Return='ignore' Impersonate='no'/>
 
-    <InstallExecuteSequence>
+    <InstallExecuteSequence>  
     <Custom Action=""Install_signed_Driver86""  After=""CreateShortcuts"">NOT 
     Installed AND NOT VersionNT64</Custom>
     <Custom Action=""Install_signed_Driver64""  After=""CreateShortcuts"">NOT 
     Installed AND VersionNT64</Custom>
+    <Custom Action=""Drivercleanup""  After=""CreateShortcuts"">NOT Installed</Custom>
     </InstallExecuteSequence>
 
     <InstallExecuteSequence>
@@ -343,7 +333,7 @@ namespace wix
 
             foreach (string filepath in files)
             {
-                if (filepath.ToLower().EndsWith("release\\config.xml") || filepath.ToLower().Contains(".log") || filepath.ToLower().StartsWith("joystick") ||
+                if (filepath.ToLower().EndsWith("release\\config.xml") || filepath.ToLower().StartsWith("joystick") ||
                     filepath.ToLower().StartsWith("camera.xml") || filepath.ToLower().StartsWith("firmware.hex") || filepath.ToLower().EndsWith(".param") ||
                     filepath.ToLower().EndsWith(".bin") || filepath.ToLower().EndsWith(".etag") || filepath.ToLower().EndsWith("parametermetadata.xml") ||
                     filepath.ToLower().EndsWith(".zip") || filepath.ToLower().EndsWith(".rlog") || filepath.ToLower().Contains("stats.xml") || filepath.ToLower().Contains("beta.bat"))
@@ -363,8 +353,8 @@ namespace wix
      <Verb Id='open' Command='Open' TargetFile='" + mainexeid + @"' Argument='""%1""' />
   </Extension>
 </ProgId>
-<ProgId Id='MissionPlanner.bin' Description='Binary Log'>
-  <Extension Id='bin' ContentType='application/dflog'>
+<ProgId Id='MissionPlanner.dfbin' Description='Binary Log'>
+  <Extension Id='dfbin' ContentType='application/dflog'>
      <Verb Id='open' Command='Open' TargetFile='" + mainexeid + @"' Argument='""%1""' />
   </Extension>
 </ProgId>
@@ -376,8 +366,8 @@ namespace wix
  <RegistryValue Root=""HKCR"" Key=""MissionPlanner.tlog\shellex\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
  <RegistryValue Root=""HKCR"" Key=""MissionPlanner.tlog\shellex\{e357fccd-a995-4576-b01f-234630154e96}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
 
- <RegistryValue Root=""HKCR"" Key=""MissionPlanner.bin\shellex\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
- <RegistryValue Root=""HKCR"" Key=""MissionPlanner.bin\shellex\{e357fccd-a995-4576-b01f-234630154e96}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
+ <RegistryValue Root=""HKCR"" Key=""MissionPlanner.dfbin\shellex\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
+ <RegistryValue Root=""HKCR"" Key=""MissionPlanner.dfbin\shellex\{e357fccd-a995-4576-b01f-234630154e96}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
 
  <RegistryValue Root=""HKCR"" Key=""MissionPlanner.log\shellex\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />
  <RegistryValue Root=""HKCR"" Key=""MissionPlanner.log\shellex\{e357fccd-a995-4576-b01f-234630154e96}"" Value=""{f3b857f1-0b79-4e77-9d0b-8b8b7e874f56}"" Type=""string"" Action=""write"" />

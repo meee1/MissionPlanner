@@ -96,12 +96,20 @@
             this.label11 = new System.Windows.Forms.Label();
             this.BUT_save = new MissionPlanner.Controls.MyButton();
             this.tabGrid = new System.Windows.Forms.TabPage();
+            this.groupBoxSpiral = new System.Windows.Forms.GroupBox();
+            this.CHK_match_spiral_perimeter = new System.Windows.Forms.CheckBox();
+            this.LBL_clockwise_laps = new System.Windows.Forms.Label();
+            this.LBL_clockwise_laps1 = new System.Windows.Forms.Label();
+            this.NUM_clockwise_laps = new System.Windows.Forms.NumericUpDown();
+            this.label46 = new System.Windows.Forms.Label();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.chk_optimize_for_distance = new System.Windows.Forms.CheckBox();
             this.LBL_Alternating_lanes = new System.Windows.Forms.Label();
             this.LBL_Lane_Dist = new System.Windows.Forms.Label();
             this.NUM_Lane_Dist = new System.Windows.Forms.NumericUpDown();
             this.label28 = new System.Windows.Forms.Label();
             this.groupBox_copter = new System.Windows.Forms.GroupBox();
+            this.chk_spline = new System.Windows.Forms.CheckBox();
             this.TXT_headinghold = new System.Windows.Forms.TextBox();
             this.BUT_headingholdminus = new System.Windows.Forms.Button();
             this.BUT_headingholdplus = new System.Windows.Forms.Button();
@@ -110,13 +118,14 @@
             this.LBL_copter_delay = new System.Windows.Forms.Label();
             this.NUM_copter_delay = new System.Windows.Forms.NumericUpDown();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.chk_test = new System.Windows.Forms.CheckBox();
+            this.NUM_leadin2 = new System.Windows.Forms.NumericUpDown();
+            this.chk_spiral = new System.Windows.Forms.CheckBox();
+            this.chk_Corridor = new System.Windows.Forms.CheckBox();
             this.label43 = new System.Windows.Forms.Label();
             this.num_corridorwidth = new System.Windows.Forms.NumericUpDown();
             this.chk_crossgrid = new System.Windows.Forms.CheckBox();
             this.label32 = new System.Windows.Forms.Label();
             this.NUM_leadin = new System.Windows.Forms.NumericUpDown();
-            this.label7 = new System.Windows.Forms.Label();
             this.NUM_overshoot2 = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -170,11 +179,14 @@
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_focallength)).BeginInit();
             this.tabGrid.SuspendLayout();
+            this.groupBoxSpiral.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.NUM_clockwise_laps)).BeginInit();
             this.groupBox7.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_Lane_Dist)).BeginInit();
             this.groupBox_copter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_copter_delay)).BeginInit();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.NUM_leadin2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_corridorwidth)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_leadin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_overshoot2)).BeginInit();
@@ -661,7 +673,7 @@
             65536});
             resources.ApplyResources(this.NUM_focallength, "NUM_focallength");
             this.NUM_focallength.Maximum = new decimal(new int[] {
-            180,
+            500,
             0,
             0,
             0});
@@ -712,6 +724,7 @@
             // 
             // tabGrid
             // 
+            this.tabGrid.Controls.Add(this.groupBoxSpiral);
             this.tabGrid.Controls.Add(this.groupBox7);
             this.tabGrid.Controls.Add(this.groupBox_copter);
             this.tabGrid.Controls.Add(this.groupBox1);
@@ -721,15 +734,72 @@
             this.tabGrid.Name = "tabGrid";
             this.tabGrid.UseVisualStyleBackColor = true;
             // 
+            // groupBoxSpiral
+            // 
+            resources.ApplyResources(this.groupBoxSpiral, "groupBoxSpiral");
+            this.groupBoxSpiral.Controls.Add(this.CHK_match_spiral_perimeter);
+            this.groupBoxSpiral.Controls.Add(this.LBL_clockwise_laps);
+            this.groupBoxSpiral.Controls.Add(this.LBL_clockwise_laps1);
+            this.groupBoxSpiral.Controls.Add(this.NUM_clockwise_laps);
+            this.groupBoxSpiral.Controls.Add(this.label46);
+            this.groupBoxSpiral.Name = "groupBoxSpiral";
+            this.groupBoxSpiral.TabStop = false;
+            // 
+            // CHK_match_spiral_perimeter
+            // 
+            resources.ApplyResources(this.CHK_match_spiral_perimeter, "CHK_match_spiral_perimeter");
+            this.CHK_match_spiral_perimeter.Name = "CHK_match_spiral_perimeter";
+            this.CHK_match_spiral_perimeter.UseVisualStyleBackColor = true;
+            this.CHK_match_spiral_perimeter.CheckedChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            // 
+            // LBL_clockwise_laps
+            // 
+            resources.ApplyResources(this.LBL_clockwise_laps, "LBL_clockwise_laps");
+            this.LBL_clockwise_laps.Name = "LBL_clockwise_laps";
+            // 
+            // LBL_clockwise_laps1
+            // 
+            resources.ApplyResources(this.LBL_clockwise_laps1, "LBL_clockwise_laps1");
+            this.LBL_clockwise_laps1.Name = "LBL_clockwise_laps1";
+            // 
+            // NUM_clockwise_laps
+            // 
+            resources.ApplyResources(this.NUM_clockwise_laps, "NUM_clockwise_laps");
+            this.NUM_clockwise_laps.Maximum = new decimal(new int[] {
+            9999,
+            0,
+            0,
+            0});
+            this.NUM_clockwise_laps.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            -2147483648});
+            this.NUM_clockwise_laps.Name = "NUM_clockwise_laps";
+            this.NUM_clockwise_laps.ValueChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            // 
+            // label46
+            // 
+            resources.ApplyResources(this.label46, "label46");
+            this.label46.Name = "label46";
+            // 
             // groupBox7
             // 
             resources.ApplyResources(this.groupBox7, "groupBox7");
+            this.groupBox7.Controls.Add(this.chk_optimize_for_distance);
             this.groupBox7.Controls.Add(this.LBL_Alternating_lanes);
             this.groupBox7.Controls.Add(this.LBL_Lane_Dist);
             this.groupBox7.Controls.Add(this.NUM_Lane_Dist);
             this.groupBox7.Controls.Add(this.label28);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.TabStop = false;
+            // 
+            // chk_optimize_for_distance
+            // 
+            resources.ApplyResources(this.chk_optimize_for_distance, "chk_optimize_for_distance");
+            this.chk_optimize_for_distance.Name = "chk_optimize_for_distance";
+            this.chk_optimize_for_distance.UseVisualStyleBackColor = true;
+            this.chk_optimize_for_distance.CheckedChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
             // 
             // LBL_Alternating_lanes
             // 
@@ -760,6 +830,7 @@
             // groupBox_copter
             // 
             resources.ApplyResources(this.groupBox_copter, "groupBox_copter");
+            this.groupBox_copter.Controls.Add(this.chk_spline);
             this.groupBox_copter.Controls.Add(this.TXT_headinghold);
             this.groupBox_copter.Controls.Add(this.BUT_headingholdminus);
             this.groupBox_copter.Controls.Add(this.BUT_headingholdplus);
@@ -769,6 +840,12 @@
             this.groupBox_copter.Controls.Add(this.NUM_copter_delay);
             this.groupBox_copter.Name = "groupBox_copter";
             this.groupBox_copter.TabStop = false;
+            // 
+            // chk_spline
+            // 
+            resources.ApplyResources(this.chk_spline, "chk_spline");
+            this.chk_spline.Name = "chk_spline";
+            this.chk_spline.UseVisualStyleBackColor = true;
             // 
             // TXT_headinghold
             // 
@@ -828,13 +905,14 @@
             // groupBox1
             // 
             resources.ApplyResources(this.groupBox1, "groupBox1");
-            this.groupBox1.Controls.Add(this.chk_test);
+            this.groupBox1.Controls.Add(this.NUM_leadin2);
+            this.groupBox1.Controls.Add(this.chk_spiral);
+            this.groupBox1.Controls.Add(this.chk_Corridor);
             this.groupBox1.Controls.Add(this.label43);
             this.groupBox1.Controls.Add(this.num_corridorwidth);
             this.groupBox1.Controls.Add(this.chk_crossgrid);
             this.groupBox1.Controls.Add(this.label32);
             this.groupBox1.Controls.Add(this.NUM_leadin);
-            this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this.NUM_overshoot2);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.label6);
@@ -849,12 +927,35 @@
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.TabStop = false;
             // 
-            // chk_test
+            // NUM_leadin2
             // 
-            resources.ApplyResources(this.chk_test, "chk_test");
-            this.chk_test.Name = "chk_test";
-            this.chk_test.UseVisualStyleBackColor = true;
-            this.chk_test.Click += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            resources.ApplyResources(this.NUM_leadin2, "NUM_leadin2");
+            this.NUM_leadin2.Maximum = new decimal(new int[] {
+            9999,
+            0,
+            0,
+            0});
+            this.NUM_leadin2.Minimum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            -2147483648});
+            this.NUM_leadin2.Name = "NUM_leadin2";
+            this.NUM_leadin2.ValueChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            // 
+            // chk_spiral
+            // 
+            resources.ApplyResources(this.chk_spiral, "chk_spiral");
+            this.chk_spiral.Name = "chk_spiral";
+            this.chk_spiral.UseVisualStyleBackColor = true;
+            this.chk_spiral.Click += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            // 
+            // chk_Corridor
+            // 
+            resources.ApplyResources(this.chk_Corridor, "chk_Corridor");
+            this.chk_Corridor.Name = "chk_Corridor";
+            this.chk_Corridor.UseVisualStyleBackColor = true;
+            this.chk_Corridor.Click += new System.EventHandler(this.domainUpDown1_ValueChanged);
             // 
             // label43
             // 
@@ -903,13 +1004,13 @@
             0,
             0,
             0});
+            this.NUM_leadin.Minimum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            -2147483648});
             this.NUM_leadin.Name = "NUM_leadin";
             this.NUM_leadin.ValueChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
-            // 
-            // label7
-            // 
-            resources.ApplyResources(this.label7, "label7");
-            this.label7.Name = "label7";
             // 
             // NUM_overshoot2
             // 
@@ -919,6 +1020,11 @@
             0,
             0,
             0});
+            this.NUM_overshoot2.Minimum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            -2147483648});
             this.NUM_overshoot2.Name = "NUM_overshoot2";
             this.NUM_overshoot2.ValueChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
             // 
@@ -942,7 +1048,7 @@
             this.CMB_startfrom.FormattingEnabled = true;
             resources.ApplyResources(this.CMB_startfrom, "CMB_startfrom");
             this.CMB_startfrom.Name = "CMB_startfrom";
-            this.CMB_startfrom.SelectedIndexChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            this.CMB_startfrom.SelectedIndexChanged += new System.EventHandler(this.CMB_startfrom_SelectedIndexChanged);
             // 
             // num_overlap
             // 
@@ -981,6 +1087,11 @@
             0,
             0,
             0});
+            this.NUM_overshoot.Minimum = new decimal(new int[] {
+            999,
+            0,
+            0,
+            -2147483648});
             this.NUM_overshoot.Name = "NUM_overshoot";
             this.NUM_overshoot.ValueChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
             // 
@@ -1117,6 +1228,7 @@
             // 
             // NUM_UpDownFlySpeed
             // 
+            this.NUM_UpDownFlySpeed.DecimalPlaces = 1;
             resources.ApplyResources(this.NUM_UpDownFlySpeed, "NUM_UpDownFlySpeed");
             this.NUM_UpDownFlySpeed.Maximum = new decimal(new int[] {
             360,
@@ -1279,7 +1391,7 @@
             // 
             resources.ApplyResources(this.TRK_zoom, "TRK_zoom");
             this.TRK_zoom.LargeChange = 0.005F;
-            this.TRK_zoom.Maximum = 19F;
+            this.TRK_zoom.Maximum = 22F;
             this.TRK_zoom.Minimum = 2F;
             this.TRK_zoom.Name = "TRK_zoom";
             this.TRK_zoom.SmallChange = 0.001F;
@@ -1296,11 +1408,12 @@
             this.map.EmptyTileColor = System.Drawing.Color.Gray;
             this.map.GrayScaleMode = false;
             this.map.HelperLineOption = GMap.NET.WindowsForms.HelperLineOptions.DontShow;
+            this.map.HoldInvalidation = false;
             this.map.LevelsKeepInMemmory = 5;
             this.map.MarkersEnabled = true;
-            this.map.MaxZoom = 19;
+            this.map.MaxZoom = 24;
             this.map.MinZoom = 2;
-            this.map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
+            this.map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionWithoutCenter;
             this.map.Name = "map";
             this.map.NegativeMode = false;
             this.map.PolygonsEnabled = true;
@@ -1315,7 +1428,6 @@
             // 
             // GridUI
             // 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             resources.ApplyResources(this, "$this");
             this.Controls.Add(this.TRK_zoom);
             this.Controls.Add(this.map);
@@ -1340,6 +1452,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.NUM_focallength)).EndInit();
             this.tabGrid.ResumeLayout(false);
             this.tabGrid.PerformLayout();
+            this.groupBoxSpiral.ResumeLayout(false);
+            this.groupBoxSpiral.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.NUM_clockwise_laps)).EndInit();
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_Lane_Dist)).EndInit();
@@ -1348,6 +1463,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.NUM_copter_delay)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.NUM_leadin2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_corridorwidth)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_leadin)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_overshoot2)).EndInit();
@@ -1436,7 +1552,6 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown NUM_spacing;
-        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.NumericUpDown NUM_overshoot2;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label6;
@@ -1501,8 +1616,18 @@
         private System.Windows.Forms.NumericUpDown num_setservono;
         private System.Windows.Forms.Label lbl_minshutter;
         private System.Windows.Forms.Label label44;
-        private System.Windows.Forms.CheckBox chk_test;
+        private System.Windows.Forms.CheckBox chk_Corridor;
         private System.Windows.Forms.Label label43;
         private System.Windows.Forms.NumericUpDown num_corridorwidth;
+        private System.Windows.Forms.CheckBox chk_spiral;
+        private System.Windows.Forms.CheckBox chk_spline;
+        private System.Windows.Forms.NumericUpDown NUM_leadin2;
+        private System.Windows.Forms.CheckBox chk_optimize_for_distance;
+        private System.Windows.Forms.GroupBox groupBoxSpiral;
+        private System.Windows.Forms.Label LBL_clockwise_laps;
+        private System.Windows.Forms.Label LBL_clockwise_laps1;
+        private System.Windows.Forms.NumericUpDown NUM_clockwise_laps;
+        private System.Windows.Forms.Label label46;
+        private System.Windows.Forms.CheckBox CHK_match_spiral_perimeter;
     }
 }

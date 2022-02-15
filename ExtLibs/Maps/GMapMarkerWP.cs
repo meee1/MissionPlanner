@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using GMap.NET;
+using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 
 namespace MissionPlanner.Maps
@@ -28,6 +29,8 @@ namespace MissionPlanner.Maps
                 Bitmap temp = new Bitmap(100,40, PixelFormat.Format32bppArgb);
                 using (Graphics g = Graphics.FromImage(temp))
                 {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
                     txtsize = g.MeasureString(wpno, font);
 
                     g.DrawString(wpno, font, Brushes.Black, new PointF(0, 0));
@@ -36,7 +39,7 @@ namespace MissionPlanner.Maps
             }
         }
 
-        public override void OnRender(Graphics g)
+        public override void OnRender(IGraphics g)
         {
             if (selected)
             {

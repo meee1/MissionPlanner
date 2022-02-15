@@ -1,4 +1,4 @@
-﻿namespace MissionPlanner.Controls
+namespace MissionPlanner.Controls
 {
     partial class Coords
     {
@@ -33,6 +33,7 @@
             // 
             // CMB_coordsystem
             // 
+            this.CMB_coordsystem.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, global::System.Drawing.FontStyle.Regular, global::System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CMB_coordsystem.FormattingEnabled = true;
             this.CMB_coordsystem.Items.AddRange(new object[] {
             "GEO",
@@ -49,7 +50,7 @@
             // 
             this.Controls.Add(this.CMB_coordsystem);
             this.Name = "Coords";
-            this.Size = new System.Drawing.Size(200, 21);
+            this.Size = new System.Drawing.Size(200, 29);
             this.ResumeLayout(false);
 
         }

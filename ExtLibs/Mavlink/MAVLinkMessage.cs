@@ -1,19 +1,11 @@
-﻿using log4net;
+﻿
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using System.Diagnostics;
 
 public partial class MAVLink
 {
     public class MAVLinkMessage
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(MAVLinkMessage));
-
         public static readonly MAVLinkMessage Invalid = new MAVLinkMessage();
         object _locker = new object();
 
@@ -68,23 +60,35 @@ public partial class MAVLink
                     if (_data != null)
                         return _data;
 
-                    _data = Activator.CreateInstance(MAVLINK_MESSAGE_INFOS.GetMessageInfo(msgid).type);
+                    var typeinfo = MAVLINK_MESSAGE_INFOS.GetMessageInfo(msgid);
+
+                    if (typeinfo.type == null)
+                        return null;
+
+                    _data = Activator.CreateInstance(typeinfo.type);
 
                     try
                     {
+                        if (payloadlength == 0)
+                            return _data;
                         // fill in the data of the object
                         if (ismavlink2)
                         {
-                            MavlinkUtil.ByteArrayToStructure(buffer, ref _data, MAVLINK_NUM_HEADER_BYTES, payloadlength);
+                            _data = MavlinkUtil.ByteArrayToStructureGC(buffer, typeinfo.type, MAVLINK_NUM_HEADER_BYTES,
+                                payloadlength);
+                            //MavlinkUtil.ByteArrayToStructure(buffer, ref _data, MAVLINK_NUM_HEADER_BYTES, payloadlength);
                         }
                         else
                         {
-                            MavlinkUtil.ByteArrayToStructure(buffer, ref _data, 6, payloadlength);
+                            _data = MavlinkUtil.ByteArrayToStructureGC(buffer, typeinfo.type, 6, payloadlength);
                         }
                     }
                     catch (Exception ex)
                     {
-                        log.Error(ex);
+                        // should not happen
+                        if(Debugger.IsAttached)
+                            Debugger.Break();
+                        System.Diagnostics.Debug.WriteLine(ex);
                     }
                 }
 
@@ -151,8 +155,6 @@ public partial class MAVLink
         {
             this.buffer = buffer;
             this.rxtime = rxTime;
-
-            processBuffer(buffer);
         }
 
         internal void processBuffer(byte[] buffer)
@@ -161,6 +163,10 @@ public partial class MAVLink
 
             if (buffer[0] == MAVLINK_STX)
             {
+                if (buffer.Length < 10)
+                {
+                    return;
+                }
                 header = buffer[0];
                 payloadlength = buffer[1];
                 incompat_flags = buffer[2];
@@ -184,6 +190,10 @@ public partial class MAVLink
             }
             else
             {
+                if (buffer.Length < 6)
+                {
+                    return;
+                }
                 header = buffer[0];
                 payloadlength = buffer[1];
                 seq = buffer[2];

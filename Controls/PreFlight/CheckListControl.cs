@@ -1,14 +1,9 @@
-﻿using System;
+﻿using MissionPlanner.Utilities;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.IO;
-using System.Collections;
-using MissionPlanner.Utilities;
+using System.Windows.Forms;
 
 namespace MissionPlanner.Controls.PreFlight
 {
@@ -56,7 +51,7 @@ namespace MissionPlanner.Controls.PreFlight
                 if (rowcount == this.CheckListItems.Count)
                     return;
 
-                panel1.SuspendLayout();
+                panel1.Visible = false;
                 panel1.Controls.Clear();
 
                 int y = 0;
@@ -72,7 +67,7 @@ namespace MissionPlanner.Controls.PreFlight
                     y = wrnctl.Bottom;
                 }
             }
-            panel1.ResumeLayout(true);
+            panel1.Visible = true;
         }
 
         void UpdateDisplay()
@@ -119,10 +114,15 @@ namespace MissionPlanner.Controls.PreFlight
 
             var height = TextRenderer.MeasureText(desctext, this.Font).Height;
 
-            GroupBox gb = new GroupBox() { Text = "", Location = new Point(x,y), Size = new Size(330, 17 + height), Name = "gb" + y };
+            var x0 = (int)(Width * 0.95);
+            var x1 = (int)(x0 * 0.5);
+            var x2 = (int)(x0 * 0.4);
+            var x3 = (int)(x0 * 0.1);
 
-            Label desc = new Label() { Text = desctext, Location = new Point(5, 9), Size = new Size(150, height), Name = "udesc" + y };
-            Label text = new Label() { Text = texttext, Location = new Point(desc.Right, 9), Size = new Size(150, height), Name = "utext" + y };
+            GroupBox gb = new GroupBox() { Text = "", Location = new Point(x, y), Size = new Size(x0, 17 + height), Name = "gb" + y };
+
+            Label desc = new Label() { Text = desctext, Location = new Point(5, 9), Size = new Size(x1, height), Name = "udesc" + y };
+            Label text = new Label() { Text = texttext, Location = new Point(desc.Right, 9), Size = new Size(x2, height), Name = "utext" + y };
             CheckBox tickbox = new CheckBox() { Checked = item.checkCond(item), Location = new Point(text.Right, 7), Size = new Size(21, 21), Name = "utickbox" + y };
 
             desc.Tag = text.Tag = tickbox.Tag = new internaldata { CLItem = item, desc = desc, text = text, tickbox = tickbox };
@@ -202,6 +202,11 @@ namespace MissionPlanner.Controls.PreFlight
         protected override void OnVisibleChanged(EventArgs e)
         {
             base.OnVisibleChanged(e);
+
+            if (!MainV2.DisplayConfiguration.displayPreFlightTabEdit)
+            {
+                BUT_edit.Visible = false;
+            }
 
             if (Visible)
             {

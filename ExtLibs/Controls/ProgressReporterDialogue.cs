@@ -28,8 +28,9 @@ namespace MissionPlanner.Controls
         internal string _status = "";
 
         public bool Running = false;
+        private Thread BGThread;
 
-  
+
         // This is the event that will be raised on the BG thread
         public event Utilities.DoWorkEventHandler DoWork;
 
@@ -37,7 +38,7 @@ namespace MissionPlanner.Controls
         {
             InitializeComponent();
             doWorkArgs = new ProgressWorkerEventArgs();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            
             this.btnClose.Visible = false;
 
         }
@@ -60,6 +61,8 @@ namespace MissionPlanner.Controls
         {
             Running = true;
             log.Info("RunBackgroundOperation");
+
+            BGThread = Thread.CurrentThread;
 
             try
             {
@@ -113,9 +116,19 @@ namespace MissionPlanner.Controls
                 // Examine the work args, if there is an error, then display that and the exception details
                 // Otherwise display 'Unexpected error' and exception details
                 timer1.Stop();
-                ShowDoneWithError(e, doWorkArgs.ErrorMessage);
-                Running = false;
-                return;
+                if (doWorkArgs.CancelRequested && doWorkArgs.CancelAcknowledged)
+                {
+                    // must be actioned inside the catch, as this thread was just aborted
+                    Running = false;
+                    this.BeginInvoke((MethodInvoker)this.Close);
+                    return;
+                }
+                else
+                {
+                    ShowDoneWithError(e, doWorkArgs.ErrorMessage);
+                    Running = false;
+                    return;
+                }
             }
 
             // stop the timer
@@ -193,9 +206,10 @@ namespace MissionPlanner.Controls
                     this.progressBar1.Value = 100;
                     this.btnCancel.Visible = false;
                     this.btnClose.Visible = false;
+                    this.ControlBox = true;
                 });
 
-            Thread.Sleep(100);
+            Thread.Sleep(100);         
 
             this.BeginInvoke((MethodInvoker)this.Close);
         }
@@ -209,7 +223,7 @@ namespace MissionPlanner.Controls
         // - Change the Cancel button to 'Close', so that the user can look at the exception message a bit
         private void ShowDoneWithError(Exception exception, string doWorkArgs)
         {
-            var errMessage = doWorkArgs ?? "There was an unexpected error";
+            var errMessage = doWorkArgs ?? "There was an unexpected error (" + exception.Message + ")";
 
             if (this.Disposing || this.IsDisposed)
                 return;
@@ -319,6 +333,17 @@ namespace MissionPlanner.Controls
                 } // Exception System.ArgumentOutOfRangeException: Value of '-12959800' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
                 catch { } // clean fail. and ignore, chances are we will hit this again in the next 100 ms
             }
+
+            if (doWorkArgs != null && doWorkArgs.CancelRequested && doWorkArgs.ForceExit)
+            {
+                if (BGThread != null && BGThread.IsAlive)
+                {
+                    try
+                    {
+                        BGThread.Abort();
+                    } catch { }
+                }
+            }
         }
 
         private void ProgressReporterDialogue_Load(object sender, EventArgs e)
@@ -326,6 +351,10 @@ namespace MissionPlanner.Controls
             this.Focus();
         }
 
+        void IProgressReporterDialogue.BeginInvoke(Delegate method)
+        {
+            this.BeginInvoke(method);
+        }
     }
 
 }

@@ -1,15 +1,13 @@
 ﻿using GMap.NET.WindowsForms;
-using GMap.NET.WindowsForms.Markers;
 using MissionPlanner.Controls;
+using MissionPlanner.Maps;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using MissionPlanner.Maps;
 
 namespace MissionPlanner.Utilities
 {
@@ -67,7 +65,7 @@ namespace MissionPlanner.Utilities
 
             POI.POIs.Add(pnt);
 
-            if (_POIModified != null)
+            if (_POIModified != null && !loading)
                 _POIModified(null, null);
         }
 
@@ -133,7 +131,7 @@ namespace MissionPlanner.Utilities
                 {
                     POIs[a].Lat = Point.Position.Lat;
                     POIs[a].Lng = Point.Position.Lng;
-                    POIs[a].Tag = POIs[a].Tag.Substring(0,POIs[a].Tag.IndexOf('\n')) + "\n" + Point.Position.ToString();
+                    POIs[a].Tag = POIs[a].Tag.Substring(0, POIs[a].Tag.IndexOf('\n')) + "\n" + Point.Position.ToString();
                     break;
                 }
             }
@@ -157,12 +155,12 @@ namespace MissionPlanner.Utilities
 
         private static void SaveFile(string fileName)
         {
-            using (Stream file = File.Open(fileName,FileMode.Create))
+            using (Stream file = File.Open(fileName, FileMode.Create))
             {
                 foreach (var item in POI.POIs)
                 {
                     string line = item.Lat.ToString(CultureInfo.InvariantCulture) + "\t" +
-                                  item.Lng.ToString(CultureInfo.InvariantCulture) + "\t" + item.Tag.Substring(0,item.Tag.IndexOf('\n')) + "\r\n";
+                                  item.Lng.ToString(CultureInfo.InvariantCulture) + "\t" + item.Tag.Substring(0, item.Tag.IndexOf('\n')) + "\r\n";
                     byte[] buffer = ASCIIEncoding.ASCII.GetBytes(line);
                     file.Write(buffer, 0, buffer.Length);
                 }
@@ -186,7 +184,7 @@ namespace MissionPlanner.Utilities
         private static void LoadFile(string fileName)
         {
             loading = true;
-            using (Stream file = File.Open(fileName,FileMode.Open))
+            using (Stream file = File.Open(fileName, FileMode.Open))
             {
                 using (StreamReader sr = new StreamReader(file))
                 {
@@ -194,7 +192,7 @@ namespace MissionPlanner.Utilities
                     {
                         string[] items = sr.ReadLine().Split('\t');
 
-                        if(items.Count() < 3)
+                        if (items.Count() < 3)
                             continue;
 
                         POIAdd(new PointLatLngAlt(double.Parse(items[0], CultureInfo.InvariantCulture)
@@ -203,6 +201,9 @@ namespace MissionPlanner.Utilities
                 }
             }
             loading = false;
+            // redraw now
+            if (_POIModified != null)
+                _POIModified(null, null);
         }
 
         public static void UpdateOverlay(GMap.NET.WindowsForms.GMapOverlay poioverlay)

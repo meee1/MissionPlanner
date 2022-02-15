@@ -164,6 +164,16 @@ namespace MissionPlanner.Controls
 
         #region Methods
 
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            if (e.ClipRectangle.IsEmpty)
+                return;
+            // this is to improve first render time when not onscreen.
+            if (!numericUpDown1.Visible)
+                numericUpDown1.Visible = true;
+            base.OnPaint(e);
+        }
+
         public void AttachEvents()
         {
             numericUpDown1.ValueChanged += numericUpDown1_ValueChanged;
@@ -195,7 +205,9 @@ namespace MissionPlanner.Controls
             // if the increment is divisible by one, always round to an int
             if ((Increment % 1) == 0)
             {
-                numericUpDown1.Value = (int) Math.Round(numericUpDown1.Value, 0);
+                var round = Math.Round(numericUpDown1.Value, 0);
+                if(round > numericUpDown1.Minimum)
+                    numericUpDown1.Value = (int) round;
             }
 
             numericUpDown1.BackColor = Color.Green;

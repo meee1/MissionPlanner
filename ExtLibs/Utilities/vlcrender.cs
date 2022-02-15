@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using SkiaSharp;
 
 namespace MissionPlanner.Utilities
 {
@@ -20,8 +21,8 @@ namespace MissionPlanner.Utilities
         LibVLCLibrary.libvlc_video_format_cb vlc_video_format_delegate;
         LibVLCLibrary.libvlc_video_cleanup_cb vlc_video_cleanup_delegate;
 
-        private static event EventHandler<Image> _onNewImage;
-        public static event EventHandler<Image> onNewImage
+        private static event EventHandler<Bitmap> _onNewImage;
+        public static event EventHandler<Bitmap> onNewImage
         {
             add { _onNewImage += value; }
             remove { _onNewImage -= value; }
@@ -61,7 +62,7 @@ namespace MissionPlanner.Utilities
                 this.Width = forceWidth;
                 this.Height = forceHeight;
 
-                library.libvlc_video_set_format(this.mp, "RV24", (uint)Width, (uint)Height, (uint)Width * 4);
+                library.libvlc_video_set_format(this.mp, "RV32", (uint)Width, (uint)Height, (uint)Width * 4);
             }
             else
             {
@@ -78,7 +79,7 @@ namespace MissionPlanner.Utilities
         {
             this.Width = (int)width;
             this.Height = (int)height;
-            chroma = BitConverter.ToUInt32(new byte[] { (byte)'R', (byte)'V', (byte)'2', (byte)'4' }, 0);
+            chroma = BitConverter.ToUInt32(new byte[] { (byte)'R', (byte)'V', (byte)'3', (byte)'2' }, 0);
             pitches = width * 4;
 
             if (imageIntPtr == IntPtr.Zero)
@@ -138,7 +139,7 @@ namespace MissionPlanner.Utilities
 
         private void vlc_picture(IntPtr opaque, IntPtr picture)
         {
-            var image = new Bitmap(Width, Height, 4 * Width, System.Drawing.Imaging.PixelFormat.Format24bppRgb, picture);
+            var image = (Bitmap)new Bitmap(Width, Height, 4 * Width, SKColorType.Bgra8888, picture).Clone();
 
             _onNewImage?.Invoke(this, image);
         }

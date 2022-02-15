@@ -56,7 +56,7 @@ namespace MissionPlanner.Log
 
         public static void ProcessLog(string fn, Action<string> ProgressEvent = null)
         {
-            using (CollectionBuffer colbuf = new CollectionBuffer(File.OpenRead(fn)))
+            using (DFLogBuffer colbuf = new DFLogBuffer(File.OpenRead(fn)))
             {
                 // store all the arrays
                 List<MLArray> mlList = new List<MLArray>();
@@ -125,34 +125,46 @@ namespace MissionPlanner.Log
                         // make sure the line is long enough
                         if (items.Length < 2)
                             continue;
+
+                        var linetype = items[0];
+                        var logtype = linetype;
+
                         // check we have a valid fmt message for this message type
-                        if (!len.ContainsKey(items[0]))
+                        if (!len.ContainsKey(linetype))
                             continue;
                         // check the fmt length matchs what the log has
-                        if (items.Length != (int) len[items[0]])
+                        if (items.Length != (int) len[linetype])
                             continue;
 
                         // mark it as being seen
-                        seen[items[0]] = 1;
-                        if (items[0].ToLower().Equals("msg"))
+                        seen[linetype] = 1;
+
+                        // filter out msg text strings
+                        if (linetype.ToLower().Equals("msg"))
                         {
-                            var cells = CreateCellArrayCustom(items[0], items);
+                            var cells = CreateCellArrayCustom(linetype, items);
 
-                            if (!dataCell.ContainsKey(items[0]))
-                                dataCell[items[0]] = new List<MLCell>();
+                            if (!dataCell.ContainsKey(linetype))
+                                dataCell[linetype] = new List<MLCell>();
 
-                            dataCell[items[0]].Add(cells);
+                            dataCell[linetype].Add(cells);
                         }
 
-                        if (items[0].ToUpper().Equals("ISBD"))
+                        if (linetype.ToUpper().Equals("ISBD"))
                         {
                             //ISBD
-                            var cells = CreateCellArrayCustom(items[0], items);
+                            var cells = CreateCellArrayCustom(linetype, items);
 
-                            if (!dataCell.ContainsKey(items[0]))
-                                dataCell[items[0]] = new List<MLCell>();
+                            if (!dataCell.ContainsKey(linetype))
+                                dataCell[linetype] = new List<MLCell>();
 
-                            dataCell[items[0]].Add(cells);
+                            dataCell[linetype].Add(cells);
+                        }
+
+                        int idx = -1;
+                        if ((idx = colbuf.getInstanceIndex(linetype)) > 0)
+                        {
+                            linetype = linetype + "_" + items[idx];
                         }
 
                         double[] dbarray = new double[items.Length];
@@ -169,10 +181,10 @@ namespace MissionPlanner.Log
                             dbarray[n] = dbl;
                         }
 
-                        if (!data.ContainsKey(items[0]))
-                            data[items[0]] = new MatLab.DoubleList();
+                        if (!data.ContainsKey(linetype))
+                            data[linetype] = new MatLab.DoubleList();
 
-                        data[items[0]].Add(dbarray);
+                        data[linetype].Add(dbarray);
                     }
 
                     // split at x records
@@ -266,6 +278,9 @@ namespace MissionPlanner.Log
                 while (cs.Position < cs.Length)
                 {
                     MAVLink.MAVLinkMessage packet = parse.ReadPacket(cs);
+
+                    if(packet == null)
+                        continue;
 
                     object data = packet.data;
 
@@ -386,9 +401,9 @@ namespace MissionPlanner.Log
         public static double GetMatLabSerialDate(DateTime dt)
         {
             // in c# i cant represent year 0000, so we add one year and the leap year
-            DateTime timebase = new DateTime(1, 1, 1); // = 1
+            DateTime timebase = DateTime.MinValue; // = 1
 
-            double answer = (dt.AddYears(1).AddDays(1) - timebase).TotalDays;
+            double answer = (dt.AddYears(1).AddDays(2) - timebase).TotalDays;
 
             return answer;
         }
