@@ -172,10 +172,12 @@ namespace GMap.NET.Internals
 
         #region -- etc cache --
 
-        static readonly SHA1CryptoServiceProvider HashProvider = new SHA1CryptoServiceProvider();
+        private static SHA1CryptoServiceProvider HashProvider;
 
         void ConvertToHash(ref string s)
         {
+            if (HashProvider == null)
+                HashProvider = new SHA1CryptoServiceProvider();
             s = BitConverter.ToString(HashProvider.ComputeHash(Encoding.Unicode.GetBytes(s)));
         }
 

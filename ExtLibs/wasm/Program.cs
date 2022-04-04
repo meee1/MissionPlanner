@@ -1,6 +1,9 @@
-﻿
+﻿extern alias MPDrawing;
+extern alias MPCommon;
 using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Blazor.IndexedDB.Framework;
@@ -27,7 +30,11 @@ using log4net.Layout;
 using log4net.Repository.Hierarchy;
 using System.IO;
 using System.Net;
+using System.Windows.Forms;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using MPDrawing::System.Drawing;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace wasm
 {
@@ -35,7 +42,13 @@ namespace wasm
     {
         private static log4net.ILog log;
 
+        private static void AddTypeConverter(Type type, Type type1)
+        {
+            Attribute[] newAttributes = new Attribute[1];
+            newAttributes[0] = new TypeConverterAttribute(type1);
 
+            TypeDescriptor.AddAttributes(type, newAttributes);
+        }
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -94,6 +107,18 @@ namespace wasm
 
                 log.Info("Configure Done");
 
+                new MPCommon::MissionPlanner.Drawing.Common.Common();
+                
+
+                AddTypeConverter(typeof(MPDrawing::System.Drawing.Bitmap), typeof(BitmapClassConverter));
+                AddTypeConverter(typeof(MPDrawing::System.Drawing.Icon), typeof(IconClassConverter));
+                AddTypeConverter(typeof(Font), typeof(FontClassConverter));
+                //AddTypeConverter(typeof(Point), typeof(PointClassConverter));
+                //AddTypeConverter(typeof(Size), typeof(SizeClassConverter));
+
+                //new MissionPlanner.Drawing.Common.Common();
+
+
                 //System.Net.WebRequest.get_InternalDefaultWebProxy
 
                 //WebRequest.DefaultWebProxy = GlobalProxySelection.GetEmptyWebProxy();
@@ -146,12 +171,114 @@ namespace wasm
             Console.WriteLine("Download_RequestModification Set No-Cors");
             e.SetBrowserRequestMode(BrowserRequestMode.NoCors);
         }
+
+
     }
 
+    [TypeConverter(typeof(FontClassConverter))]
+    public class FontClassConverter : TypeConverter
+    { 
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        {
+            if (sourceType == typeof(string)) return true;
 
+            return base.CanConvertFrom(context, sourceType);
+        }
+
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        {
+            var info = value.ToString().Split(',');
+            return new Font(info[0], int.Parse(info[1].Replace("pt", "")));
+
+            return base.ConvertFrom(context, culture, value);
+        }
+    }
+
+    [TypeConverter(typeof(ControlClassConverter))]
+    public class ControlClassConverter : TypeConverter
+    {
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        {
+            return true;
+
+            return base.CanConvertFrom(context, sourceType);
+        }
+
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        {
+            var log =
+                log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            log.Info("ControlClassConverter.ConvertFrom " + value + " " + context);
+
+            if (string.Equals(value, "$this"))
+            {
+                return null;
+            }
+
+            return base.ConvertFrom(context, culture, value);
+        }
+    }
+
+    [TypeConverter(typeof(BitmapClassConverter))]
+    public class BitmapClassConverter : TypeConverter
+    {
+        public override bool CanConvertFrom(ITypeDescriptorContext context,
+            Type sourceType)
+        {
+            if (sourceType == typeof(MPDrawing::System.Drawing.Bitmap))
+            {
+                return true;
+            }
+            return base.CanConvertFrom(context, sourceType);
+        }
+        public override object ConvertFrom(ITypeDescriptorContext context,
+            CultureInfo culture, object value)
+        {
+            if (value is byte[])
+            {
+                return new MPDrawing::System.Drawing.Bitmap(new MemoryStream((byte[])value));
+            }
+            return base.ConvertFrom(context, culture, value);
+        }
+        public override object ConvertTo(ITypeDescriptorContext context,
+            CultureInfo culture, object value, Type destinationType)
+        {
+            if (destinationType == typeof(string)) { return "___"; }
+            return base.ConvertTo(context, culture, value, destinationType);
+        }
+    }
+    [TypeConverter(typeof(IconClassConverter))]
+    public class IconClassConverter : TypeConverter
+    {
+        public override bool CanConvertFrom(ITypeDescriptorContext context,
+            Type sourceType)
+        {
+            if (sourceType == typeof(MPDrawing::System.Drawing.Icon))
+            {
+                return true;
+            }
+            return base.CanConvertFrom(context, sourceType);
+        }
+        public override object ConvertFrom(ITypeDescriptorContext context,
+            CultureInfo culture, object value)
+        {
+            if (value is byte[])
+            {
+                return new MPDrawing::System.Drawing.Icon(new MemoryStream((byte[])value));
+            }
+            return base.ConvertFrom(context, culture, value);
+        }
+        public override object ConvertTo(ITypeDescriptorContext context,
+            CultureInfo culture, object value, Type destinationType)
+        {
+            if (destinationType == typeof(string)) { return "___"; }
+            return base.ConvertTo(context, culture, value, destinationType);
+        }
+    }
+    
 
     // Represents the database
-        public class ExampleDb : IndexedDb
+    public class ExampleDb : IndexedDb
         {
             public ExampleDb(IJSRuntime jSRuntime, string name, int version) : base(jSRuntime, name, version) { }
 

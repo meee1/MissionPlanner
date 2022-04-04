@@ -11,6 +11,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>false</Deterministic>
     <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <GenerateResourceUsePreserializedResources >true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -433,6 +434,7 @@
    <PackageReference Include="SkiaSharp.Views.Forms" Version="2.80.2" />
    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
    <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
+   <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
    <PackageReference Include="System.Runtime" Version="4.3.1" />
    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />

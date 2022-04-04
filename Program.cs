@@ -13,6 +13,7 @@ using System.Linq;
 using System.Management;
 using System.Net;
 using System.Reflection;
+using System.Resources.Extensions;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -80,6 +81,8 @@ namespace MissionPlanner
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
             //AppDomain.CurrentDomain.AssemblyResolve += Resolver;
+
+            GC.KeepAlive(typeof(DeserializingResourceReader));
         }
 
         /// <summary>
@@ -498,7 +501,12 @@ namespace MissionPlanner
         private static void CurrentDomain_FirstChanceException(object sender,
             System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
         {
-            log.Debug("FirstChanceException in: " + e.Exception.Source, e.Exception);
+            log.Debug("FirstChanceException in: " + e.Exception.ToString());
+
+            if (e.Exception is ArgumentNullException)
+            {
+
+            }
         }
 
         private static Assembly CurrentDomain_TypeResolve(object sender, ResolveEventArgs args)

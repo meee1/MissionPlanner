@@ -62,7 +62,7 @@
                 <button @onclick=@(async() => { await mav.doARMAsync(mav.MAV.sysid, mav.MAV.compid, true);})>Arm</button>
                 <button @onclick=@(async() => { await mav.doARMAsync(mav.MAV.sysid, mav.MAV.compid, false);})>Disarm</button>
                 <select @onchange=@(async (item) => modeselected = item.Value.ToString())>
-                    @foreach (var mode in Common.getModesList(mav?.MAV?.cs?.firmware ?? Firmwares.ArduCopter2))
+                    @foreach (var mode in MissionPlanner.ArduPilot.Common.getModesList(mav?.MAV?.cs?.firmware ?? Firmwares.ArduCopter2))
                     {
                         <option value="@mode.Value">@mode.Value</option>
                     }

@@ -128,6 +128,8 @@ namespace GMap.NET.Internals
       {
           byte[] Results;
 
+          return Message;
+
           using (var HashProvider = new SHA1CryptoServiceProvider())
           {
               byte[] TDESKey = HashProvider.ComputeHash(Encoding.UTF8.GetBytes(Passphrase));
@@ -166,7 +168,9 @@ namespace GMap.NET.Internals
       {
           byte[] Results;
 
-          using (var HashProvider = new SHA1CryptoServiceProvider())
+          return Message;
+
+using (var HashProvider = new SHA1CryptoServiceProvider())
           {
               byte[] TDESKey = HashProvider.ComputeHash(Encoding.UTF8.GetBytes(Passphrase));
               Array.Resize(ref TDESKey, 16);

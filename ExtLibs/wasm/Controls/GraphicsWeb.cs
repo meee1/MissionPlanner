@@ -10,6 +10,7 @@ using MPDrawing::System.Drawing.Imaging;
 using MPDrawing::System.Drawing.Text;
 using Color = System.Drawing.Color;
 using IGraphics = MPDrawing::System.Drawing.IGraphics;
+using Icon = MPDrawing::System.Drawing.Icon;
 using Rectangle = System.Drawing.Rectangle;
 using PointF = System.Drawing.PointF;
 using RectangleF = System.Drawing.RectangleF;
@@ -314,7 +315,7 @@ namespace MissionPlanner.Controls
         {
             DrawEllipse(pen, x, y, width, (float) height);
         }
-
+        /*
         public void DrawIcon(Icon icon, int x, int y)
         {
             throw new NotImplementedException();
@@ -329,7 +330,7 @@ namespace MissionPlanner.Controls
         {
             throw new NotImplementedException();
         }
-
+        */
         public void DrawImage(Image image, PointF point)
         {
             DrawImage(image, point.X, point.Y);
@@ -1387,6 +1388,21 @@ namespace MissionPlanner.Controls
         }
 
         private void FillBeziers(Brush brush, PointF[] points, FillMode fillmode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DrawIcon(MPDrawing::System.Drawing.Icon icon, int x, int y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DrawIcon(MPDrawing::System.Drawing.Icon icon, Rectangle targetRect)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DrawIconUnstretched(MPDrawing::System.Drawing.Icon icon, Rectangle targetRect)
         {
             throw new NotImplementedException();
         }

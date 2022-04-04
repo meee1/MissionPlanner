@@ -1153,7 +1153,8 @@ namespace MissionPlanner.Properties {
         ///      &lt;P2&gt;&lt;/P2&gt;
         ///      &lt;P3&gt;Radius&lt;/P3&gt;
         ///      &lt;P4&gt;&lt;/P4&gt;
-        ///   [rest of string was truncated]&quot;;.
+        ///      &lt;X&gt;Lat&lt;/X&gt;
+        ///      &lt;Y&gt;Long [rest of string was truncated]&quot;;.
         /// </summary>
         public static string mavcmd {
             get {

@@ -1240,7 +1240,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
 
         public void ResetClip()
         {
-            _image.ClipRect(SKRect.Create(0, 0, 10000, 10000), (SKClipOperation) 5); // kReplace_Op
+            _image.ClipRect(SKRect.Create(0, 0, 10000, 10000), (SKClipOperation.Intersect)); // kReplace_Op
         }
 
         public void ResetTransform()

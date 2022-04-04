@@ -74,7 +74,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
 
         public Region Clip {
             get { return new Region(Rectangle.FromLTRB((int)_image.LocalClipBounds.Left,(int) _image.LocalClipBounds.Top, (int)_image.LocalClipBounds.Right,(int) _image.LocalClipBounds.Bottom)); }
-            set { _image.ClipRect(value.Bounds, (SKClipOperation) 5); }
+            set { _image.ClipRect(value.Bounds, SKClipOperation.Intersect); }
         }
         public RectangleF ClipBounds {
             get { return new RectangleF(_image.LocalClipBounds.Left,_image.LocalClipBounds.Top,_image.LocalClipBounds.Width,_image.LocalClipBounds.Height); }
@@ -1255,7 +1255,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
 
         public void ResetClip()
         {
-            _image.ClipRect(SKRect.Create(0, 0, 10000, 10000), (SKClipOperation) 5); // kReplace_Op
+            _image.ClipRect(SKRect.Create(0, 0, 10000, 10000), (SKClipOperation.Intersect)); // kReplace_Op
             //_image.RestoreToCount(-1);
             //_image.ClipRect(SKRect.Create(0, 0, 10000, 10000), SKClipOperation.Intersect, false);
         }

@@ -242,9 +242,16 @@ namespace GMap.NET.MapProviders
 
         protected GMapProvider()
         {
-            using (var HashProvider = new SHA1CryptoServiceProvider())
+            try
             {
-                DbId = Math.Abs(BitConverter.ToInt32(HashProvider.ComputeHash(Id.ToByteArray()), 0));
+                using (var HashProvider = new SHA1CryptoServiceProvider())
+                {
+                    DbId = Math.Abs(BitConverter.ToInt32(HashProvider.ComputeHash(Id.ToByteArray()), 0));
+                }
+            }
+            catch
+            {
+                DbId = new Random().Next();
             }
 
             if (MapProviders.Exists(p => p.Id == Id || p.DbId == DbId))
