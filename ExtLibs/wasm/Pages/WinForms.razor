@@ -13,7 +13,7 @@
 @code {
 
     SKGLView _skglview;
-    
+
     static WinForms instance;
 
     protected override void OnInitialized ()
@@ -30,7 +30,7 @@
         {
             var frm = new Form();
             frm.Location = new Point(30, 50);
-                frm.Text = "test";
+            frm.Text = "test";
             frm.Width = 200;
             frm.Name = "test";
             frm.Height = 250;
@@ -56,10 +56,15 @@
             frm.Controls.Add(new Button());
             frm.Controls.Add(new Button());
 
+            //Application.Run(frm);
+
+            SerialPort.DefaultType = (port, s, arg3) => { return new WASMPort(); };
 
             MissionPlanner.Program.Main(new string[]{});
         }
     }
+
+ 
 
     private void Application_Idle(object sender, EventArgs e)
     {

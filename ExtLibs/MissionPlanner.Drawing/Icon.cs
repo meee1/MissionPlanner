@@ -63,6 +63,11 @@ namespace System.Drawing
             iconSize = new Size(nativeSkBitmap.Width, nativeSkBitmap.Height);
         }
 
+        public Icon(Bitmap stream) : base(stream)
+        {
+            iconSize = new Size(nativeSkBitmap.Width, nativeSkBitmap.Height);
+        }
+
         public IntPtr Handle
         {
             get { return base.nativeSkBitmap.Handle; }
@@ -75,7 +80,7 @@ namespace System.Drawing
 
         public static Icon FromHandle(object getHicon)
         {
-            return null;
+            return new Icon(new Bitmap(16, 16));
         }
     }
 }

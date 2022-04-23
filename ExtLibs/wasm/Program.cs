@@ -32,6 +32,7 @@ using System.IO;
 using System.Net;
 using System.Windows.Forms;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using MissionPlanner.Comms;
 using MPDrawing::System.Drawing;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
@@ -188,7 +189,7 @@ namespace wasm
         public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
         {
             var info = value.ToString().Split(',');
-            return new Font(info[0], int.Parse(info[1].Replace("pt", "")));
+            return new Font(info[0], float.Parse(info[1].Replace("pt", "")));
 
             return base.ConvertFrom(context, culture, value);
         }
@@ -264,6 +265,7 @@ namespace wasm
         {
             if (value is byte[])
             {
+                return new MPDrawing::System.Drawing.Icon(new Bitmap(16, 16));
                 return new MPDrawing::System.Drawing.Icon(new MemoryStream((byte[])value));
             }
             return base.ConvertFrom(context, culture, value);
@@ -297,5 +299,84 @@ namespace wasm
             [Required]
             public string LastName { get; set; }
         }
+        public class WASMPort : ICommsSerial
+        {
+            public void Dispose()
+            {
+                
+            }
 
+            public Stream BaseStream { get; }
+            public int BaudRate { get; set; }
+            public int BytesToRead { get; }
+            public int BytesToWrite { get; }
+            public int DataBits { get; set; }
+            public bool DtrEnable { get; set; }
+            public bool IsOpen { get; }
+            public string PortName { get; set; }
+            public int ReadBufferSize { get; set; }
+            public int ReadTimeout { get; set; }
+            public bool RtsEnable { get; set; }
+            public int WriteBufferSize { get; set; }
+            public int WriteTimeout { get; set; }
+            public void Close()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void DiscardInBuffer()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Open()
+            {
+                throw new NotImplementedException();
+            }
+
+            public int Read(byte[] buffer, int offset, int count)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int ReadByte()
+            {
+                throw new NotImplementedException();
+            }
+
+            public int ReadChar()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ReadExisting()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ReadLine()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Write(string text)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Write(byte[] buffer, int offset, int count)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void WriteLine(string text)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void toggleDTR()
+            {
+                throw new NotImplementedException();
+            }
+        }
 }

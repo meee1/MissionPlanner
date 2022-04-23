@@ -872,19 +872,23 @@ namespace MissionPlanner
 
             if (!MONO) // windows only
             {
-                if (Settings.Instance["showconsole"] != null && Settings.Instance["showconsole"].ToString() == "True")
+                try
                 {
-                }
-                else
-                {
-                    int win = NativeMethods.FindWindow("ConsoleWindowClass", null);
-                    NativeMethods.ShowWindow(win, NativeMethods.SW_HIDE); // hide window
-                }
+                    if (Settings.Instance["showconsole"] != null &&
+                        Settings.Instance["showconsole"].ToString() == "True")
+                    {
+                    }
+                    else
+                    {
+                        int win = NativeMethods.FindWindow("ConsoleWindowClass", null);
+                        NativeMethods.ShowWindow(win, NativeMethods.SW_HIDE); // hide window
+                    }
 
-                // prevent system from sleeping while mp open
-                var previousExecutionState =
-                    NativeMethods.SetThreadExecutionState(
-                        NativeMethods.ES_CONTINUOUS | NativeMethods.ES_SYSTEM_REQUIRED);
+                    // prevent system from sleeping while mp open
+                    var previousExecutionState =
+                        NativeMethods.SetThreadExecutionState(
+                            NativeMethods.ES_CONTINUOUS | NativeMethods.ES_SYSTEM_REQUIRED);
+                }catch{}
             }
 
             ChangeUnits();

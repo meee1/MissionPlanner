@@ -49,7 +49,11 @@ namespace System.Drawing
             }
             try
             {
-                nativeSkBitmap = SKBitmap.Decode(stream);
+                var imgStream = new SKManagedStream(stream);
+                var skData = SKData.Create(imgStream);
+                var codec = SKCodec.Create(skData);
+
+                nativeSkBitmap = SKBitmap.Decode(codec); //SKBitmap.Decode(stream);
             }
             catch (Exception ex)
             {
