@@ -507,6 +507,15 @@ namespace MissionPlanner
             {
 
             }
+			      if (e.Exception is NotImplementedException)
+            {
+				log.Error(e);
+
+            }
+			      if (e.Exception is PlatformNotSupportedException)
+            {
+log.Error(e);
+            }
         }
 
         private static Assembly CurrentDomain_TypeResolve(object sender, ResolveEventArgs args)

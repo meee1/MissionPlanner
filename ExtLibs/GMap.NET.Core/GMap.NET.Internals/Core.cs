@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace GMap.NET.Internals
 {
    using System;
@@ -788,7 +790,7 @@ namespace GMap.NET.Internals
       volatile int skipOverZoom = 0;
 
       // tile consumer thread
-      void ProcessLoadTask()
+      async void ProcessLoadTask()
       {
          LoadTask? task = null;
          long lastTileLoadTimeMs;
@@ -810,6 +812,8 @@ namespace GMap.NET.Internals
                while(tileLoadQueue.Count == 0)
                {
                   Debug.WriteLine(ctid + " - Wait " + loadWaitCount + " - " + DateTime.Now.TimeOfDay);
+
+                  await Task.Delay(100);
 
                   if(++loadWaitCount >= GThreadPoolSize)
                   {
@@ -1164,7 +1168,8 @@ namespace GMap.NET.Internals
 
                   Debug.WriteLine("add " + t.Name + " to GThreadPool");
 
-                  t.Start();
+                        //t.Start();
+                        ProcessLoadTask();
                }
             }
             #endregion
