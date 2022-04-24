@@ -399,7 +399,7 @@ namespace GMap.NET.Internals
             invalidator.WorkerSupportsCancellation = true;
             invalidator.WorkerReportsProgress = true;
             invalidator.DoWork += new DoWorkEventHandler(invalidatorWatch);
-            invalidator.RunWorkerAsync();
+            //invalidator.RunWorkerAsync();
 
             //if(x == 1)
             //{
@@ -1169,7 +1169,7 @@ namespace GMap.NET.Internals
                   Debug.WriteLine("add " + t.Name + " to GThreadPool");
 
                         //t.Start();
-                        ProcessLoadTask();
+                        //ProcessLoadTask();
                }
             }
             #endregion

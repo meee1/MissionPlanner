@@ -325,7 +325,7 @@ namespace MissionPlanner.Utilities
 
                 var httpWebRequest = client.PostAsync(secureTrackingEndpoint, new StringContent(data));
 
-                Task.Run(async () => await httpWebRequest);
+                //Task.Run(async () => await httpWebRequest);
             }
             catch { }
         }

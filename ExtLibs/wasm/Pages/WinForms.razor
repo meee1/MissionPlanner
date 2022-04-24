@@ -5,6 +5,7 @@
 @using MouseEventArgs = Microsoft.AspNetCore.Components.Web.MouseEventArgs
 @using System.Threading
 @using System.Drawing
+@using Microsoft.CodeAnalysis.CSharp.Syntax
 
 <h3>WinForms</h3>
 
@@ -27,40 +28,24 @@
         Console.WriteLine($"screen info {Screen.PrimaryScreen}");
 
         Application.Idle += Application_Idle;
+   
         {
-            var frm = new Form();
-            frm.Location = new Point(30, 50);
-            frm.Text = "test";
-            frm.Width = 200;
-            frm.Name = "test";
-            frm.Height = 250;
-            frm.FormBorderStyle = FormBorderStyle.Fixed3D;
-            frm.WindowState = FormWindowState.Maximized;
 
-            frm.Controls.Add(new Button());
-            frm.Controls.Add(new Button());
-            frm.Controls.Add(new Button());
-            frm.Show();
-        }       
-        {
-            var frm = new Form();
-            frm.Text = "test2";
-            frm.Name = "test2";
-            frm.Width = 200;
-            frm.Height = 250;
-            frm.FormBorderStyle = FormBorderStyle.Fixed3D;
-            frm.WindowState = FormWindowState.Maximized;
-
-            frm.Controls.Add(new Button());
-            frm.Controls.Add(new Button());
-            frm.Controls.Add(new Button());
-            frm.Controls.Add(new Button());
 
             //Application.Run(frm);
 
             SerialPort.DefaultType = (port, s, arg3) => { return new WASMPort(); };
 
             MissionPlanner.Program.Main(new string[]{});
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    Application.RunLoopProcess();
+                    await Task.Delay(1000/30);
+                }
+            });
         }
     }
 
@@ -122,8 +107,7 @@
                         var yp = 0;
                         XplatUI.driver.ClientToScreen(parent.client_window, ref xp, ref yp);
 
-                        Canvas.ClipRect(SKRect.Create(xp, yp, parent.Width, parent.Height),
-                            SKClipOperation.Intersect);
+                        //Canvas.ClipRect(SKRect.Create(xp, yp, parent.Width, parent.Height), SKClipOperation.Intersect);
                     
                         parent = parent.parent;
                     }
@@ -148,11 +132,9 @@
                                         })
                                 });
 
-                        Canvas.ClipRect(
-                            SKRect.Create(x, y, hwnd.width - borders.right - borders.left,
-                                hwnd.height - borders.top - borders.bottom), SKClipOperation.Intersect);
+                        //Canvas.ClipRect(SKRect.Create(x, y, hwnd.width - borders.right - borders.left, hwnd.height - borders.top - borders.bottom), SKClipOperation.Intersect);
                                 
-                        Canvas.DrawDrawable(hwnd.hwndbmp,
+                        Canvas.DrawBitmap(hwnd.hwndbmp,
                             new SKPoint(x, y));
 
                         wasdrawn = true;
@@ -173,7 +155,7 @@
                 {
                     if (hwnd.DrawNeeded || forcerender)
                     {
-                        Canvas.DrawDrawable(hwnd.hwndbmp,
+                        Canvas.DrawBitmap(hwnd.hwndbmp,
                             new SKPoint(x + 0, y + 0));
 
                         wasdrawn = true;
@@ -242,8 +224,6 @@
     {
         try
         {
-            Application.RunLoopProcess();
-
             var canvas = e.Surface.Canvas;
 
             canvas.Clear(SKColors.Gray);
