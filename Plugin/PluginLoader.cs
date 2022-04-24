@@ -241,7 +241,7 @@ namespace MissionPlanner.Plugin
                     {
                         // csharp 8
                         var ans = CodeGenRoslyn.BuildCode(csFile);
-
+                        GC.Collect();
                         if (CodeGenRoslyn.lasterror != "")
                             ErrorInfo[csFile] = CodeGenRoslyn.lasterror;
 
@@ -268,7 +268,7 @@ namespace MissionPlanner.Plugin
                         var parms = CodeGen.CreateCompilerParameters();
                         // compile the code into an assembly
                         var results = CodeGen.CompileCodeFile(compiler, parms, csFile);
-
+                        GC.Collect();
                         if (CodeGenRoslyn.lasterror != "")
                             ErrorInfo[csFile] = CodeGen.lasterror;
 

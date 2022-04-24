@@ -9,7 +9,7 @@
 
 <h3>WinForms</h3>
 
-<SKGLView @ref="_skglview" IgnorePixelScaling="true" EnableRenderLoop="true" OnPaintSurface="OnPaintSurface" @onclick="Callback"  style="width: 100%; height: 75%;"/>
+<SKGLView @ref="_skglview" IgnorePixelScaling="true" EnableRenderLoop="true" OnPaintSurface="OnPaintSurface" @onclick="onclick" @onmousedown="mousedown" @onmouseup="mouseup" @onmousemove="mousemove"  style="width: 100%; height: 75%;"/>
 
 @code {
 
@@ -55,7 +55,6 @@
     {
         if (XplatUIMine.PaintPending)
         {
-            _skglview?.Invalidate();
             XplatUIMine.PaintPending = false;
         }
     }
@@ -239,8 +238,8 @@
             {
                 if (form.IsHandleCreated)
                 {
-                   // if (form is MainV2 && form.WindowState != FormWindowState.Maximized)
-                        //form.BeginInvokeIfRequired(() => { form.WindowState = FormWindowState.Maximized; });
+                    if (form is MainV2 && form.WindowState != FormWindowState.Maximized)
+                        form.WindowState = FormWindowState.Maximized;
 
                     try
                     {
@@ -312,9 +311,52 @@
 
     private SizeF scale = new SizeF(1, 1);
 
-    private void Callback(MouseEventArgs obj)
+    private void onclick(MouseEventArgs obj)
     {
-        XplatUI.driver.SetCursorPos(IntPtr.Zero, (int) obj.OffsetX, (int) obj.OffsetY);
+
+    }
+
+    private void mousedown(MouseEventArgs obj)
+    {
+        Console.WriteLine(obj.ToJSON());
+
+        if (obj.Button == 0)
+            XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_LBUTTONDOWN,
+                new IntPtr((int)MsgButtons.MK_LBUTTON),
+                (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
+        if (obj.Button == 1)
+            XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_MBUTTONDOWN,
+                new IntPtr((int)MsgButtons.MK_MBUTTON),
+                (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
+        if (obj.Button == 2)
+            XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_RBUTTONDOWN,
+                new IntPtr((int)MsgButtons.MK_RBUTTON),
+                (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
+    }
+
+    private void mouseup(MouseEventArgs obj)
+    {
+        Console.WriteLine(obj.ToJSON());
+
+        if (obj.Button == 0)
+            XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_LBUTTONUP,
+                new IntPtr((int)MsgButtons.MK_LBUTTON),
+                (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
+        if (obj.Button == 1)
+            XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_MBUTTONUP,
+                new IntPtr((int)MsgButtons.MK_MBUTTON),
+                (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
+        if (obj.Button == 2)
+            XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_RBUTTONUP,
+                new IntPtr((int)MsgButtons.MK_RBUTTON),
+                (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
+    }
+
+    private void mousemove(MouseEventArgs obj)
+    {
+        XplatUI.driver.SendMessage(IntPtr.Zero, Msg.WM_MOUSEMOVE,
+            new IntPtr(),
+            (IntPtr) (((int) obj.OffsetY) << 16 | ((int) obj.OffsetX)));
     }
 
 }
