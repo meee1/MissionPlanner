@@ -2908,7 +2908,7 @@ namespace MissionPlanner.GCSViews
             POI.POILoad();
         }
 
-        private void mainloop()
+        private async void mainloop()
         {
             threadrun = true;
             EndPoint Remote = new IPEndPoint(IPAddress.Any, 0);
@@ -2931,24 +2931,24 @@ namespace MissionPlanner.GCSViews
 
             while (!IsHandleCreated)
             {
-                //await Task.Delay(1000);
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
+                //Thread.Sleep(1000);
             }
 
             while (threadrun)
             {
                 if (MainV2.comPort.giveComport)
                 {
-                    //await Task.Delay(50);
-                    Thread.Sleep(50);
+                    await Task.Delay(50);
+                    //Thread.Sleep(50);
                     updateBindingSource();
                     continue;
                 }
 
                 if (!MainV2.comPort.logreadmode)
                 {
-                    //await Task.Delay(50); // max is only ever 10 hz but we go a little faster to empty the serial queue
-                    Thread.Sleep(50);
+                    await Task.Delay(50); // max is only ever 10 hz but we go a little faster to empty the serial queue
+                    //Thread.Sleep(50);
                 }
 
                 if (this.IsDisposed)

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using log4net;
 
 namespace MissionPlanner.Utilities
@@ -296,12 +299,9 @@ namespace MissionPlanner.Utilities
 
             try
             {
-
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create(secureTrackingEndpoint);
-                httpWebRequest.ServicePoint.Expect100Continue = false;
-                httpWebRequest.UserAgent = productName + " " + productVersion + " ("+ Environment.OSVersion.VersionString +")";
-                //httpWebRequest.ContentType = "text/plain";
-                httpWebRequest.Method = "POST";
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent",
+                    productName + " " + productVersion + " (" + Environment.OSVersion.VersionString + ")");
 
                 string data = "";
 
@@ -321,29 +321,11 @@ namespace MissionPlanner.Utilities
 
                 data += "&z=" + random.Next().ToString(CultureInfo.InvariantCulture);
 
-                httpWebRequest.ContentLength = data.Length;
-
                 log.Debug(data);
 
-                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                {
+                var httpWebRequest = client.PostAsync(secureTrackingEndpoint, new StringContent(data));
 
-                    streamWriter.Write(data);
-                    streamWriter.Flush();
-
-                    using (var httpResponse = (HttpWebResponse) httpWebRequest.GetResponse())
-                    {
-                        if (httpResponse.StatusCode >= HttpStatusCode.OK && (int) httpResponse.StatusCode < 300)
-                        {
-                            // response is a gif file
-                            log.Debug(httpResponse.StatusCode);
-                        }
-                        else
-                        {
-                            log.Debug(httpResponse.StatusCode);
-                        }
-                    }
-                }
+                Task.Run(async () => await httpWebRequest);
             }
             catch { }
         }

@@ -502,19 +502,24 @@ namespace MissionPlanner
             System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
         {
             log.Debug("FirstChanceException in: " + e.Exception.ToString());
+            log.Error(new StackTrace());
 
             if (e.Exception is ArgumentNullException)
             {
+                
+            }
+
+            if (e.Exception is NotImplementedException)
+            {
+                log.Error(e.Exception.ToJSON());
+                log.Error(new StackTrace());
 
             }
-			      if (e.Exception is NotImplementedException)
-            {
-				log.Error(e);
 
-            }
-			      if (e.Exception is PlatformNotSupportedException)
+            if (e.Exception is PlatformNotSupportedException)
             {
-log.Error(e);
+                log.Error(e.Exception.ToJSON());
+                log.Error(new StackTrace());
             }
         }
 

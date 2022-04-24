@@ -1,4 +1,6 @@
 ﻿
+using System.Net.Http;
+
 namespace GMap.NET.Internals
 {
     using System;
@@ -176,6 +178,7 @@ namespace GMap.NET.Internals
 
         void ConvertToHash(ref string s)
         {
+            return;
             if (HashProvider == null)
                 HashProvider = new SHA1CryptoServiceProvider();
             s = BitConverter.ToString(HashProvider.ComputeHash(Encoding.Unicode.GetBytes(s)));

@@ -411,37 +411,8 @@ namespace GMap.NET.MapProviders
             if (!string.IsNullOrEmpty(RefererUrl))
                 client.DefaultRequestHeaders.Add("Referer", RefererUrl);
 
-            MemoryStream data = Task.Run(async () =>
-            {
-                using (var response = await client.GetAsync(url))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var stream = await response.Content.ReadAsStreamAsync();
-                        return Stuff.CopyStream(stream, false);
-                    }
+    
 
-                    throw new WebException((int)response.StatusCode + " " + response.ReasonPhrase);
-                }
-            }).GetAwaiter().GetResult();
-
-            Debug.WriteLine("Response[" + data.Length + " bytes]: " + url);
-
-            if (data.Length > 0)
-            {
-                ret = TileImageProxy.FromStream(data);
-
-                if (ret != null)
-                {
-                    ret.Data = data;
-                    ret.Data.Position = 0;
-                }
-                else
-                {
-                    data.Dispose();
-                }
-            }
-            data = null;
             return ret;
         }
 
@@ -457,10 +428,7 @@ namespace GMap.NET.MapProviders
             if (!string.IsNullOrEmpty(RefererUrl))
                 client.DefaultRequestHeaders.Add("Referer", RefererUrl);
 
-            ret = Task.Run(async () =>
-            {
-                return await client.GetStringAsync(url);
-            }).GetAwaiter().GetResult();
+            //ret = client.GetStringAsync(url).Result;
 
             return ret;
         }

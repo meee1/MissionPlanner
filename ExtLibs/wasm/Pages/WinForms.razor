@@ -70,11 +70,9 @@
     {
         if (XplatUIMine.PaintPending)
         {
-
+            _skglview?.Invalidate();
             XplatUIMine.PaintPending = false;
         }
-
-
     }
 
 
