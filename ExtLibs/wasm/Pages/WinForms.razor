@@ -243,7 +243,9 @@
 
                     try
                     {
+                        canvas.Save();
                         DrawOntoCanvas(form.Handle, canvas, true);
+                        canvas.Restore();
                     }
                     catch (Exception ex)
                     {
