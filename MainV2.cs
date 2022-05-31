@@ -1384,13 +1384,7 @@ namespace MissionPlanner
         {
             _connectionControl.CMB_serialport.Items.Clear();
 
-            _connectionControl.CMB_serialport.Items.Add("AUTO");
             _connectionControl.CMB_serialport.Items.AddRange(SerialPort.GetPortNames());
-
-            _connectionControl.CMB_serialport.Items.Add("TCP");
-            _connectionControl.CMB_serialport.Items.Add("UDP");
-            _connectionControl.CMB_serialport.Items.Add("UDPCl");
-            _connectionControl.CMB_serialport.Items.Add("WS");
         }
 
         private void MenuFlightData_Click(object sender, EventArgs e)
@@ -3163,12 +3157,12 @@ namespace MissionPlanner
             {
             }
 
-            MyView.AddScreen(new MainSwitcher.Screen("FlightData", FlightData, true));
+            //MyView.AddScreen(new MainSwitcher.Screen("FlightData", FlightData, true));
             MyView.AddScreen(new MainSwitcher.Screen("FlightPlanner", FlightPlanner, true));
-            MyView.AddScreen(new MainSwitcher.Screen("HWConfig", typeof(GCSViews.InitialSetup), false));
-            MyView.AddScreen(new MainSwitcher.Screen("SWConfig", typeof(GCSViews.SoftwareConfig), false));
-            MyView.AddScreen(new MainSwitcher.Screen("Simulation", Simulation, true));
-            MyView.AddScreen(new MainSwitcher.Screen("Help", typeof(GCSViews.Help), false));
+            //MyView.AddScreen(new MainSwitcher.Screen("HWConfig", typeof(GCSViews.InitialSetup), false));
+            //MyView.AddScreen(new MainSwitcher.Screen("SWConfig", typeof(GCSViews.SoftwareConfig), false));
+            //MyView.AddScreen(new MainSwitcher.Screen("Simulation", Simulation, true));
+            //MyView.AddScreen(new MainSwitcher.Screen("Help", typeof(GCSViews.Help), false));
 
             try
             {
@@ -3200,7 +3194,14 @@ namespace MissionPlanner
             {
                 this.PerformLayout();
                 log.Info("show FlightData");
-                MenuFlightData_Click(this, e);
+                //MenuFlightData_Click(this, e);
+                MenuFlightData.Visible = false;
+                MenuHelp.Visible = false;
+                MenuInitConfig.Visible = false;
+                MenuSimulation.Visible = false;
+                MenuConfigTune.Visible = false;
+               
+                MenuFlightPlanner_Click(this, e);
                 log.Info("show FlightData... Done");
                 MainMenu_ItemClicked(this, new ToolStripItemClickedEventArgs(MenuFlightData));
             }
@@ -3219,7 +3220,7 @@ namespace MissionPlanner
                     Name = "motion jpg stream-network kml",
                     IsBackground = true
                 };
-                httpthread.Start();
+               // httpthread.Start();
             }
             catch (Exception ex)
             {
@@ -3231,7 +3232,7 @@ namespace MissionPlanner
             try
             {
                 // setup joystick packet sender
-                joysticksend();
+                //joysticksend();
             }
             catch (NotSupportedException ex)
             {
@@ -3259,7 +3260,7 @@ namespace MissionPlanner
                     Name = "plugin runner thread",
                     Priority = ThreadPriority.BelowNormal
                 };
-                pluginthread.Start();
+               // pluginthread.Start();
             }
             catch (NotSupportedException ex)
             {
@@ -3267,31 +3268,31 @@ namespace MissionPlanner
             }
 
 
-            ThreadPool.QueueUserWorkItem(LoadGDALImages);
+           // ThreadPool.QueueUserWorkItem(LoadGDALImages);
 
-            ThreadPool.QueueUserWorkItem(BGLoadAirports);
+           // ThreadPool.QueueUserWorkItem(BGLoadAirports);
 
-            ThreadPool.QueueUserWorkItem(BGCreateMaps);
+            //ThreadPool.QueueUserWorkItem(BGCreateMaps);
 
             //ThreadPool.QueueUserWorkItem(BGGetAlmanac);
 
-            ThreadPool.QueueUserWorkItem(BGLogMessagesMetaData);
+           // ThreadPool.QueueUserWorkItem(BGLogMessagesMetaData);
 
             // tfr went dead on 30-9-2020
             //ThreadPool.QueueUserWorkItem(BGgetTFR);
 
-            ThreadPool.QueueUserWorkItem(BGNoFly);
+           // ThreadPool.QueueUserWorkItem(BGNoFly);
 
-            ThreadPool.QueueUserWorkItem(BGGetKIndex);
+           // ThreadPool.QueueUserWorkItem(BGGetKIndex);
 
             // update firmware version list - only once per day
-            ThreadPool.QueueUserWorkItem(BGFirmwareCheck);
+           // ThreadPool.QueueUserWorkItem(BGFirmwareCheck);
 
             Task.Run(async () =>
             {
                 try
                 {
-                    await UserAlert.GetAlerts().ConfigureAwait(false);
+                   // await UserAlert.GetAlerts().ConfigureAwait(false);
                 }
                 catch
                 {
