@@ -2143,8 +2143,13 @@ namespace MissionPlanner
                 catch
                 {
                 }
-
-                pluginthread.Join();
+                try
+                {
+                    pluginthread.Join();
+                }
+                catch
+                {
+                }
             }
 
             log.Info("closing serialthread");
@@ -2554,7 +2559,7 @@ namespace MissionPlanner
             }
         }
 
-        ManualResetEvent PluginThreadrunner = new ManualResetEvent(false);
+        ManualResetEvent PluginThreadrunner = new ManualResetEvent(true);
 
         private void PluginThread()
         {
@@ -3260,7 +3265,7 @@ namespace MissionPlanner
                     Name = "plugin runner thread",
                     Priority = ThreadPriority.BelowNormal
                 };
-               // pluginthread.Start();
+                // pluginthread.Start();
             }
             catch (NotSupportedException ex)
             {
