@@ -860,6 +860,9 @@
       <DependentUpon>MainV2.cs</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
+    <None Include="custom.displayview">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Drivers\cubeorangeplus.cat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -4839,7 +4842,13 @@
     <Content Include="aircraft.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="custom.config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Drivers\CubeOrangePlus.inf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logo.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="mavutil.py">

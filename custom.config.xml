@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Config>
-  <altunits>Meters</altunits>
-  <TXT_DefaultAlt>120</TXT_DefaultAlt>
-  <showairports>False</showairports>
-  <ShowNoFly>False</ShowNoFly>
-  <showtfr>False</showtfr>
-  <MainMaximised>Maximized</MainMaximised>
+	<altunits>Meters</altunits>
+	<TXT_DefaultAlt>120</TXT_DefaultAlt>
+	<showairports>False</showairports>
+	<ShowNoFly>False</ShowNoFly>
+	<showtfr>False</showtfr>
+	<MainMaximised>Maximized</MainMaximised>
+	<AACheck2>True</AACheck2>
+	<CMB_altmode>Terrain</CMB_altmode>
+	<TXT_homealt>0</TXT_homealt>
+	<TXT_WPRad>30</TXT_WPRad>
+	<TXT_loiterrad>45</TXT_loiterrad>
+	<TXT_homealt>100</TXT_homealt>
 </Config>
