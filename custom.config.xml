@@ -17,4 +17,5 @@
 	<TXT_homelng>20</TXT_homelng>
 	<TXT_loiterrad>45</TXT_loiterrad>
 	<TXT_WPRad>30</TXT_WPRad>
+	<MapType>GoogleHybridMap</MapType>
 </Config>
