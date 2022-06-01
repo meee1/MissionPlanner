@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+  <altunits>Meters</altunits>
+  <TXT_DefaultAlt>120</TXT_DefaultAlt>
+  <showairports>False</showairports>
+  <ShowNoFly>False</ShowNoFly>
+  <showtfr>False</showtfr>
+  <MainMaximised>Maximized</MainMaximised>
+</Config>
