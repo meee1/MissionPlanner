@@ -3180,7 +3180,7 @@ namespace MissionPlanner
                     Plugin.PluginLoader.DisabledPluginNames.Clear();
                     foreach (var s in Settings.Instance.GetList("DisabledPlugins"))
                         Plugin.PluginLoader.DisabledPluginNames.Add(s);
-                    Plugin.PluginLoader.LoadAll();
+                    //Plugin.PluginLoader.LoadAll();
                     log.Info("Load Pluggins... Done");
                 }
             }
