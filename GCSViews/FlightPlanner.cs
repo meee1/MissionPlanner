@@ -125,6 +125,8 @@ namespace MissionPlanner.GCSViews
         private bool polygongridmode;
         private MissionPlanner.Controls.Icon.Polygon polyicon = new MissionPlanner.Controls.Icon.Polygon();
         private MissionPlanner.Controls.Icon.Zoom zoomicon = new MissionPlanner.Controls.Icon.Zoom();
+        private MissionPlanner.Controls.Icon.land landicon = new MissionPlanner.Controls.Icon.land();
+
         private ComponentResourceManager rm = new ComponentResourceManager(typeof(FlightPlanner));
         private int selectedrow;
         private bool sethome;
@@ -133,7 +135,7 @@ namespace MissionPlanner.GCSViews
         public GMapOverlay top;
         public GMapPolygon wppolygon;
         private GMapMarker CurrentMidLine;
-
+        private bool landinglocation;
 
         public void Init()
         {
@@ -557,6 +559,7 @@ namespace MissionPlanner.GCSViews
                 callMeDrag("H", lat, lng, alt);
                 return;
             }
+
             // creating a WP
 
             selectedrow = Commands.Rows.Add();
@@ -580,8 +583,41 @@ namespace MissionPlanner.GCSViews
             }
             else
             {
-                Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.WAYPOINT.ToString();
-                ChangeColumnHeader(MAVLink.MAV_CMD.WAYPOINT.ToString());
+                if (landinglocation)
+                {
+                    landinglocation = false;
+                    Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.LAND.ToString();
+                    ChangeColumnHeader(MAVLink.MAV_CMD.LAND.ToString());
+
+                    updateUndoBuffer(false);
+                    setfromMap(lat, lng, -1);
+                    double angle = 35;
+                    if (InputBox.Show("Angle", "Decent angle", ref angle) == DialogResult.OK)
+                    {
+                        var currentlist = GetCommandList();
+
+                        var cnt = currentlist.Count;
+                        var last = currentlist[cnt - 1];
+                        var secondlast = currentlist[cnt - 2];
+
+                        var end = new PointLatLngAlt(last.lat, last.lng, last.alt);
+                        var prevend = new PointLatLngAlt(secondlast.lat, secondlast.lng, secondlast.alt);
+
+                        double height = prevend.Alt - end.Alt;
+                        var bearing = end.GetBearing(prevend);
+                        // soh cah toa
+                        // tan(90-angle) = x/height
+                        var x = Math.Tan((90-angle) * MathHelper.deg2rad) * height;
+                        var decent = end.newpos(bearing, x);
+                        InsertCommand(cnt - 1, MAVLink.MAV_CMD.WAYPOINT, 0, 0, 0, 0, decent.Lng, decent.Lat, prevend.Alt);
+                    }
+                    return;
+                }
+                else
+                {
+                    Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.WAYPOINT.ToString();
+                    ChangeColumnHeader(MAVLink.MAV_CMD.WAYPOINT.ToString());
+                }
             }
             updateUndoBuffer(false);
             setfromMap(lat, lng, alt);
@@ -4807,16 +4843,21 @@ namespace MissionPlanner.GCSViews
                     e.Graphics.DrawLine(new Pen(MainMap.SelectionPen.Color, 2), x1, y1, x2, y2);
                 }
             }
-
+            /*
             e.Graphics.ResetTransform();
 
             polyicon.Location = new Point(10, 100);
             polyicon.Paint(e.Graphics);
+            */
+            e.Graphics.ResetTransform();
+
+            zoomicon.Location = new Point(10, 100);
+            zoomicon.Paint(e.Graphics);
 
             e.Graphics.ResetTransform();
 
-            zoomicon.Location = new Point(10, polyicon.Location.Y + polyicon.Height + 5);
-            zoomicon.Paint(e.Graphics);
+            landicon.Location = new Point(10, 140);
+            landicon.Paint(e.Graphics);
 
             e.Graphics.ResetTransform();
         }
@@ -7107,6 +7148,13 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             if (zoomicon.Rectangle.Contains(e.Location))
             {
                 contextMenuStripZoom.Show(MainMap, e.Location);
+                return;
+            }
+
+            if (landicon.Rectangle.Contains(e.Location))
+            {
+                CustomMessageBox.Show("Click the map with your landing location");
+                landinglocation = true;
                 return;
             }
 

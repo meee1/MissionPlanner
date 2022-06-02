@@ -685,6 +685,7 @@
     <Compile Include="Controls\DigitalSkyUI.Designer.cs">
       <DependentUpon>DigitalSkyUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Icon\land.cs" />
     <Compile Include="Controls\MavCommandSelection.cs">
       <SubType>Form</SubType>
     </Compile>
