@@ -543,6 +543,9 @@
   <data name="TXT_homealt.TabIndex" type="System.Int32, mscorlib">
     <value>14</value>
   </data>
+  <data name="TXT_homealt.Text" xml:space="preserve">
+    <value>0</value>
+  </data>
   <data name="&gt;&gt;TXT_homealt.Name" xml:space="preserve">
     <value>TXT_homealt</value>
   </data>
@@ -1170,7 +1173,7 @@
     <value>Commands</value>
   </data>
   <data name="&gt;&gt;Commands.Type" xml:space="preserve">
-    <value>MissionPlanner.Controls.MyDataGridView, MissionPlanner, Version=1.3.8186.29066, Culture=neutral, PublicKeyToken=null</value>
+    <value>MissionPlanner.Controls.MyDataGridView, MissionPlanner, Version=1.3.8189.26450, Culture=neutral, PublicKeyToken=null</value>
   </data>
   <data name="&gt;&gt;Commands.Parent" xml:space="preserve">
     <value>panelWaypoints</value>

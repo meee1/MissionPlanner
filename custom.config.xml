@@ -12,9 +12,6 @@
 	<TXT_WPRad>30</TXT_WPRad>
 	<TXT_loiterrad>45</TXT_loiterrad>
 	<TXT_DefaultAlt>120</TXT_DefaultAlt>
-	<TXT_homealt>0</TXT_homealt>
-	<TXT_homelat>50</TXT_homelat>
-	<TXT_homelng>20</TXT_homelng>
 	<TXT_loiterrad>45</TXT_loiterrad>
 	<TXT_WPRad>30</TXT_WPRad>
 	<MapType>GoogleHybridMap</MapType>
