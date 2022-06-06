@@ -4748,10 +4748,8 @@ namespace MissionPlanner.GCSViews
         public void MainMap_Paint(object sender, PaintEventArgs e)
         {
             // draw utm grid
-            if (grid)
+            if (grid && MainMap.Zoom > 10)
             {
-                if (MainMap.Zoom < 10)
-                    return;
 
                 var rect = MainMap.ViewArea;
 
