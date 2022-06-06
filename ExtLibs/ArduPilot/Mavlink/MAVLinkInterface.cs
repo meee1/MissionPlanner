@@ -634,7 +634,7 @@ namespace MissionPlanner
             }
 
             Terrain?.UnSub();
-            Terrain = new TerrainFollow(this);
+            Terrain = null;//new TerrainFollow(this);
 
             bool hbseen = false;
 

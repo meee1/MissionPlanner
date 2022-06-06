@@ -3205,6 +3205,7 @@ namespace MissionPlanner
                 MenuInitConfig.Visible = false;
                 MenuSimulation.Visible = false;
                 MenuConfigTune.Visible = false;
+                MenuFlightPlanner.Visible = false;
                
                 MenuFlightPlanner_Click(this, e);
                 log.Info("show FlightData... Done");

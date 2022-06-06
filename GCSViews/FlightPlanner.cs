@@ -591,9 +591,12 @@ namespace MissionPlanner.GCSViews
 
                     updateUndoBuffer(false);
                     setfromMap(lat, lng, -1);
-                    double angle = 35;
+                    double angle = 20;
                     if (InputBox.Show("Angle", "Decent angle", ref angle) == DialogResult.OK)
                     {
+                        if (angle > 90 || angle < 3)
+                            angle = 45;
+
                         var currentlist = GetCommandList();
 
                         var cnt = currentlist.Count;
@@ -611,6 +614,11 @@ namespace MissionPlanner.GCSViews
                         var decent = end.newpos(bearing, x);
                         InsertCommand(cnt - 1, MAVLink.MAV_CMD.WAYPOINT, 0, 0, 0, 0, decent.Lng, decent.Lat, prevend.Alt);
                     }
+
+                    //show termination style
+
+
+
                     return;
                 }
                 else
