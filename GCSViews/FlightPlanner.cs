@@ -232,7 +232,7 @@ namespace MissionPlanner.GCSViews
             CMB_altmode.DataSource = EnumTranslator.EnumToList<altmode>();
 
             //set default
-            CMB_altmode.SelectedItem = altmode.Relative;
+            CMB_altmode.SelectedItem = altmode.Terrain;
 
             cmb_missiontype.DataSource = new List<MAVLink.MAV_MISSION_TYPE>()
                 {MAVLink.MAV_MISSION_TYPE.MISSION, MAVLink.MAV_MISSION_TYPE.FENCE, MAVLink.MAV_MISSION_TYPE.RALLY};
@@ -295,22 +295,7 @@ namespace MissionPlanner.GCSViews
         {
             timer1.Start();
 
-            // hide altmode if old copter version
-            if (MainV2.comPort.BaseStream.IsOpen && MainV2.comPort.MAV.cs.firmware == Firmwares.ArduCopter2 &&
-                MainV2.comPort.MAV.cs.version < new Version(3, 3))
-            {
-                CMB_altmode.Visible = false;
-            }
-            else
-            {
-                CMB_altmode.Visible = true;
-            }
-
-            // hide spline wp options if not arducopter
-            if (MainV2.comPort.MAV.cs.firmware == Firmwares.ArduCopter2)
-                CHK_splinedefault.Visible = true;
-            else
-                CHK_splinedefault.Visible = false;
+   
 
             updateHome();
 
