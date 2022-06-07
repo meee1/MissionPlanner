@@ -571,13 +571,58 @@ namespace MissionPlanner.GCSViews
                 if (landinglocation)
                 {
                     landinglocation = false;
-                    Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.LAND.ToString();
-                    ChangeColumnHeader(MAVLink.MAV_CMD.LAND.ToString());
 
-                    updateUndoBuffer(false);
-                    setfromMap(lat, lng, -1);
-                    double angle = 20;
-                    if (InputBox.Show("Angle", "Decent angle", ref angle) == DialogResult.OK)
+                    //show termination style
+                    Form frm = new Form();
+
+                    var flp = new FlowLayoutPanel();
+                    flp.Dock = DockStyle.Fill;
+                    frm.Controls.Add(flp);
+
+                    TextBox tb_angle = new TextBox();
+                    RadioButton cb_flare = new RadioButton();
+                    RadioButton cb_noflare = new RadioButton();
+                    Button but = new Button();
+                    but.Text = "Go";
+                    but.Click += (s, e) => { frm.Close(); };
+                    tb_angle.Text = "35";
+
+                    flp.Controls.Add(new Label() { Text = "Angle" });
+                    flp.Controls.Add(tb_angle);
+                    flp.Controls.Add(new Label() { Text = "Flare" });
+                    flp.Controls.Add(cb_flare);
+                    flp.Controls.Add(new Label() { Text = "NO Flare" });
+                    flp.Controls.Add(cb_noflare);
+                    flp.Controls.Add(but);
+                    frm.ShowDialog();
+                    
+                    // leadin to land
+                    double angle = double.Parse(tb_angle.Text);
+                    // land
+                    if (cb_noflare.Checked)
+                    {
+                        Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.WAYPOINT.ToString();
+                        ChangeColumnHeader(MAVLink.MAV_CMD.WAYPOINT.ToString());
+
+                        updateUndoBuffer(false);
+                        setfromMap(lat, lng, -1);
+
+                        Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.LAND.ToString();
+                        ChangeColumnHeader(MAVLink.MAV_CMD.LAND.ToString());
+
+                        updateUndoBuffer(false);
+                        setfromMap(lat, lng, -1);
+                    }
+                    else
+                    {
+                        Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.LAND.ToString();
+                        ChangeColumnHeader(MAVLink.MAV_CMD.LAND.ToString());
+
+                        updateUndoBuffer(false);
+                        setfromMap(lat, lng, -1);
+                    }
+
+                   
                     {
                         if (angle > 90 || angle < 3)
                             angle = 45;
@@ -599,10 +644,6 @@ namespace MissionPlanner.GCSViews
                         var decent = end.newpos(bearing, x);
                         InsertCommand(cnt - 1, MAVLink.MAV_CMD.WAYPOINT, 0, 0, 0, 0, decent.Lng, decent.Lat, prevend.Alt);
                     }
-
-                    //show termination style
-
-
 
                     return;
                 }
