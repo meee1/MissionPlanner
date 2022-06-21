@@ -601,20 +601,25 @@ namespace MissionPlanner.GCSViews
                     // land
                     if (cb_noflare.Checked)
                     {
+                        //selectedrow = Commands.Rows.Add();
                         Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.WAYPOINT.ToString();
                         ChangeColumnHeader(MAVLink.MAV_CMD.WAYPOINT.ToString());
 
                         updateUndoBuffer(false);
-                        setfromMap(lat, lng, -1);
+                        setfromMap(lat, lng, -2);
 
+                        selectedrow = Commands.Rows.Add();
                         Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.LAND.ToString();
                         ChangeColumnHeader(MAVLink.MAV_CMD.LAND.ToString());
 
                         updateUndoBuffer(false);
-                        setfromMap(lat, lng, -1);
+                        setfromMap(lat, lng, -2);
+
+                        return;
                     }
                     else
                     {
+                        //selectedrow = Commands.Rows.Add();
                         Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.LAND.ToString();
                         ChangeColumnHeader(MAVLink.MAV_CMD.LAND.ToString());
 
