@@ -548,10 +548,27 @@ namespace MissionPlanner
 
         public static bool TerminalTheming = true;
 
+        /****************************************************************************************************************************
+       *                                               NextVision Addition variables
+       ****************************************************************************************************************************/
+        /// <summary>
+        /// camera joystick static class
+        /// </summary>
+        public static CamJoystick.CamJoystick Camjoystick = null;
+        /* auto connect timer */
+        private System.Timers.Timer ConnectTimer = new System.Timers.Timer();
+        /* capture TRIP instance */
+        public static CaptureTRIP tripCamChannel0 = null;
+        /* capture TRIP instance */
+        public static CaptureTRIP tripCamChannel1 = null;
+        /****************************************************************************************************************************
+        *                                                           NextVision
+        ****************************************************************************************************************************/
+
         public void updateLayout(object sender, EventArgs e)
         {
             MenuSimulation.Visible = DisplayConfiguration.displaySimulation;
-            MenuHelp.Visible = DisplayConfiguration.displayHelp;
+            MenuHelp.Visible = false;// DisplayConfiguration.displayHelp;
             MissionPlanner.Controls.BackstageView.BackstageView.Advanced = DisplayConfiguration.isAdvancedMode;
 
             // force autohide on
@@ -1020,10 +1037,10 @@ namespace MissionPlanner
                     this.Width = Settings.Instance.GetInt32("MainWidth");
 
                 // set presaved default telem rates
-                if (Settings.Instance["CMB_rateattitude"] != null)
+                /*if (Settings.Instance["CMB_rateattitude"] != null)
                     CurrentState.rateattitudebackup = Settings.Instance.GetInt32("CMB_rateattitude");
                 if (Settings.Instance["CMB_rateposition"] != null)
-                    CurrentState.ratepositionbackup = Settings.Instance.GetInt32("CMB_rateposition");
+                    CurrentState.ratepositionbackup = Settings.Instance.GetInt32("CMB_rateposition");*/
                 if (Settings.Instance["CMB_ratestatus"] != null)
                     CurrentState.ratestatusbackup = Settings.Instance.GetInt32("CMB_ratestatus");
                 if (Settings.Instance["CMB_raterc"] != null)
@@ -1131,7 +1148,10 @@ namespace MissionPlanner
             MenuArduPilot.Width = MenuArduPilot.Image.Width;
 
             if (Program.Logo2 != null)
+            {
                 MenuArduPilot.Image = Program.Logo2;
+                MenuArduPilot.Visible = true;
+            }
 
             Application.DoEvents();
 
@@ -1141,6 +1161,25 @@ namespace MissionPlanner
 
             // save config to test we have write access
             SaveConfig();
+
+            /* NextVision initializations */
+            /* set auto connect timer if auto connect is enabled */
+            if (Settings.Instance["auto_connect"] != null)
+            {
+                if (Settings.Instance["auto_connect"].Equals("true"))
+                {
+                    ConnectTimer.Interval = 2000;
+                    ConnectTimer.Elapsed += doAutoConnect;
+                    ConnectTimer.Start();
+                }
+            }
+
+            if (Settings.Instance["enable_auto_flight_modes"] != null)
+                GCSViews.FlightData.flightModesGrpBox.Visible = bool.Parse(Settings.Instance["enable_auto_flight_modes"].ToString());
+
+            if (Settings.Instance["enable_object_detection_control"] != null)
+                GCSViews.FlightData.objectDetectionControlGrpBox.Visible = bool.Parse(Settings.Instance["enable_object_detection_control"].ToString());
+            /******************************/
         }
 
         void cmb_sysid_Click(object sender, EventArgs e)
@@ -1380,6 +1419,7 @@ namespace MissionPlanner
 
             _connectionControl.CMB_serialport.Items.Add("TCP");
             _connectionControl.CMB_serialport.Items.Add("UDP");
+            _connectionControl.CMB_serialport.Items.Add("UDP_RX_ONLY");
             _connectionControl.CMB_serialport.Items.Add("UDPCl");
             _connectionControl.CMB_serialport.Items.Add("WS");
         }
@@ -1480,6 +1520,10 @@ namespace MissionPlanner
                 log.Error(ex);
             }
 
+            /*NextVision delete all POIs */
+            POI.POIDeletAll();
+            /*****************************/
+
             // now that we have closed the connection, cancel the connection stats
             // so that the 'time connected' etc does not grow, but the user can still
             // look at the now frozen stats on the still open form
@@ -1531,6 +1575,7 @@ namespace MissionPlanner
             {
                 case "preset":
                     skipconnectcheck = true;
+                    comPort.RxOnlyMode = false;
                     this.BeginInvokeIfRequired(() =>
                     {
                         if (comPort.BaseStream is TcpSerial)
@@ -1548,21 +1593,31 @@ namespace MissionPlanner
                     break;
                 case "TCP":
                     comPort.BaseStream = new TcpSerial();
+                    comPort.RxOnlyMode = false;
                     _connectionControl.CMB_serialport.Text = "TCP";
                     break;
                 case "UDP":
                     comPort.BaseStream = new UdpSerial();
+                    comPort.RxOnlyMode = false;
                     _connectionControl.CMB_serialport.Text = "UDP";
+                    break;
+                case "UDP_RX_ONLY":
+                    comPort.BaseStream = new UdpSerial();
+                    comPort.RxOnlyMode = true;
+                    _connectionControl.CMB_serialport.Text = portname;
                     break;
                 case "WS":
                     comPort.BaseStream = new WebSocket();
+                    comPort.RxOnlyMode = false;
                     _connectionControl.CMB_serialport.Text = "WS";
                     break;
                 case "UDPCl":
                     comPort.BaseStream = new UdpSerialConnect();
+                    comPort.RxOnlyMode = false;
                     _connectionControl.CMB_serialport.Text = "UDPCl";
                     break;
                 case "AUTO":
+                    comPort.RxOnlyMode = false;
                     // do autoscan
                     Comms.CommsSerialScan.Scan(true);
                     DateTime deadline = DateTime.Now.AddSeconds(50);
@@ -1592,6 +1647,7 @@ namespace MissionPlanner
                     return;
                 default:
                     comPort.BaseStream = new SerialPort();
+                    comPort.RxOnlyMode = true;
                     break;
             }
 
@@ -1889,6 +1945,9 @@ namespace MissionPlanner
                 CustomMessageBox.Show($"Can not establish a connection\n\n{ex.Message}");
                 return;
             }
+            /* NextVision */
+            /* perform auto connections according to configurations checkboxes */
+            doAutomaticConnections();
         }
 
 
@@ -2151,6 +2210,12 @@ namespace MissionPlanner
 
             serialThread = false;
 
+            /* NextVision CameraJoystick thread Cleanup */
+            // disposing camera joystick to prevent from it running in background
+            if (Camjoystick != null)
+                Camjoystick.Dispose();
+            /********************************************/
+
             log.Info("closing joystickthread");
 
             joystickthreadrun = false;
@@ -2241,7 +2306,10 @@ namespace MissionPlanner
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);
-
+            /* NextVision */
+            // execute enviroment exit code to prevent backgroung threads when form is closed
+            Environment.Exit(Environment.ExitCode);
+            /**************/
             Console.WriteLine("MainV2_FormClosed");
 
             if (joystick != null)
@@ -2873,7 +2941,7 @@ namespace MissionPlanner
                     }
 
                     // get home point on armed status change.
-                    if (armedstatus != MainV2.comPort.MAV.cs.armed && comPort.BaseStream.IsOpen)
+                    if (armedstatus != MainV2.comPort.MAV.cs.armed && comPort.BaseStream.IsOpen && comPort.RxOnlyMode == false)
                     {
                         armedstatus = MainV2.comPort.MAV.cs.armed;
                         // status just changed to armed
@@ -3651,25 +3719,6 @@ namespace MissionPlanner
                 System.Configuration.ConfigurationManager.AppSettings["BetaUpdateLocationVersion"] = "";
             }
 
-            try
-            {
-                // single update check per day - in a seperate thread
-                if (Settings.Instance["update_check"] != DateTime.Now.ToShortDateString())
-                {
-                    System.Threading.ThreadPool.QueueUserWorkItem(checkupdate);
-                    Settings.Instance["update_check"] = DateTime.Now.ToShortDateString();
-                }
-                else if (Settings.Instance.GetBoolean("beta_updates") == true)
-                {
-                    MissionPlanner.Utilities.Update.dobeta = true;
-                    System.Threading.ThreadPool.QueueUserWorkItem(checkupdate);
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error("Update check failed", ex);
-            }
-
             // play a tlog that was passed to the program/ load a bin log passed
             if (Program.args.Length > 0)
             {
@@ -3855,6 +3904,10 @@ namespace MissionPlanner
             GMapMarkerBase.DisplayNavBearing = Settings.Instance.GetBoolean("GMapMarkerBase_DisplayNavBearing", true);
             GMapMarkerBase.DisplayRadius = Settings.Instance.GetBoolean("GMapMarkerBase_DisplayRadius", true);
             GMapMarkerBase.DisplayTarget = Settings.Instance.GetBoolean("GMapMarkerBase_DisplayTarget", true);
+
+            /* create the UILess video player */
+            MainV2.tripCamChannel0 = new CaptureTRIP();
+            MainV2.tripCamChannel1 = new CaptureTRIP();
         }
 
         private void BGLogMessagesMetaData(object nothing)
@@ -4682,14 +4735,7 @@ namespace MissionPlanner
 
         private void MenuArduPilot_Click(object sender, EventArgs e)
         {
-            try
-            {
-                System.Diagnostics.Process.Start("https://ardupilot.org/?utm_source=Menu&utm_campaign=MP");
-            }
-            catch
-            {
-                CustomMessageBox.Show("Failed to open url https://ardupilot.org");
-            }
+
         }
 
         private void connectionListToolStripMenuItem_Click(object sender, EventArgs e)
@@ -4826,5 +4872,179 @@ namespace MissionPlanner
                 }
             }
         }
+
+        /****************************************************************************************************************************
+        *                                               NextVision Addition functions
+        ****************************************************************************************************************************/
+        /****************************************************************************************************************************
+        *                                                      autoAttachJoyOnConnectCheckbox_CheckedChanged()
+        * Description :   auto attach joystick checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void doAutomaticConnections()
+        {
+            if (comPort.BaseStream is UdpSerial || comPort.BaseStream is TcpSerial)
+            {
+                /* Checking the auto acquire configuration */
+                if (Settings.Instance["auto_start_video_on_connect"] == "true")
+                {
+                    if (!SendVideoRequest(0))
+                    {
+                        MessageBox.Show("Connection Error On Sending Video Request For Channel-0");
+                        return;
+                    }
+                    if (!SendVideoRequest(1))
+                    {
+                        MessageBox.Show("Connection Error On Sending Video Request For Channel-1");
+                        return;
+                    }
+                }
+
+                /* full screen the HUD option */
+                if (Settings.Instance["hud_full_screen"] == "true")
+                {
+                    FlightData.FullScreenTheHud();
+                }
+                if (Settings.Instance["hud_full_screen_2"] == "true")
+                {
+                    FlightData.FullScreenTheHud2();
+                }
+            }
+
+            /* load POI's on connect */
+            FlightData.LoadPOIsOnConnect();
+
+            /* Checking the auto attach joystic configuration */
+            if (Settings.Instance["auto_attach_joystick"] == "true")
+            {
+                if (joystick == null)
+                    joystick = JoystickBase.Create(() => MainV2.comPort);
+                if (Settings.Instance.ContainsKey("joystick_name"))
+                {
+                    if (!joystick.start(Settings.Instance["joystick_name"].ToString()))
+                    {
+                        CustomMessageBox.Show("Please Connect a Joystick", "No Joystick");
+                        joystick.Dispose();
+                        return;
+                    }
+                }
+            }
+
+            /* Checking the auto attach camera joystic configuration */
+            if (Settings.Instance["auto_attach_cam_joystick"] == "true")
+            {
+                if (Camjoystick == null)
+                    Camjoystick = new CamJoystick.CamJoystick();
+                if (Settings.Instance.ContainsKey("cam_joystick_name"))
+                {
+                    if (!Camjoystick.start(Settings.Instance["cam_joystick_name"].ToString()))
+                    {
+                        CustomMessageBox.Show("Please Connect a Joystick (Cam Joystick)", "No Cam Joystick");
+                        try
+                        { joystick.Dispose(); }
+                        catch
+                        { }
+
+                        return;
+                    }
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      SendVideoRequest()
+        * Description :   auto attach joystick checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private bool SendVideoRequest(int chan)
+        {
+            const int REQ_PORT_CHAN_0 = 10554;
+            const int VID_PORT_CHAN_0 = 11024;
+            const int REQ_PORT_CHAN_1 = 11554;
+            const int VID_PORT_CHAN_1 = 11025;
+
+            int reqPort = REQ_PORT_CHAN_0;
+            int vidPort = VID_PORT_CHAN_0;
+
+            String localIP = "300.300.300.300";
+            String tripIpAddress;
+            if (comPort.BaseStream is UdpSerial)
+                tripIpAddress = ((UdpSerial)comPort.BaseStream).RemoteIpEndPoint.Address.ToString();
+            else if (comPort.BaseStream is TcpSerial)
+                tripIpAddress = Settings.Instance["TCP_host"].ToString();
+            else
+                return false;
+
+            if (chan == 0)
+            {
+                reqPort = REQ_PORT_CHAN_0;
+                vidPort = VID_PORT_CHAN_0;
+            }
+            else if (chan == 1)
+            {
+                reqPort = REQ_PORT_CHAN_1;
+                vidPort = VID_PORT_CHAN_1;
+            }
+            else
+                return false;
+
+            try
+            {
+                var client = new UdpClient(reqPort + 1);
+                Byte[] sendBytes = Encoding.ASCII.GetBytes(localIP + " " + vidPort);
+                client.Send(sendBytes, sendBytes.Length, tripIpAddress, reqPort);
+                client.Close();
+
+                StartVideo("225.1.2.3", vidPort, chan);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      StartVideo()
+        * Description :   starts the trip video
+        *
+        ****************************************************************************************************************************/
+        private void StartVideo(string ip, int port, int chan)
+        {
+            /* check if video forwarding is enabled and start the stream reseiver accordingly */
+            if (chan == 0 && Settings.Instance["video_fwd_enable"] != null)
+            {
+                if (Settings.Instance["video_fwd_enable"].ToLower().Equals("true"))
+                {
+                    string vid_fwd_ip = null;
+                    int vid_fwd_port = 0;
+                    if (Settings.Instance["video_fwd_ip"] != null)
+                        vid_fwd_ip = Settings.Instance["video_fwd_ip"];
+                    if (Settings.Instance["video_fwd_port"] != null)
+                        vid_fwd_port = Convert.ToInt32(Settings.Instance["video_fwd_port"]);
+                    FlightData.startTRIPVideo(ip, port, vid_fwd_ip, vid_fwd_port, chan);
+                }
+                else
+                    FlightData.startTRIPVideo(ip, port, null, 0, chan);
+            }
+            else
+                FlightData.startTRIPVideo(ip, port, null, 0, chan);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      doAutoConnect()
+        * Description :   auto attach joystick checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        void doAutoConnect(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            this.BeginInvoke((Action)delegate
+            {
+                Connect();
+            });
+            ConnectTimer.Stop();
+        }
+
+
     }
 }

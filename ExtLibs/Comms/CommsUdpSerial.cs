@@ -95,6 +95,9 @@ namespace MissionPlanner.Comms
 
         public bool DtrEnable { get; set; }
 
+        /********* NextVision variables *******/
+        private static bool AutoConnectDone = false;
+
         public void Open()
         {
             if (client.Client.Connected || IsOpen)
@@ -107,10 +110,22 @@ namespace MissionPlanner.Comms
 
             var dest = Port;
 
-            dest = OnSettings("UDP_port" + ConfigRef, dest);
+            /********* NextVision **************/
+            /* performing the auto connect */
+            string auto_connect = "false";
+            dest = OnSettings("UDP_port", dest);
+            auto_connect = OnSettings("auto_connect", auto_connect);
+            if (!(auto_connect == "true" && !AutoConnectDone))
+            {
+                if (inputboxreturn.Cancel == OnInputBoxShow("Listern Port", "Enter Local port (ensure remote end is already sending)", ref dest))
+                {
+                    return;
+                }
+            }
+            else
+                AutoConnectDone = true;
+            /********* NextVision **************/
 
-            if (inputboxreturn.Cancel == OnInputBoxShow("Listern Port",
-                    "Enter Local port (ensure remote end is already sending)", ref dest)) return;
             Port = dest;
 
             OnSettings("UDP_port" + ConfigRef, Port, true);

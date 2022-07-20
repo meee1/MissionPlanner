@@ -17,7 +17,7 @@ namespace MissionPlanner.Utilities
     {
         static Settings _instance;
 
-        public static string AppConfigName { get; set; } = "Mission Planner";
+        public static string AppConfigName { get; set; } = "CCA2";
 
         public static Settings Instance
         {
@@ -83,8 +83,9 @@ namespace MissionPlanner.Utilities
             return config.ContainsKey(key);
         }
 
-        public string UserAgent { get; set; } = "MissionPlanner";
-        
+        /* NextVision */
+        public string UserAgent { get; set; } = "";//"MissionPlanner";
+
         public string ComPort
         {
             get { return this["comport"]; }

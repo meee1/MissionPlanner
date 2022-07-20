@@ -92,6 +92,17 @@
       <HintPath>.\extlibs\BitMiracle.LibTiff.NetStandard.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="FFmpeg.AutoGen">
+      <HintPath>ExtLibs\FFmpeg.AutoGen.dll</HintPath>
+    </Reference>
+    <Reference Include="IPAddressControlLib">
+      <HintPath>ExtLibs\IPAddressControlLib.DLL</HintPath>
+    </Reference>
+    <Reference Include="NextVisionVideoControlUILessLibrary">
+      <HintPath>ExtLibs\NextVisionVideoControlUILessLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -116,6 +127,7 @@
       <HintPath>Updater\bin\Release\Updater.exe</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="ExtLibs\7zip\7zip.csproj">
@@ -317,6 +329,10 @@
     <ProjectReference Include="ExtLibs\Zeroconf\Zeroconf\Zeroconf.csproj">
       <Project>{F4B60F03-F4C8-42CD-A46D-712838DC184B}</Project>
       <Name>Zeroconf</Name>
+    </ProjectReference>
+    <ProjectReference Include="XamlVirtualJoystick-master\WpfCustomControls\WpfCustomControls.csproj">
+      <Project>{4e7e00d2-64fb-410c-a155-e4de6a187009}</Project>
+      <Name>WpfCustomControls</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -629,6 +645,7 @@
     </None>
     <None Include="MissionPlanner.GCSViews.ConfigurationView.ConfigGPSOrder+GPSCAN.datasource" />
     <None Include="MissionPlanner.GCSViews.ConfigurationView.ConfigHWCompass2+CompassDeviceInfo.datasource" />
+    <None Include="NvExt\CamJoystick\CamJoystick.cs.bak" />
     <None Include="plugins\example10-canlogfile.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -647,6 +664,21 @@
     <None Include="plugins\example15-leds.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="NvExt\CamJoystick\CamJoystick.cs" />
+    <Compile Include="NvExt\CamJoystick\CamJoystickSetup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NvExt\CamJoystick\CamJoystickSetup.Designer.cs">
+      <DependentUpon>CamJoystickSetup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NvExt\CaptureTRIP.cs" />
+    <Compile Include="NvExt\NetworkSettingscs.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NvExt\NetworkSettingscs.designer.cs">
+      <DependentUpon>NetworkSettingscs.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NvExt\NvMavExtCmds.cs" />
     <Compile Include="Utilities\AirMarket.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -1821,6 +1853,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\paramcompare.resx">
       <DependentUpon>paramcompare.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NvExt\CamJoystick\CamJoystickSetup.ko-KR.resx">
+      <DependentUpon>CamJoystickSetup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NvExt\CamJoystick\CamJoystickSetup.resx">
+      <DependentUpon>CamJoystickSetup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NvExt\NetworkSettingscs.resx">
+      <DependentUpon>NetworkSettingscs.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Utilities\AirMarket.resx">
       <DependentUpon>AirMarket.cs</DependentUpon>
@@ -4598,6 +4639,11 @@
     <Content Include="quaternion.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\ground_cross_target.png" />
+    <None Include="Resources\rvt_small.png" />
+    <None Include="Resources\car_icon.png" />
+    <None Include="Resources\person.png" />
+    <None Include="Resources\person_icon.png" />
     <Content Include="rotmat.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -4977,6 +5023,20 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NvExt\Controls\" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

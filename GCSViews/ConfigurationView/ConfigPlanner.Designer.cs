@@ -106,6 +106,33 @@
             this.label7 = new System.Windows.Forms.Label();
             this.CHK_params_bg = new System.Windows.Forms.CheckBox();
             this.chk_slowMachine = new System.Windows.Forms.CheckBox();
+            this.labelOGLR = new System.Windows.Forms.Label();
+            this.checkBoxEnableOGLR = new System.Windows.Forms.CheckBox();
+            this.buttonOrthoPhotoPath = new MissionPlanner.Controls.MyButton();
+            this.textBoxOrthoPhotoPath = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.fullScreenHUD2Checkbox = new System.Windows.Forms.CheckBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.checkBoxEnableObjectDetectionControl = new System.Windows.Forms.CheckBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.checkBoxEnableAutoFlightModes = new System.Windows.Forms.CheckBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.checkBoxRVTDisplay = new System.Windows.Forms.CheckBox();
+            this.labelGroundCrossinTarget = new System.Windows.Forms.Label();
+            this.checkBoxGroundCrossTarget = new System.Windows.Forms.CheckBox();
+            this.enableAdaptiveJitterCancelCheckbox = new System.Windows.Forms.CheckBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.fullScreenHUDCheckbox = new System.Windows.Forms.CheckBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.autoConnectOnStartUpCheckbox = new System.Windows.Forms.CheckBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.autoAttachCamJoyOnConnectCheckbox = new System.Windows.Forms.CheckBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.BUT_CamJoystick = new MissionPlanner.Controls.MyButton();
+            this.autoStartVideoOnConnectCheckbox = new System.Windows.Forms.CheckBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.autoAttachJoyOnConnectCheckbox = new System.Windows.Forms.CheckBox();
+            this.checkBoxDisplayODOnMap = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_tracklength)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_gcsid)).BeginInit();
             this.SuspendLayout();
@@ -735,9 +762,202 @@
             this.chk_slowMachine.UseVisualStyleBackColor = true;
             this.chk_slowMachine.CheckedChanged += new System.EventHandler(this.chk_slowMachine_CheckedChanged);
             // 
+            // labelOGLR
+            // 
+            resources.ApplyResources(this.labelOGLR, "labelOGLR");
+            this.labelOGLR.Name = "labelOGLR";
+            // 
+            // checkBoxEnableOGLR
+            // 
+            resources.ApplyResources(this.checkBoxEnableOGLR, "checkBoxEnableOGLR");
+            this.checkBoxEnableOGLR.Name = "checkBoxEnableOGLR";
+            this.checkBoxEnableOGLR.UseVisualStyleBackColor = true;
+            this.checkBoxEnableOGLR.CheckedChanged += new System.EventHandler(this.checkBoxEnableOGLR_CheckedChanged);
+            // 
+            // buttonOrthoPhotoPath
+            // 
+            resources.ApplyResources(this.buttonOrthoPhotoPath, "buttonOrthoPhotoPath");
+            this.buttonOrthoPhotoPath.Name = "buttonOrthoPhotoPath";
+            this.buttonOrthoPhotoPath.UseVisualStyleBackColor = true;
+            this.buttonOrthoPhotoPath.Click += new System.EventHandler(this.buttonOrthoPhotoPath_Click);
+            // 
+            // textBoxOrthoPhotoPath
+            // 
+            resources.ApplyResources(this.textBoxOrthoPhotoPath, "textBoxOrthoPhotoPath");
+            this.textBoxOrthoPhotoPath.Name = "textBoxOrthoPhotoPath";
+            this.textBoxOrthoPhotoPath.TextChanged += new System.EventHandler(this.textBoxOrthoPhotoPath_TextChanged);
+            // 
+            // label17
+            // 
+            resources.ApplyResources(this.label17, "label17");
+            this.label17.Name = "label17";
+            // 
+            // fullScreenHUD2Checkbox
+            // 
+            resources.ApplyResources(this.fullScreenHUD2Checkbox, "fullScreenHUD2Checkbox");
+            this.fullScreenHUD2Checkbox.Name = "fullScreenHUD2Checkbox";
+            this.fullScreenHUD2Checkbox.UseVisualStyleBackColor = true;
+            this.fullScreenHUD2Checkbox.CheckedChanged += new System.EventHandler(this.fullScreenHUD2Checkbox_CheckedChanged);
+            // 
+            // label16
+            // 
+            resources.ApplyResources(this.label16, "label16");
+            this.label16.Name = "label16";
+            // 
+            // checkBoxEnableObjectDetectionControl
+            // 
+            resources.ApplyResources(this.checkBoxEnableObjectDetectionControl, "checkBoxEnableObjectDetectionControl");
+            this.checkBoxEnableObjectDetectionControl.Name = "checkBoxEnableObjectDetectionControl";
+            this.checkBoxEnableObjectDetectionControl.UseVisualStyleBackColor = true;
+            this.checkBoxEnableObjectDetectionControl.CheckedChanged += new System.EventHandler(this.checkBoxEnableObjectDetectionControl_CheckedChanged);
+            // 
+            // label15
+            // 
+            resources.ApplyResources(this.label15, "label15");
+            this.label15.Name = "label15";
+            // 
+            // checkBoxEnableAutoFlightModes
+            // 
+            resources.ApplyResources(this.checkBoxEnableAutoFlightModes, "checkBoxEnableAutoFlightModes");
+            this.checkBoxEnableAutoFlightModes.Name = "checkBoxEnableAutoFlightModes";
+            this.checkBoxEnableAutoFlightModes.UseVisualStyleBackColor = true;
+            this.checkBoxEnableAutoFlightModes.CheckedChanged += new System.EventHandler(this.checkBoxEnableAutoFlightModes_CheckedChanged);
+            // 
+            // label13
+            // 
+            resources.ApplyResources(this.label13, "label13");
+            this.label13.Name = "label13";
+            // 
+            // checkBoxRVTDisplay
+            // 
+            resources.ApplyResources(this.checkBoxRVTDisplay, "checkBoxRVTDisplay");
+            this.checkBoxRVTDisplay.Name = "checkBoxRVTDisplay";
+            this.checkBoxRVTDisplay.UseVisualStyleBackColor = true;
+            this.checkBoxRVTDisplay.CheckedChanged += new System.EventHandler(this.checkBoxRVTDisplay_CheckedChanged);
+            // 
+            // labelGroundCrossinTarget
+            // 
+            resources.ApplyResources(this.labelGroundCrossinTarget, "labelGroundCrossinTarget");
+            this.labelGroundCrossinTarget.Name = "labelGroundCrossinTarget";
+            // 
+            // checkBoxGroundCrossTarget
+            // 
+            resources.ApplyResources(this.checkBoxGroundCrossTarget, "checkBoxGroundCrossTarget");
+            this.checkBoxGroundCrossTarget.Name = "checkBoxGroundCrossTarget";
+            this.checkBoxGroundCrossTarget.UseVisualStyleBackColor = true;
+            this.checkBoxGroundCrossTarget.CheckedChanged += new System.EventHandler(this.checkBoxGroundCrossTarget_CheckedChanged);
+            // 
+            // enableAdaptiveJitterCancelCheckbox
+            // 
+            resources.ApplyResources(this.enableAdaptiveJitterCancelCheckbox, "enableAdaptiveJitterCancelCheckbox");
+            this.enableAdaptiveJitterCancelCheckbox.Name = "enableAdaptiveJitterCancelCheckbox";
+            this.enableAdaptiveJitterCancelCheckbox.UseVisualStyleBackColor = true;
+            this.enableAdaptiveJitterCancelCheckbox.CheckedChanged += new System.EventHandler(this.enableAdaptiveJitterCancelCheckbox_CheckedChanged);
+            // 
+            // label11
+            // 
+            resources.ApplyResources(this.label11, "label11");
+            this.label11.Name = "label11";
+            // 
+            // fullScreenHUDCheckbox
+            // 
+            resources.ApplyResources(this.fullScreenHUDCheckbox, "fullScreenHUDCheckbox");
+            this.fullScreenHUDCheckbox.Name = "fullScreenHUDCheckbox";
+            this.fullScreenHUDCheckbox.UseVisualStyleBackColor = true;
+            this.fullScreenHUDCheckbox.CheckedChanged += new System.EventHandler(this.fullScreenHUDCheckbox_CheckedChanged);
+            // 
+            // label10
+            // 
+            resources.ApplyResources(this.label10, "label10");
+            this.label10.Name = "label10";
+            // 
+            // autoConnectOnStartUpCheckbox
+            // 
+            resources.ApplyResources(this.autoConnectOnStartUpCheckbox, "autoConnectOnStartUpCheckbox");
+            this.autoConnectOnStartUpCheckbox.Name = "autoConnectOnStartUpCheckbox";
+            this.autoConnectOnStartUpCheckbox.UseVisualStyleBackColor = true;
+            this.autoConnectOnStartUpCheckbox.CheckedChanged += new System.EventHandler(this.autoConnectOnStartUpCheckbox_CheckedChanged);
+            // 
+            // label9
+            // 
+            resources.ApplyResources(this.label9, "label9");
+            this.label9.Name = "label9";
+            // 
+            // autoAttachCamJoyOnConnectCheckbox
+            // 
+            resources.ApplyResources(this.autoAttachCamJoyOnConnectCheckbox, "autoAttachCamJoyOnConnectCheckbox");
+            this.autoAttachCamJoyOnConnectCheckbox.Name = "autoAttachCamJoyOnConnectCheckbox";
+            this.autoAttachCamJoyOnConnectCheckbox.UseVisualStyleBackColor = true;
+            this.autoAttachCamJoyOnConnectCheckbox.Click += new System.EventHandler(this.autoAttachCamJoyOnConnectCheckbox_CheckedChanged);
+            // 
+            // label8
+            // 
+            resources.ApplyResources(this.label8, "label8");
+            this.label8.Name = "label8";
+            // 
+            // BUT_CamJoystick
+            // 
+            resources.ApplyResources(this.BUT_CamJoystick, "BUT_CamJoystick");
+            this.BUT_CamJoystick.Name = "BUT_CamJoystick";
+            this.BUT_CamJoystick.UseVisualStyleBackColor = true;
+            this.BUT_CamJoystick.Click += new System.EventHandler(this.BUT_CamJoystick_Click);
+            // 
+            // autoStartVideoOnConnectCheckbox
+            // 
+            resources.ApplyResources(this.autoStartVideoOnConnectCheckbox, "autoStartVideoOnConnectCheckbox");
+            this.autoStartVideoOnConnectCheckbox.Name = "autoStartVideoOnConnectCheckbox";
+            this.autoStartVideoOnConnectCheckbox.UseVisualStyleBackColor = true;
+            this.autoStartVideoOnConnectCheckbox.CheckedChanged += new System.EventHandler(this.autoStartVideoOnConnectCheckbox_CheckedChanged);
+            // 
+            // label14
+            // 
+            resources.ApplyResources(this.label14, "label14");
+            this.label14.Name = "label14";
+            // 
+            // autoAttachJoyOnConnectCheckbox
+            // 
+            resources.ApplyResources(this.autoAttachJoyOnConnectCheckbox, "autoAttachJoyOnConnectCheckbox");
+            this.autoAttachJoyOnConnectCheckbox.Name = "autoAttachJoyOnConnectCheckbox";
+            this.autoAttachJoyOnConnectCheckbox.UseVisualStyleBackColor = true;
+            this.autoAttachJoyOnConnectCheckbox.CheckedChanged += new System.EventHandler(this.autoAttachJoyOnConnectCheckbox_CheckedChanged);
+            // 
+            // checkBoxDisplayODOnMap
+            // 
+            resources.ApplyResources(this.checkBoxDisplayODOnMap, "checkBoxDisplayODOnMap");
+            this.checkBoxDisplayODOnMap.Name = "checkBoxDisplayODOnMap";
+            this.checkBoxDisplayODOnMap.UseVisualStyleBackColor = true;
+            this.checkBoxDisplayODOnMap.CheckedChanged += new System.EventHandler(this.checkBoxDisplayODOnMap_CheckedChanged);
+            // 
             // ConfigPlanner
             // 
             resources.ApplyResources(this, "$this");
+            this.Controls.Add(this.checkBoxDisplayODOnMap);
+            this.Controls.Add(this.autoAttachJoyOnConnectCheckbox);
+            this.Controls.Add(this.labelOGLR);
+            this.Controls.Add(this.checkBoxEnableOGLR);
+            this.Controls.Add(this.buttonOrthoPhotoPath);
+            this.Controls.Add(this.textBoxOrthoPhotoPath);
+            this.Controls.Add(this.label17);
+            this.Controls.Add(this.fullScreenHUD2Checkbox);
+            this.Controls.Add(this.label16);
+            this.Controls.Add(this.checkBoxEnableObjectDetectionControl);
+            this.Controls.Add(this.label15);
+            this.Controls.Add(this.checkBoxEnableAutoFlightModes);
+            this.Controls.Add(this.label13);
+            this.Controls.Add(this.checkBoxRVTDisplay);
+            this.Controls.Add(this.labelGroundCrossinTarget);
+            this.Controls.Add(this.checkBoxGroundCrossTarget);
+            this.Controls.Add(this.enableAdaptiveJitterCancelCheckbox);
+            this.Controls.Add(this.label11);
+            this.Controls.Add(this.fullScreenHUDCheckbox);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.autoConnectOnStartUpCheckbox);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.autoAttachCamJoyOnConnectCheckbox);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.BUT_CamJoystick);
+            this.Controls.Add(this.autoStartVideoOnConnectCheckbox);
+            this.Controls.Add(this.label14);
             this.Controls.Add(this.chk_slowMachine);
             this.Controls.Add(this.CHK_params_bg);
             this.Controls.Add(this.label7);
@@ -903,5 +1123,32 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox CHK_params_bg;
         private System.Windows.Forms.CheckBox chk_slowMachine;
+        private System.Windows.Forms.Label labelOGLR;
+        private System.Windows.Forms.CheckBox checkBoxEnableOGLR;
+        private Controls.MyButton buttonOrthoPhotoPath;
+        private System.Windows.Forms.TextBox textBoxOrthoPhotoPath;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.CheckBox fullScreenHUD2Checkbox;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.CheckBox checkBoxEnableObjectDetectionControl;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.CheckBox checkBoxEnableAutoFlightModes;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.CheckBox checkBoxRVTDisplay;
+        private System.Windows.Forms.Label labelGroundCrossinTarget;
+        private System.Windows.Forms.CheckBox checkBoxGroundCrossTarget;
+        private System.Windows.Forms.CheckBox enableAdaptiveJitterCancelCheckbox;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.CheckBox fullScreenHUDCheckbox;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.CheckBox autoConnectOnStartUpCheckbox;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.CheckBox autoAttachCamJoyOnConnectCheckbox;
+        private System.Windows.Forms.Label label8;
+        private Controls.MyButton BUT_CamJoystick;
+        private System.Windows.Forms.CheckBox autoStartVideoOnConnectCheckbox;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.CheckBox autoAttachJoyOnConnectCheckbox;
+        private System.Windows.Forms.CheckBox checkBoxDisplayODOnMap;
     }
 }

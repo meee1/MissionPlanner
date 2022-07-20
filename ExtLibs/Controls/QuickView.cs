@@ -46,6 +46,12 @@ namespace MissionPlanner.Controls
         {
             get
             {
+                /* NextVision */
+                if (this.Tag != null && (this.Tag.ToString().Equals("gnd_crs_lat") || this.Tag.ToString().Equals("gnd_crs_lon")))
+                    _numberformat = "0.000000";
+                else
+                    _numberformat = "0.00";
+                /* NextVision */
                 return _numberformat;
             }
             set

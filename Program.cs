@@ -28,6 +28,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Architecture = System.Runtime.InteropServices.Architecture;
 using Trace = System.Diagnostics.Trace;
+/* NextVision imports */
+using MissionPlanner.NvExt;
 
 namespace MissionPlanner
 {
@@ -185,8 +187,9 @@ namespace MissionPlanner
             if (File.Exists(Settings.GetRunningDirectory() + "logo.png"))
                 Logo = new Bitmap(Settings.GetRunningDirectory() + "logo.png");
 
-            if (File.Exists(Settings.GetRunningDirectory() + "logo2.png"))
-                Logo2 = new Bitmap(Settings.GetRunningDirectory() + "logo2.png");
+            /* NextVision define custom logo path -> <Running Directory>/Logo/Logo.png */
+            if (File.Exists(Settings.GetRunningDirectory() + "Logo/Logo.png"))
+                Logo2 = new Bitmap(Settings.GetRunningDirectory() + "Logo/Logo.png");
 
             if (File.Exists(Settings.GetRunningDirectory() + "icon.png"))
             {
@@ -237,7 +240,7 @@ namespace MissionPlanner
             string strVersion = File.Exists("version.txt")
                 ? File.ReadAllText("version.txt")
                 : System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Splash.Text = name + " " + Application.ProductVersion + " build " + strVersion;
+            Splash.Text = name + " " + Application.ProductVersion + NvMavExtCmds.NvVersion;// " build " + strVersion;
             Console.WriteLine("Splash.Show()");
             Splash.Show();
 

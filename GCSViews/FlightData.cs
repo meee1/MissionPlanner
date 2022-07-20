@@ -32,6 +32,19 @@ using ZedGraph;
 using LogAnalyzer = MissionPlanner.Utilities.LogAnalyzer;
 using TableLayoutPanelCellPosition = System.Windows.Forms.TableLayoutPanelCellPosition;
 using UnauthorizedAccessException = System.UnauthorizedAccessException;
+/****************************************************************************************************************************        
+*                                              NextVision Library Using         
+****************************************************************************************************************************/
+using MissionPlanner.CamJoystick;
+using MissionPlanner.NvExt;
+using IWshRuntimeLibrary;
+using static MAVLink;
+using File = System.IO.File;
+using System.Collections.ObjectModel;
+using Label = System.Windows.Forms.Label;
+/****************************************************************************************************************************        
+*                                                      
+****************************************************************************************************************************/
 
 // written by michael oborne
 
@@ -184,6 +197,134 @@ namespace MissionPlanner.GCSViews
             {10, "<10m" },
             {11, "<3m" }
         };
+
+        /****************************************************************************************************************************        
+        *                                              NextVision Addon Variables          
+        ****************************************************************************************************************************/
+        public enum HUDClickCommand
+        {
+            Tracking,
+            RefineLocation,
+            Both
+        }
+
+        public enum AllowedStreamModesCombination
+        {
+            Ch0DayIR_Ch1Disabled = 0,
+            Ch0Day_Ch1IR,
+            Ch0Day_Ch1Fusion,
+            Ch0Day_Ch1PIP,
+            Ch0Day_Ch1SBS,
+            Ch0IR_Ch1Fusion,
+            Ch0IR_Ch1PIP,
+            Ch0IR_Ch1SBS,
+            Ch0Fusion_Ch1Disabled,
+            Ch0PIP_Ch1Disabled,
+            Ch0SBS_Ch1Disabled,
+        }
+
+        public enum ObjectDetectionNetworkTypes
+        {
+            HumanAndVehicle = 0,
+            FireAndSmoke,
+            HumanOverboard,
+            MarineVessel,
+            AircraftDetector,            
+        }
+
+        public enum ObjectDetectionObjects
+        {
+            Person = 0,
+            Car,
+            Truck,
+            Boat,
+            Helicopter,
+            Airplane,
+            Fire,
+            Smoke,
+        }
+
+        public struct OrthoPhotoData
+        {
+            public Bitmap image;
+            public double minLatitude;
+            public double maxLatitude;
+            public double minLongitude;
+            public double maxLongitude;
+        }
+
+        // lookup table for object detection objects
+        Dictionary<ObjectDetectionNetworkTypes, Dictionary<ushort, ObjectDetectionObjects>> ObjectDetectionClassIdToObjectLut = new Dictionary<ObjectDetectionNetworkTypes, Dictionary<ushort, ObjectDetectionObjects>>() 
+        {
+            { 
+                ObjectDetectionNetworkTypes.HumanAndVehicle, 
+                new Dictionary<ushort, ObjectDetectionObjects>()
+                {
+                    {0, ObjectDetectionObjects.Person},
+                    {2, ObjectDetectionObjects.Car},
+                    {7, ObjectDetectionObjects.Truck},
+                }
+            },
+            {
+                ObjectDetectionNetworkTypes.FireAndSmoke,
+                new Dictionary<ushort, ObjectDetectionObjects>()
+                {
+                    {80, ObjectDetectionObjects.Smoke},
+                    {81, ObjectDetectionObjects.Fire},
+                }
+            },
+            {
+                ObjectDetectionNetworkTypes.HumanOverboard,
+                new Dictionary<ushort, ObjectDetectionObjects>()
+                {
+                    {0, ObjectDetectionObjects.Person},                    
+                }
+            },
+            {
+                ObjectDetectionNetworkTypes.MarineVessel,
+                new Dictionary<ushort, ObjectDetectionObjects>()
+                {
+                    {0, ObjectDetectionObjects.Boat},
+                }
+            },
+            {
+                ObjectDetectionNetworkTypes.AircraftDetector,
+                new Dictionary<ushort, ObjectDetectionObjects>()
+                {
+                    {0, ObjectDetectionObjects.Helicopter},
+                    {1, ObjectDetectionObjects.Airplane},
+                }
+            }
+        };
+
+        //The values of the virtual joystick
+        private float vJoystickX = 0, vJoystickY = 0;
+        // gnd crs alt received from last report
+        public float last_known_gnd_crs_alt = 0;
+        // GMap Overlays and Markers
+        public static GMapOverlay losoverlay;
+        public static GMapOverlay gndCrsoverlay;
+        public static GMapOverlay rvtOverlay;
+        public static GMapOverlay odOverlay;
+
+        // current POI Marker to delete
+        internal GMapMarker CurrentGMapDelPOIMarker = null;
+        // boolean indicates that mouse down started on Marker
+        bool MouseDownStartedOnMarker = false;
+        public static GroupBox flightModesGrpBox;
+        public static GroupBox objectDetectionControlGrpBox;
+        public static GroupBox orthophotoGrpBox;
+        public bool hud1ParentIsLeft;
+        public bool channel0OnMainHUD = true;
+        private bool huddropout2;
+        private bool huddropoutresize2;
+        private bool fullScreenHUD2 = false;
+        private static OrthoPhotoData orthoPhoto = new OrthoPhotoData();
+        private static bool orthoPhotoLoaded = false;
+        private ObjectDetectionNetworkTypes currentDetectorNetworkType = ObjectDetectionNetworkTypes.HumanAndVehicle;
+        /****************************************************************************************************************************        
+         *                                                        
+        ****************************************************************************************************************************/
 
         public FlightData()
         {
@@ -353,6 +494,38 @@ namespace MissionPlanner.GCSViews
                 Gspeed.MaxValue = gspeedMax;
             }
 
+            /* NextVision Initialization */
+            // ground cross overlay initialization
+            gndCrsoverlay = new GMapOverlay("ground cross");
+            gMapControl1.Overlays.Add(gndCrsoverlay);
+
+            // RVT overlay initialization
+            rvtOverlay = new GMapOverlay("RVT");
+            gMapControl1.Overlays.Add(rvtOverlay);
+
+            // RVT overlay initialization
+            odOverlay = new GMapOverlay("Object Detection");
+            gMapControl1.Overlays.Add(odOverlay);            
+
+            // LOS overlay initialization
+            losoverlay = new GMapOverlay("line of sight");
+            gMapControl1.Overlays.Add(losoverlay);
+
+            // adding mavlink packet received event handler
+            MainV2.comPort.OnPacketReceived += MavOnOnPacketReceived;
+
+            flightModesGrpBox = flightModesGroupBox;
+            objectDetectionControlGrpBox = groupBoxObjectDetectionControl;
+            orthophotoGrpBox = groupBoxOrthoPhoto;
+
+            if (radioButtonChannel0OnMainHUD.Checked)
+                channel0OnMainHUD = true;
+            else
+                channel0OnMainHUD = false;
+
+            hud2.hudon = false;
+            /* NextVision Initialization */
+
             MainV2.comPort.ParamListChanged += FlightData_ParentChanged;
 
             //HUD Theming, color setup
@@ -486,6 +659,9 @@ namespace MissionPlanner.GCSViews
             }
 
             hud1.doResize();
+            /* NextVision */
+            hud2.doResize();
+            /* NextVision */
         }
 
         public void BUT_playlog_Click(object sender, EventArgs e)
@@ -872,11 +1048,6 @@ namespace MissionPlanner.GCSViews
         private void addMissionRouteMarker(GMapMarker marker)
         {
             BeginInvoke((Action) delegate { routes.Markers.Add(marker); });
-        }
-
-        private void addPoiToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            POI.POIAdd(MouseDownStart);
         }
 
         private void altitudeAngelSettingsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2033,6 +2204,13 @@ namespace MissionPlanner.GCSViews
                 string desc = checkbox.Name;
                 ((QuickView) checkbox.Tag).Tag = desc;
 
+                /* NextVision */
+                if (desc == "gnd_crs_lon" || desc == "gnd_crs_lat")
+                    ((QuickView)checkbox.Tag).numberformat = "0.000000";
+                else
+                    ((QuickView)checkbox.Tag).numberformat = "0.00";
+                /* NextVision */
+
                 desc = MainV2.comPort.MAV.cs.GetNameandUnit(desc);
 
                 ((QuickView) checkbox.Tag).desc = desc;
@@ -2183,23 +2361,29 @@ namespace MissionPlanner.GCSViews
             }
         }
 
-        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (CurrentGMapMarker == null || !(CurrentGMapMarker is GMapMarkerPOI))
-                return;
-
-            POI.POIDelete((GMapMarkerPOI) CurrentGMapMarker);
-        }
-
         void dropout_FormClosed(object sender, FormClosedEventArgs e)
         {
             (sender as Form).SaveStartupLocation();
-            //GetFormFromGuid(GetOrCreateGuid("fd_hud_guid")).Controls.Add(hud1);
-            ((sender as Form).Tag as Control).Controls.Add(hud1);
-            //SubMainLeft.Panel1.Controls.Add(hud1);
-            if (hud1.Parent == SubMainLeft.Panel1)
-                SubMainLeft.Panel1Collapsed = false;
-            huddropout = false;
+
+            {
+                try
+                {
+                    ((sender as Form).Tag as Control).Controls.Add(hud1);
+                }
+                catch
+                {
+                    SubMainLeft.Panel1.Controls.Add(hud1);
+                }
+
+                if (hud1.Parent == SubMainLeft.Panel1)
+                    SubMainLeft.Panel1Collapsed = false;
+
+                huddropout = false;
+
+                if (Settings.Instance["HudSwap"] != null && Settings.Instance["HudSwap"].ToLower() == "true")
+                    SwapHud1AndMap();
+            }
+
         }
 
         void dropout_Resize(object sender, EventArgs e)
@@ -2221,7 +2405,9 @@ namespace MissionPlanner.GCSViews
                     ((Form) sender).Location = tl;
                 }
 
-                ((Form) sender).Width = (int) (formh * (hud1.SixteenXNine ? 1.777f : 1.333f));
+                /* NextVision */
+                ((Form)sender).Width = (int)(formh * (hud1.SixteenXNine ? 1.777f : (hud1.ThirtyTwoXNine ? 1.777f * 2f : 1.333f)));
+                /* NextVision */
                 ((Form) sender).Height = formh + 20;
             }
 
@@ -2321,6 +2507,76 @@ namespace MissionPlanner.GCSViews
             {
                 mainloop();
             }
+
+            /* NextVision */
+            /* load the saved values from settings */
+            if (Settings.Instance.ContainsKey("local_position_pitch") && Settings.Instance["local_position_pitch"] != null)
+                textBoxLocalPosPitch.Text = Settings.Instance["local_position_pitch"];
+            if (Settings.Instance.ContainsKey("local_position_roll") && Settings.Instance["local_position_roll"] != null)
+                textBoxLocalPosRoll.Text = Settings.Instance["local_position_roll"];
+            if (Settings.Instance.ContainsKey("global_position_elevation") && Settings.Instance["global_position_elevation"] != null)
+                textBoxGlobalPosElevation.Text = Settings.Instance["global_position_elevation"];
+            if (Settings.Instance.ContainsKey("global_position_azimuth") && Settings.Instance["global_position_azimuth"] != null)
+                textBoxGlobalPosAzimuth.Text = Settings.Instance["global_position_azimuth"];
+            if (Settings.Instance.ContainsKey("hud_click_command") && Settings.Instance["hud_click_command"] != null)
+                comboBoxHUDClickCommand.SelectedIndex = comboBoxHUDClickCommand.Items.IndexOf(Settings.Instance["hud_click_command"]);
+            if (Settings.Instance.ContainsKey("display_secondary_hud") && Settings.Instance["display_secondary_hud"] != null)
+            {
+                if (Settings.Instance["display_secondary_hud"].Equals("true"))
+                    checkBoxDisplaySecondaryHUD.Checked = true;
+                else
+                    checkBoxDisplaySecondaryHUD.Checked = false;
+                checkBoxDisplaySecondaryHUD_CheckedChanged(null, null);
+            }
+            if (Settings.Instance.ContainsKey("channel0_on_main_hud") && Settings.Instance["channel0_on_main_hud"] != null)
+            {
+                if (Settings.Instance["channel0_on_main_hud"].Equals("true"))
+                {
+                    radioButtonChannel0OnMainHUD.Checked = true;
+                    radioButtonChannel1OnMainHUD.Checked = false;
+                }
+                else
+                {
+                    radioButtonChannel0OnMainHUD.Checked = false;
+                    radioButtonChannel1OnMainHUD.Checked = true;
+                }
+                radioButtonChannel0OnMainHUD_CheckedChanged(null, null);
+            }
+            if (Settings.Instance.ContainsKey("oglr_enable") && Settings.Instance["oglr_enable"] != null)
+            {
+                if (Settings.Instance["oglr_enable"].Equals("true"))
+                {
+                    groupBoxOrthoPhoto.Visible = true;
+                }
+                else
+                {
+                    groupBoxOrthoPhoto.Visible = false;
+                }
+            }
+            else
+            {
+                groupBoxOrthoPhoto.Visible = false;
+            }
+            if (Settings.Instance.ContainsKey("position_command") && Settings.Instance["position_command"] != null)
+            {
+                comboBoxPositionCommand.SelectedIndex = comboBoxPositionCommand.Items.IndexOf(Settings.Instance["position_command"]);
+            }
+            else
+            {
+                comboBoxPositionCommand.SelectedIndex = 0;
+                Settings.Instance["position_command"] = comboBoxPositionCommand.Text;
+            }
+            if(Settings.Instance.ContainsKey("oglr_image_size") && Settings.Instance["oglr_image_size"] != null)
+            {
+                textBoxOGLRImageSize.Text = Settings.Instance["oglr_image_size"];
+            }
+            else
+            {
+                Settings.Instance["oglr_image_size"] = pictureBoxOrthoPhoto.Width.ToString();
+                textBoxOGLRImageSize.Text = Settings.Instance["oglr_image_size"];
+            }
+            
+            
         }
 
         private void FlightData_ParentChanged(object sender, EventArgs e)
@@ -2513,6 +2769,25 @@ namespace MissionPlanner.GCSViews
                 return;
             }
 
+            /* NextVision POIs movement support */
+            if (CurrentGMapMarker != null)
+            {
+                if (CurrentGMapMarker is GMapMarkerPOI)
+                {
+                    if (e.Button == MouseButtons.Right)
+                        CurrentGMapDelPOIMarker = CurrentGMapMarker;
+                    else
+                        CurrentGMapDelPOIMarker = null;
+
+                    MouseDownStartedOnMarker = true;
+                    gMapControl1.OnMarkerEnter -= gMapControl1_OnMarkerEnter;
+                    gMapControl1.OnMarkerLeave -= gMapControl1_OnMarkerLeave;
+                }
+            }
+            else
+                CurrentGMapDelPOIMarker = null;
+            /************************************/
+
             if (CurrentGMapMarker is GMapMarkerADSBPlane)
             {
                 var marker = CurrentGMapMarker as GMapMarkerADSBPlane;
@@ -2543,13 +2818,26 @@ namespace MissionPlanner.GCSViews
         {
             if (e.Button == MouseButtons.Left)
             {
-                PointLatLng point = gMapControl1.FromLocalToLatLng(e.X, e.Y);
+                /* NextVision - Moving POIs across the Map support */
+                if (CurrentGMapMarker != null && MouseDownStartedOnMarker)
+                {
+                    if (MainV2.comPort.BaseStream.IsOpen)
+                    {
+                        if (CurrentGMapMarker is GMapMarkerPOI)
+                            CurrentGMapMarker.Position = gMapControl1.FromLocalToLatLng(e.X, e.Y);
+                    }
+                }
+                /**************************************************/
+                else
+                {
+                    PointLatLng point = gMapControl1.FromLocalToLatLng(e.X, e.Y);
 
-                double latdif = MouseDownStart.Lat - point.Lat;
-                double lngdif = MouseDownStart.Lng - point.Lng;
+                    double latdif = MouseDownStart.Lat - point.Lat;
+                    double lngdif = MouseDownStart.Lng - point.Lng;
 
-                gMapControl1.Position = new PointLatLng(center.Position.Lat + latdif,
-                    center.Position.Lng + lngdif);
+                    gMapControl1.Position = new PointLatLng(center.Position.Lat + latdif,
+                        center.Position.Lng + lngdif);
+                }
             }
             else
             {
@@ -2854,11 +3142,6 @@ namespace MissionPlanner.GCSViews
             frm.FormClosed += (a, e2) => frm.SaveStartupLocation();
             frm.TopMost = true;
             frm.Show();
-        }
-
-        private void loadFileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            POI.POILoad();
         }
 
         private void mainloop()
@@ -3217,6 +3500,28 @@ namespace MissionPlanner.GCSViews
                         {
                             this.BeginInvoke((MethodInvoker) delegate { but_disablejoystick.Visible = true; });
                         }
+                        /* NextVision */
+                        else
+                        {
+                            this.Invoke((MethodInvoker)delegate {
+                                but_disablejoystick.Visible = false;
+                            });
+                        }
+
+                        // show disable camera joystick button
+                        if (MainV2.Camjoystick != null && MainV2.Camjoystick.enabled)
+                        {
+                            this.Invoke((MethodInvoker)delegate {
+                                but_disableCamjoystick.Visible = true;
+                            });
+                        }
+                        else
+                        {
+                            this.Invoke((MethodInvoker)delegate {
+                                but_disableCamjoystick.Visible = false;
+                            });
+                        }
+                        /* NextVision */
 
                         adsb.CurrentPosition = MainV2.comPort.MAV.cs.HomeLocation;
 
@@ -3884,7 +4189,7 @@ namespace MissionPlanner.GCSViews
         }
 
         void POI_POIModified(object sender, EventArgs e)
-        {
+        {            
             POI.UpdateOverlay(poioverlay);
         }
 
@@ -3901,9 +4206,10 @@ namespace MissionPlanner.GCSViews
                 var lng = float.Parse(split[1], CultureInfo.InvariantCulture);
                 var alt = float.Parse(split[2], CultureInfo.InvariantCulture);
 
-                MainV2.comPort.doCommandInt((byte) MainV2.comPort.sysidcurrent, (byte) MainV2.comPort.compidcurrent,
-                    MAVLink.MAV_CMD.DO_SET_ROI, 0, 0, 0, 0, (int) (lat * 1e7),
-                    (int) (lng * 1e7),  ((alt / CurrentState.multiplieralt) ));
+                /* NextVision changed DO_SET_ROI to DO_SET_ROI_LOCATION and set ack to false */
+                MainV2.comPort.doCommand((byte)MainV2.comPort.sysidcurrent, (byte)MainV2.comPort.compidcurrent,
+                    MAVLink.MAV_CMD.DO_SET_ROI_LOCATION, 0, 0, 0, 0, lat,
+                    lng, alt, false);
             }
             else if (split.Length == 2)
             {
@@ -3911,9 +4217,10 @@ namespace MissionPlanner.GCSViews
                 var lng = float.Parse(split[1], CultureInfo.InvariantCulture);
                 var alt = (float)srtm.getAltitude(lat, lng).alt;
 
-                MainV2.comPort.doCommandInt((byte) MainV2.comPort.sysidcurrent, (byte) MainV2.comPort.compidcurrent,
-                    MAVLink.MAV_CMD.DO_SET_ROI, 0, 0, 0, 0, (int) (lat * 1e7),
-                    (int) (lng * 1e7),  ((alt)));
+                /* NextVision changed DO_SET_ROI to DO_SET_ROI_LOCATION and set ack to false */
+                MainV2.comPort.doCommand((byte)MainV2.comPort.sysidcurrent, (byte)MainV2.comPort.compidcurrent,
+                    MAVLink.MAV_CMD.DO_SET_ROI_LOCATION, 0, 0, 0, 0, lat,
+                    lng, (float)alt, false);
             }
             else
             {
@@ -3929,29 +4236,22 @@ namespace MissionPlanner.GCSViews
                 return;
             }
 
-            string alt = "0";
-            if (DialogResult.Cancel == InputBox.Show("Enter Alt",
-                "Enter Target Alt (Relative to home)", ref alt))
-                return;
-
-            if (!float.TryParse(alt, out var intalt))
-            {
-                CustomMessageBox.Show("Bad Alt");
-                return;
-            }
-
             if (MouseDownStart.Lat == 0.0 || MouseDownStart.Lng == 0.0)
             {
                 CustomMessageBox.Show("Bad Lat/Long");
                 return;
             }
 
+            /* NextVision */
+            var alt = srtm.getAltitude(MouseDownStart.Lat, MouseDownStart.Lng).alt;
+            /* NextVision */
+
             try
             {
-                MainV2.comPort.doCommandInt((byte) MainV2.comPort.sysidcurrent, (byte) MainV2.comPort.compidcurrent,
-                    MAVLink.MAV_CMD.DO_SET_ROI, 0, 0, 0, 0, (int) (MouseDownStart.Lat * 1e7),
-                    (int) (MouseDownStart.Lng * 1e7),  ((intalt / CurrentState.multiplieralt)),
-                    frame: MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT);
+                /* NextVision changed DO_SET_ROI to DO_SET_ROI_LOCATION and set ack to false */
+                MainV2.comPort.doCommand((byte)MainV2.comPort.sysidcurrent, (byte)MainV2.comPort.compidcurrent,
+                    MAVLink.MAV_CMD.DO_SET_ROI_LOCATION, 0, 0, 0, 0, (float)MouseDownStart.Lat,
+                    (float)MouseDownStart.Lng, (float)alt, false);
             }
             catch
             {
@@ -4370,6 +4670,10 @@ namespace MissionPlanner.GCSViews
                 QV.DoubleClick += quickView_DoubleClick;
                 QV.ContextMenuStrip = contextMenuStripQuickView;
                 QV.Dock = DockStyle.Fill;
+                /* NextVision */
+                QV.Margin = new Padding(3);
+                QV.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right);
+                /* NextVision */
                 QV.numberColor = ThemeManager.getQvNumberColor();
                 QV.numberColorBackup = QV.numberColor;
                 QV.number = 0;
@@ -5355,7 +5659,7 @@ namespace MissionPlanner.GCSViews
             e.Graphics.DrawImageUnscaled(bmp, 0, 0);
         }
 
-        private void gMapControl1_MouseUp(object sender, MouseEventArgs e)
+        /*private void gMapControl1_MouseUp(object sender, MouseEventArgs e)
         {
             var posstart = gMapControl1.FromLatLngToLocal(MouseDownStart);
             var MouseDownEnd = gMapControl1.FromLocalToLatLng(e.X, e.Y);
@@ -5379,7 +5683,7 @@ namespace MissionPlanner.GCSViews
             {
                // contextMenuStripMap.Show(gMapControl1, e.Location);
             }
-        }
+        }*/
 
         private void setBatteryCellCountToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -5724,6 +6028,2840 @@ namespace MissionPlanner.GCSViews
         {
             tabControlactions.Multiline = !tabControlactions.Multiline;
             Settings.Instance["tabControlactions_Multiline"] = tabControlactions.Multiline.ToString();
+        }
+
+        /****************************************************************************************************************************
+        *                                            
+        *                                              NextVision Addon functions 
+        * 
+        ****************************************************************************************************************************/
+        /****************************************************************************************************************************
+        *                                                      BUT_camjoystick_Click()
+        * Description : camera joystick button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void BUT_camjoystick_Click(object sender, EventArgs e)
+        {
+            Form camjoy = new CamJoystickSetup();
+            ThemeManager.ApplyThemeTo(camjoy);
+            camjoy.Show();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      startTRIPVideoToolStripMenuItem_Click()
+        * Description : start trip video tooltip event handler     
+        *
+        ****************************************************************************************************************************/
+        private void startTRIPVideoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int chan = 0;
+
+            if (((MyButton)sender) == buttonStartChannel0Video)
+                chan = 0;
+            else if (((MyButton)sender) == buttonStartChannel1Video)
+                chan = 1;
+
+            // create a new network config form
+            GCSViews.NetworkSettingscs network_config = new GCSViews.NetworkSettingscs();
+
+            /* show the network settings form */
+            network_config.ShowDialog();
+
+            // when new url is valid restart the decoder session 
+            if (network_config.network_url != null)
+            {
+                startTRIPVideo(network_config.url_ip.ToString(), network_config.url_port, network_config.vid_fwd_url_ip != null ? network_config.vid_fwd_url_ip.ToString() : "", network_config.vid_fwd_url_port, chan);
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      startTRIPVideo()
+        * Description : start receiving trip video stream     
+        *
+        ****************************************************************************************************************************/
+        public void startTRIPVideo(string ip_addr, int port, string vid_fwd_ip_addr, int vid_fwd_port, int chan)
+        {
+            if (chan == 0)
+            {
+                MainV2.tripCamChannel0.trip_cam_image += new TRIPCamImage(cam_camimage_channel0);
+                MainV2.tripCamChannel0.Start(ip_addr, port, vid_fwd_ip_addr, vid_fwd_port);
+            }
+            else if (chan == 1)
+            {
+                MainV2.tripCamChannel1.trip_cam_image += new TRIPCamImage(cam_camimage_channel1);
+                MainV2.tripCamChannel1.Start(ip_addr, port, vid_fwd_ip_addr, vid_fwd_port);
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      hud1_Click()
+        * Description : click on video window evente handler     
+        *
+        ****************************************************************************************************************************/
+        private void hud1_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            int chanId = 0;
+            double win_width = hud1.Width;
+            double win_height = hud1.Height;
+            MouseEventArgs mouse_e = (MouseEventArgs)e;
+            int x_pos = (int)(((double)mouse_e.X * 1280.0) / win_width);
+            int y_pos = (int)(((double)mouse_e.Y * 720.0) / win_height);
+
+            if (!channel0OnMainHUD)
+                chanId = 1;
+
+            switch ((HUDClickCommand)comboBoxHUDClickCommand.SelectedIndex)
+            {
+                default:
+                case HUDClickCommand.Tracking:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSystemMode,
+                        (float)NvMavExtCmds.SetSystemModeArgs.Tracking, x_pos, y_pos, (float)0, chanId, 0);
+                    break;
+                case HUDClickCommand.RefineLocation:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.GeoMapControl,
+                        (float)NvMavExtCmds.GeoMapControlArgs.RefineLocation, x_pos, y_pos, (float)chanId, 0, 0, false);
+                    break;
+                case HUDClickCommand.Both:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSystemMode,
+                        (float)NvMavExtCmds.SetSystemModeArgs.Tracking, x_pos, y_pos, (float)0, chanId, 0);
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.GeoMapControl,
+                        (float)NvMavExtCmds.GeoMapControlArgs.RefineLocation, x_pos, y_pos, (float)chanId, 0, 0, false);
+                    break;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_disableCamjoystick_Click()
+        * Description : disable camera joystick button click event handler     
+        *
+        ****************************************************************************************************************************/
+        private void but_disableCamjoystick_Click(object sender, EventArgs e)
+        {
+            if (MainV2.Camjoystick != null && MainV2.Camjoystick.enabled)
+            {
+                MainV2.Camjoystick.enabled = false;
+                but_disableCamjoystick.Visible = false;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_start_snapshots_Click()
+        * Description : start snapshots button click event handler    
+        *
+        ****************************************************************************************************************************/
+        private void BTN_start_snapshots_Click(object sender, EventArgs e)
+        {
+            int interval, count;
+            int chanId = 0;
+            MyButton snapIntervalButton = sender as MyButton;
+            CheckBox checkBoxInfiniteSnapshots = null;
+            TextBox textBoxSnapshotsCount = null;
+            TextBox textBoxSnapshotsInterval = null;
+
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            if (snapIntervalButton == buttonStartSnapshotIntervalChannel0)
+            {
+                chanId = 0;
+                checkBoxInfiniteSnapshots = checkBoxInfiniteSnapshotsChannel0;
+                textBoxSnapshotsCount = textBoxSnapshotsCountChannel0;
+                textBoxSnapshotsInterval = textBoxSnapshotsIntervalChannel0;
+            }
+            else if (snapIntervalButton == buttonStartSnapshotIntervalChannel1)
+            {
+                chanId = 1;
+                checkBoxInfiniteSnapshots = checkBoxInfiniteSnapshotsChannel1;
+                textBoxSnapshotsCount = textBoxSnapshotsCountChannel1;
+                textBoxSnapshotsInterval = textBoxSnapshotsIntervalChannel1;
+            }
+            else
+                return;
+
+            if (!checkBoxInfiniteSnapshots.Checked)
+            {
+                if (!Int32.TryParse(textBoxSnapshotsCount.Text, out count))
+                {
+                    CustomMessageBox.Show("Snapshots Count, Bad Value Entered");
+                    return;
+                }
+                if (count < 0 || count > 10000)
+                {
+                    CustomMessageBox.Show("Snapshots Count, Bad Value Entered, Valid Range Is: 0 - 10000");
+                    return;
+                }
+            }
+            else
+                count = -1;
+
+            if (!Int32.TryParse(textBoxSnapshotsInterval.Text, out interval))
+            {
+                CustomMessageBox.Show("Snapshots Interval, Bad Value Entered");
+                return;
+            }
+            if (interval < 500 || interval > 10000)
+            {
+                CustomMessageBox.Show("Snapshots Interval, Bad Value Entered, Valid Range Is: 500 - 10000 [milliseconds]");
+                return;
+            }
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SnapShotInterval, (float)interval, (float)count, (float)chanId, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_stop_snapshots_Click()
+        * Description : start snapshots button click event handler      
+        *
+        ****************************************************************************************************************************/
+        private void BTN_stop_snapshots_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            int chanId = 0;
+            MyButton snapIntervalButton = sender as MyButton;
+
+            if (snapIntervalButton == buttonStopSnashotIntervalChannel0)
+                chanId = 0;
+            else if (snapIntervalButton == buttonStopSnashotIntervalChannel1)
+                chanId = 1;
+            else
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SnapShotInterval, 0, 0, (float)chanId, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_follow_target_off_Click()
+        * Description : button follow event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_follow_target_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetFollowMode, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_single_yaw_off_Click()
+        * Description : single yaw off button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_single_yaw_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSingleYawMode, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_follow_target_on_Click()
+        * Description : follow target on button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_follow_target_on_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetFollowMode, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_single_yaw_on_Click()
+        * Description : single yaw on button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_single_yaw_on_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSingleYawMode, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_black_white_pallete_Click()
+        * Description : B/W palette button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_black_white_pallete_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIrColor, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_color_pallete_Click()
+        * Description : color palette button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_color_pallete_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIrColor, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_polarity_black_hot_Click()
+        * Description : black hot polarity button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_polarity_black_hot_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIrPolarity, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_polarity_white_hot_Click()
+        * Description : white hot polarity button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_polarity_white_hot_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIrPolarity, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_nuc_Click()
+        * Description : nuc button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_nuc_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.DoNUC, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BUT_RetractRelease_Click()
+        * Description : retract release button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void BUT_RetractRelease_Click(object sender, EventArgs e)
+        {
+            clearRetractBlock();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_disable_roll_derot_Click()
+        * Description : disable roll derotation button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_disable_roll_derot_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetRollDerotation, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_enable_roll_derot_Click()
+        * Description : enable roll derotation button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_enable_roll_derot_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetRollDerotation, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_trip_rec_off_Click()
+        * Description : trip recording off button event handler    
+        *
+        ****************************************************************************************************************************/
+        private void btn_trip_rec_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            int chanId = 0;
+            MyButton recButton = sender as MyButton;
+
+            if (recButton == buttonChannel0RecordOff)
+                chanId = 0;
+            else if (recButton == buttonChannel1RecordOff)
+                chanId = 1;
+            else
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetRecordState, 0, (float)chanId, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_ir_Click()
+        * Description : IR button event handler     
+        *
+        ****************************************************************************************************************************/
+        private void btn_ir_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSensor, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_trip_rec_Click()
+        * Description : trip recording on button event handler    
+        *
+        ****************************************************************************************************************************/
+        private void btn_trip_rec_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            int chanId = 0;
+            MyButton recButton = sender as MyButton;
+
+            if (recButton == buttonChannel0RecordOn)
+                chanId = 0;
+            else if (recButton == buttonChannel1RecordOn)
+                chanId = 1;
+            else
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetRecordState, 1, (float)chanId, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_retracting_Click()
+        * Description : retract button event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_retracting_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_MOUNT_CONTROL, 0, 0, 0, 0, 0, 0, (float)MAVLink.MAV_MOUNT_MODE.RETRACT, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_day_Click()
+        * Description :  day button event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_day_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSensor, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_image_capture_Click()
+        * Description :    image capture button event handler 
+        *
+        ****************************************************************************************************************************/
+        private void btn_image_capture_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            int chanId = 0;
+            MyButton imageCaptureButton = sender as MyButton;
+
+            if (imageCaptureButton == buttonChannel0ImageCapture)
+                chanId = 0;
+            else if (imageCaptureButton == buttonChannel1ImageCapture)
+                chanId = 1;
+            else
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.TakeSnapShot, (float)chanId, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_set_fov_Click()
+        * Description :    set field of view button event handler 
+        *
+        ****************************************************************************************************************************/
+        private void btn_set_fov_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            float fov;
+            if (!float.TryParse(textBoxCameraFov.Text, out fov))
+            {
+                CustomMessageBox.Show("Camera FOV degree, Bad Value Entered");
+                textBoxCameraFov.Text = "0";
+                return;
+            }
+            if (fov < 0 || fov > 80)
+            {
+                CustomMessageBox.Show("FOV degree, Bad Value Entered, Valid Range Is: 0 - 80");
+                textBoxCameraFov.Text = "0";
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetFOV, fov, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_zoom_out_MouseDown()
+        * Description :     zoom out MouseDown button event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_zoom_out_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetZoom, (float)NvMavExtCmds.SetGimbalArgs.ZoomOut, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_zoom_out_MouseUp()
+        * Description :    zoom out MouseUp button event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_zoom_out_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetZoom, (float)NvMavExtCmds.SetGimbalArgs.ZoomStop, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_zoom_in_MouseDown()
+        * Description :   zoom in button MouseDown event handler  
+        *
+        ****************************************************************************************************************************/
+        private void btn_zoom_in_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetZoom, (float)NvMavExtCmds.SetGimbalArgs.ZoomIn, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_zoom_in_MouseUp()
+        * Description : zoom in button MouseUp event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_zoom_in_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetZoom, (float)NvMavExtCmds.SetGimbalArgs.ZoomStop, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BUT_ir_sharpnessmode_Click()
+        * Description :     ir sharpnessmode button event handler
+        *
+        ****************************************************************************************************************************/
+        private void BUT_ir_sharpnessmode_Click(object sender, EventArgs e)
+        {
+            if (CMB_sharpnessmode.SelectedIndex == -1)
+            {
+                CustomMessageBox.Show("You must choose a sharpness level", Strings.ERROR);
+                return;
+            }
+            setCameraSharpness(NvMavExtCmds.SetSensorArgs.IrSensor, (NvMavExtCmds.SetSharpnessArgs)CMB_sharpnessmode.SelectedIndex);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BUT_day_sharpnessmode_Click()
+        * Description :     day sharpnessmode button event handler
+        *
+        ****************************************************************************************************************************/
+        private void BUT_day_sharpnessmode_Click(object sender, EventArgs e)
+        {
+            if (CMB_sharpnessmode.SelectedIndex == -1)
+            {
+                CustomMessageBox.Show("You must choose a sharpness level", Strings.ERROR);
+                return;
+            }
+            setCameraSharpness(NvMavExtCmds.SetSensorArgs.DaySensor, (NvMavExtCmds.SetSharpnessArgs)CMB_sharpnessmode.SelectedIndex);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BUT_record_Click()
+        * Description :    record button event handler
+        *
+        ****************************************************************************************************************************/
+        private void BUT_record_Click(object sender, EventArgs e)
+        {
+            int chan = 0;
+            CaptureTRIP tripCapture = null;
+            MyButton buttonVideoCapture = null;
+
+            if (((MyButton)sender) == buttonChannel0StartLocalRecord)
+            {
+                chan = 0;
+                tripCapture = MainV2.tripCamChannel0;
+                buttonVideoCapture = buttonChannel0StartLocalRecord;
+            }
+            else if (((MyButton)sender) == buttonChannel1StartLocalRecord)
+            {
+                chan = 1;
+                tripCapture = MainV2.tripCamChannel1;
+                buttonVideoCapture = buttonChannel1StartLocalRecord;
+            }
+            else
+                return;
+
+            /* check current state */
+            if (buttonVideoCapture.Text.Substring(0, 4) == "Star")
+            {
+                /* attempt to start the recording */
+                if (tripCapture.StartRec() == true)
+                    buttonVideoCapture.Text = "Stop Channel-" + chan.ToString() + " Local Recording";
+            }
+            else
+            {
+                /* attempt to stop the recording */
+                if (tripCapture.StopRec() == true)
+                    buttonVideoCapture.Text = "Start Channel-" + chan.ToString() + " Local Recording";
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_zoom_out_MouseDown()
+        * Description :    epr button event handler 
+        *
+        ****************************************************************************************************************************/
+        private void but_epr_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.EPR);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_pilot_Click()
+        * Description :    pilot button event handler 
+        *
+        ****************************************************************************************************************************/
+        private void but_pilot_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.Pilot);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_stow_Click()
+        * Description :     stow button event handler
+        *
+        ****************************************************************************************************************************/
+        private void but_stow_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.Stow);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_hold_Click()
+        * Description :  hold button event handler   
+        *
+        ****************************************************************************************************************************/
+        private void but_hold_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.Hold);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_observation_Click()
+        * Description :     observation button event handler
+        *
+        ****************************************************************************************************************************/
+        private void but_observation_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.Observation);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_grr_Click()
+        * Description :     grr button event handler
+        *
+        ****************************************************************************************************************************/
+        private void but_grr_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.GRR);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_global_position_Click()
+        * Description :     global position button event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_global_position_Click(object sender, EventArgs e)
+        {
+            float elevation, azimuth;
+            if (!float.TryParse(textBoxGlobalPosElevation.Text, out elevation))
+            {
+                CustomMessageBox.Show("Global Position Elevation, Bad Value Entered");
+                textBoxGlobalPosElevation.Text = "0";
+                return;
+            }
+            if (elevation > 120 || elevation < -120)
+            {
+                CustomMessageBox.Show("Global Position Elevation, Bad Value Entered, Valid Range Is: 120 - (-120)");
+                textBoxGlobalPosElevation.Text = "0";
+                return;
+            }
+            if (!float.TryParse(textBoxGlobalPosAzimuth.Text, out azimuth))
+            {
+                CustomMessageBox.Show("Global Position Azimuth, Bad Value Entered");
+                textBoxGlobalPosAzimuth.Text = "0";
+                return;
+            }
+            if (azimuth >= 360 || azimuth < 0)
+            {
+                CustomMessageBox.Show("Global Position Azimuth, Bad Value Entered, Valid Range Is: 0 - 359");
+                textBoxGlobalPosAzimuth.Text = "0";
+                return;
+            }
+
+            Settings.Instance["global_position_elevation"] = textBoxGlobalPosElevation.Text;
+            Settings.Instance["global_position_azimuth"] = textBoxGlobalPosAzimuth.Text;
+
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.GlobalPosition, elevation, azimuth);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_local_position_Click()
+        * Description :    local position button event handler 
+        *
+        ****************************************************************************************************************************/
+        private void btn_local_position_Click(object sender, EventArgs e)
+        {
+            float pitch, roll;
+            if (!float.TryParse(textBoxLocalPosPitch.Text, out pitch))
+            {
+                CustomMessageBox.Show("Local Position Pitch, Bad Value Entered");
+                textBoxLocalPosPitch.Text = "0";
+                return;
+            }
+            if (pitch > 140 || pitch < -80)
+            {
+                CustomMessageBox.Show("Local Position Pitch, Bad Value Entered, Valid Range Is: 140 - (-80)");
+                textBoxLocalPosPitch.Text = "0";
+                return;
+            }
+            if (!float.TryParse(textBoxLocalPosRoll.Text, out roll))
+            {
+                CustomMessageBox.Show("Local Position Roll, Bad Value Entered");
+                textBoxLocalPosRoll.Text = "0";
+                return;
+            }
+            if (roll > 180 || roll < -180)
+            {
+                CustomMessageBox.Show("Local Position Roll, Bad Value Entered, Valid Range Is: 180 - (-180)");
+                textBoxLocalPosRoll.Text = "0";
+                return;
+            }
+
+            Settings.Instance["local_position_pitch"] = textBoxLocalPosPitch.Text;
+            Settings.Instance["local_position_roll"] = textBoxLocalPosRoll.Text;
+
+            if (Settings.Instance["position_command"].Equals("Un-stabilized"))
+                setCameraMode(NvMavExtCmds.SetSystemModeArgs.UnstabilizedPosition, pitch, roll);
+            else
+                setCameraMode(NvMavExtCmds.SetSystemModeArgs.LocalPosition, pitch, roll);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      setCameraMode()
+        * Description :  setting the camera mode    
+        *
+        ****************************************************************************************************************************/
+        private void setCameraMode(NvMavExtCmds.SetSystemModeArgs camMode)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.SetSystemMode,
+                        (float)camMode,
+                        0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      setCameraMode()
+        * Description :     setting the camera mode with pitch and roll for global and local position
+        *
+        ****************************************************************************************************************************/
+        private void setCameraMode(NvMavExtCmds.SetSystemModeArgs camMode, float pitch, float roll)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.SetSystemMode,
+                        (float)camMode,
+                        pitch, roll, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      VirtualJoystick_Moved()
+        * Description :    virtual joystick move event handler 
+        *
+        ****************************************************************************************************************************/
+        private void VirtualJoystick_Moved(object sender, WpfCustomControls.VirtualJoystickEventArgs args)
+        {
+            //joystickInfoLabel.Text = $"Joystick Distance:{args.Distance}, Joystick Angle:{(int)args.Angle}";
+            //System.Diagnostics.Debug.WriteLine("Distance = " + args.Distance + " Angle = " + args.Angle + " XPos = " + args.XPos + " YPos = " + args.YPos);
+            vJoystickX = (float)-args.XPos;
+            vJoystickY = (float)-args.YPos;
+
+        }
+
+        /****************************************************************************************************************************
+        *                                                      OnScreenJoystick_MouseUp()
+        * Description :     virtual joystick mouse up event handler
+        *
+        ****************************************************************************************************************************/
+        private void OnScreenJoystick_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (MainV2.comPort == null)
+                return;
+            vJoystickTimer.Enabled = false;
+            vJoystickX = 0;
+            vJoystickY = 0;
+            /* Sending roll = pitch = 0 three times for stopping the gimbal movement */
+            for (int i = 0; i < 3; i++)
+                SendGimbalCommand();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      OnScreenJoystick_MouseDown()
+        * Description :     virtual joystick mouse down event handler
+        *
+        ****************************************************************************************************************************/
+        private void OnScreenJoystick_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (MainV2.comPort == null)
+                return;
+            vJoystickTimer.Enabled = true;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_zoom_out_MouseDown()
+        * Description :  virtual joystick timer tick event handler   
+        *
+        ****************************************************************************************************************************/
+        private void vJoystickTimer_Tick(object sender, EventArgs e)
+        {
+            SendGimbalCommand();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      SendGimbalCommand()
+        * Description :  sending a gimbal command to the camera
+        *
+        ****************************************************************************************************************************/
+        private void SendGimbalCommand()
+        {
+            if (MainV2.comPort == null)
+                return;
+            /* Normalizing roll and pitch to values between -1 to 1 */
+            float roll = vJoystickX / 133;
+            roll = roll > 1 ? 1 : roll;
+            roll = roll < -1 ? -1 : roll;
+            float pitch = vJoystickY / 133;
+            pitch = pitch > 1 ? 1 : pitch;
+            pitch = pitch < -1 ? -1 : pitch;
+            /* attenuate the roll & pitch according to the trackbar */
+            float att_factor = (float)((float)VirtJoyBar.Value / 100.0);
+            roll *= att_factor;
+            pitch *= att_factor;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetGimbal, roll, pitch, (float)NvMavExtCmds.SetGimbalArgs.ZoomNoChange, last_known_gnd_crs_alt, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      setCameraSharpness()
+        * Description : setting camera sharpness  depand on sensor and sharpness level  
+        *
+        ****************************************************************************************************************************/
+        public void setCameraSharpness(NvMavExtCmds.SetSensorArgs sensor, NvMavExtCmds.SetSharpnessArgs sharpnessLevel)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSharpness, (float)sensor, (float)sharpnessLevel, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      clearRetractBlock()
+        * Description :   sendind clear retract lock command
+        *
+        ****************************************************************************************************************************/
+        public void clearRetractBlock()
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.ClearRetractLock, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      MavOnOnPacketReceived()
+        * Description :   Mavlink Packet Received event handler
+        *
+        ****************************************************************************************************************************/
+        private void MavOnOnPacketReceived(object o, MAVLink.MAVLinkMessage message)
+        {
+            byte[] buffer = new byte[MAVLINK_MAX_PACKET_LEN + 25];
+            if (message.msgid == (byte)MAVLink.MAVLINK_MSG_ID.V2_EXTENSION)
+            {
+
+                int report_offset = 6;
+                ushort report_type;
+                if (message.ismavlink2)
+                    report_offset = 10;
+
+                report_type = BitConverter.ToUInt16(message.buffer, report_offset);
+
+                /* check if this is a los report */
+                if (report_type == (ushort)NvMavExtCmds.ReportType.Los)
+                {
+                    mavlink_v2_extension_los_t los_report = message.ToStructure<mavlink_v2_extension_los_t>();
+
+                    /* type #1 is mavlink_v2_extension_t2 */
+                    /* store valid crossing point in this list */
+                    List<PointLatLng> points = new List<PointLatLng>();
+                    /* check how many corners are valid */
+                    if (los_report.UL_los_corner_lat != 400.0)
+                        points.Add(new PointLatLng((double)los_report.UL_los_corner_lat, (double)los_report.UL_los_corner_lon));
+                    if (los_report.UR_los_corner_lat != 400.0)
+                        points.Add(new PointLatLng((double)los_report.UR_los_corner_lat, (double)los_report.UR_los_corner_lon));
+                    if (los_report.LR_los_corner_lat != 400.0)
+                        points.Add(new PointLatLng((double)los_report.LR_los_corner_lat, (double)los_report.LR_los_corner_lon));
+                    if (los_report.LL_los_corner_lat != 400.0)
+                        points.Add(new PointLatLng((double)los_report.LL_los_corner_lat, (double)los_report.LL_los_corner_lon));
+
+                    /* draw the los polygon according to how many corners cross the gournd */
+                    switch (points.Count)
+                    {
+                        case 0:
+                            {
+                                /* no crossing at all, just clear the polygon */
+                                losoverlay.Polygons.Clear();
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                double shift_value = 0.00005;
+                                points.Add(new PointLatLng(points[0].Lat, points[0].Lng + shift_value));
+                                points.Add(new PointLatLng(points[0].Lat + shift_value, points[0].Lng + shift_value));
+                                points.Add(new PointLatLng(points[0].Lat + shift_value, points[0].Lng));
+                                GMapPolygon poly = new GMapPolygon(points, "Los");
+                                poly.Fill = new SolidBrush(Color.FromArgb(255, Color.GreenYellow));
+                                poly.Stroke = new Pen(Color.GreenYellow, 5);
+                                losoverlay.Polygons.Clear();
+                                losoverlay.Polygons.Add(poly);
+                            }
+                            break;
+
+                        case 2:
+                            {
+                                /* current location */
+                                PointLatLngAlt currentloc = new PointLatLngAlt(MainV2.comPort.MAV.cs.lat, MainV2.comPort.MAV.cs.lng);
+
+                                /* dist & bear from current location to point 0 */
+                                double bearing_pt0 = currentloc.GetBearing(points[0]);
+                                double distance_pt0 = currentloc.GetDistance(points[0]);
+
+                                /* dist & bear from current location to point 1 */
+                                double bearing_pt1 = currentloc.GetBearing(points[1]);
+                                double distance_pt1 = currentloc.GetDistance(points[1]);
+
+                                /* calculate the missing corners */
+                                PointLatLngAlt new_pt_1 = ((PointLatLngAlt)points[0]).newpos(bearing_pt0, distance_pt0);
+                                PointLatLngAlt new_pt_2 = ((PointLatLngAlt)points[1]).newpos(bearing_pt1, distance_pt1);
+
+                                /* create a new list for the modified polygon */
+                                List<PointLatLng> new_points = new List<PointLatLng>();
+
+                                /* fill the new polygon with the point of the los */
+                                new_points.Add(points[0]);
+                                new_points.Add(new_pt_1);
+                                new_points.Add(new_pt_2);
+                                new_points.Add(points[1]);
+
+                                GMapPolygon poly = new GMapPolygon(new_points, "Los");
+                                poly.Fill = new SolidBrush(Color.FromArgb(40, Color.Blue));
+                                poly.Stroke = new Pen(Color.GreenYellow, 1);
+                                losoverlay.Polygons.Clear();
+                                losoverlay.Polygons.Add(poly);
+                            }
+                            break;
+
+                        case 3:
+                            {
+                                /* check which point is the closer */
+                                int closest_point_idx;
+                                PointLatLngAlt currentloc = new PointLatLngAlt(MainV2.comPort.MAV.cs.lat, MainV2.comPort.MAV.cs.lng);
+
+                                /* distance from current location to point 0,1 & 2 */
+                                double distance_pt0 = currentloc.GetDistance(points[0]);
+                                double distance_pt1 = currentloc.GetDistance(points[1]);
+                                double distance_pt2 = currentloc.GetDistance(points[2]);
+
+                                /* find the closest point */
+                                if (distance_pt0 < distance_pt1)
+                                {
+                                    if (distance_pt0 < distance_pt2)
+                                        closest_point_idx = 0;
+                                    else
+                                        closest_point_idx = 2;
+                                }
+                                else   /* pt1 < pt0 */
+                                {
+                                    if (distance_pt1 < distance_pt2)
+                                        closest_point_idx = 1;
+                                    else
+                                        closest_point_idx = 2;
+                                }
+
+                                /* create a new list for the modified polygon */
+                                List<PointLatLng> poly0_points = new List<PointLatLng>();
+                                List<PointLatLng> poly1_points = new List<PointLatLng>();
+
+                                /* create two polys, one for each line, according to the closest point */
+                                switch (closest_point_idx)
+                                {
+                                    case 0:
+                                        {
+                                            poly0_points.Add(points[0]);
+                                            poly0_points.Add(points[1]);
+                                            poly1_points.Add(points[0]);
+                                            poly1_points.Add(points[2]);
+                                        }
+                                        break;
+                                    case 1:
+                                        {
+                                            poly0_points.Add(points[1]);
+                                            poly0_points.Add(points[0]);
+                                            poly1_points.Add(points[1]);
+                                            poly1_points.Add(points[2]);
+                                        }
+                                        break;
+                                    case 2:
+                                        {
+                                            poly0_points.Add(points[2]);
+                                            poly0_points.Add(points[0]);
+                                            poly1_points.Add(points[2]);
+                                            poly1_points.Add(points[1]);
+                                        }
+                                        break;
+                                }
+
+                                /* fill the new polygon with the point of the los */
+                                GMapPolygon poly0 = new GMapPolygon(poly0_points, "Los0");
+                                GMapPolygon poly1 = new GMapPolygon(poly1_points, "Los1");
+                                poly0.Fill = new SolidBrush(Color.FromArgb(40, Color.Blue));
+                                poly0.Stroke = new Pen(Color.GreenYellow, 1);
+                                poly1.Fill = new SolidBrush(Color.FromArgb(40, Color.Blue));
+                                poly1.Stroke = new Pen(Color.GreenYellow, 1);
+                                losoverlay.Polygons.Clear();
+                                losoverlay.Polygons.Add(poly0);
+                                losoverlay.Polygons.Add(poly1);
+                            }
+                            break;
+
+                        case 4:
+                            {
+                                GMapPolygon poly = new GMapPolygon(points, "Los");
+                                poly.Fill = new SolidBrush(Color.FromArgb(40, Color.Blue));
+                                poly.Stroke = new Pen(Color.GreenYellow, 1);
+                                losoverlay.Polygons.Clear();
+                                losoverlay.Polygons.Add(poly);
+                            }
+                            break;
+                    }
+                }
+                else if (report_type == (ushort)NvMavExtCmds.ReportType.GndCrs)
+                {
+                    object gnd_crs_obj = (mavlink_v2_extension_gnd_crs_t)Activator.CreateInstance(typeof(mavlink_v2_extension_gnd_crs_t));
+                    MavlinkUtil.ByteArrayToStructure(message.buffer, ref gnd_crs_obj, report_offset, message.payloadlength);
+                    mavlink_v2_extension_gnd_crs_t gnd_crs_report = (mavlink_v2_extension_gnd_crs_t)gnd_crs_obj;
+
+                    if (gnd_crs_report.gnd_crs_lat != 400.0)
+                        MainV2.comPort.MAV.cs.gnd_crs_lat = gnd_crs_report.gnd_crs_lat;
+                    else
+                        MainV2.comPort.MAV.cs.gnd_crs_lat = 0;
+
+                    if (gnd_crs_report.gnd_crs_lon != 400.0)
+                        MainV2.comPort.MAV.cs.gnd_crs_lon = gnd_crs_report.gnd_crs_lon;
+                    else
+                        MainV2.comPort.MAV.cs.gnd_crs_lon = 0;
+
+                    float altitude;
+                    /* Checking whether the vehicle isn't armed - so should taking the current position height */
+                    /*if (!MainV2.comPort.MAV.cs.armed)
+                        altitude = MainV2.comPort.MAV.cs.altasl;
+                    else*/
+                    altitude = (float)srtm.getAltitude(gnd_crs_report.gnd_crs_lat, gnd_crs_report.gnd_crs_lon).alt;
+
+                    /* save the last altitude (used by virtual joystick) */
+                    last_known_gnd_crs_alt = altitude;
+
+                    if (MainV2.Camjoystick != null && MainV2.Camjoystick.enabled)
+                    {
+                        try
+                        {
+                            MainV2.Camjoystick.GndCrsAlt = altitude;
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        /* Transmit the ground altitude regardless of camera joystick*/
+                        try
+                        {
+                            new Thread(delegate ()
+                            {
+                                MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetGndCrsAltitude, altitude, 0, 0, 0, 0, 0, false);
+                            }).Start();
+                        }
+                        catch { }
+                    }
+                    /* if ground crossing target is enabled then display ground crossing target */
+                    try
+                    {
+                        gndCrsoverlay.Markers.Clear();
+                        if (Settings.Instance["enable_gndcrs_target"] == "true")
+                            PresentImageMarker(gndCrsoverlay, Properties.Resources.ground_cross_target, gnd_crs_report.gnd_crs_lat, gnd_crs_report.gnd_crs_lon);
+                    }
+                    catch { }
+
+                }
+                else if (report_type == (ushort)NvMavExtCmds.ReportType.System)
+                {
+                    object system_obj = (mavlink_v2_extension_system_t)Activator.CreateInstance(typeof(mavlink_v2_extension_system_t));
+                    MavlinkUtil.ByteArrayToStructure(message.buffer, ref system_obj, report_offset, message.payloadlength);
+                    mavlink_v2_extension_system_t system_report = (mavlink_v2_extension_system_t)system_obj;
+
+                    /* update the current system mode from the system report */
+                    try
+                    {
+                        MainV2.comPort.MAV.cs.cam_temp = system_report.cam_temp;
+                        MainV2.Camjoystick.systemMode = (NvMavExtCmds.SystemMode)system_report.sys_mode;
+                        MainV2.Camjoystick.trackingMode = (NvMavExtCmds.TrackingMode)system_report.tracker_status;
+
+                        byte chan0SnapStatus = (byte)(system_report.snapshot_status & 0x0F);
+                        byte chan1SnapStatus = (byte)((byte)(system_report.snapshot_status & 0xF0) >> 4);
+
+                        if (chan0SnapStatus == 0x01)
+                        {
+                            BeginInvoke((Action)delegate { labelSnapshotStatusChannel0.Text = "Busy"; });
+                        }
+                        else
+                        {
+                            BeginInvoke((Action)delegate { labelSnapshotStatusChannel0.Text = "Idle"; });
+                        }
+
+                        if (chan1SnapStatus == 0x01)
+                        {
+                            BeginInvoke((Action)delegate { labelSnapshotStatusChannel1.Text = "Busy"; });
+                        }
+                        else
+                        {
+                            BeginInvoke((Action)delegate { labelSnapshotStatusChannel1.Text = "Idle"; });
+                        }
+
+                        currentDetectorNetworkType = (ObjectDetectionNetworkTypes)system_report.snapshot_status;
+                    }
+                    catch { }
+                }
+                else if (report_type == (ushort)NvMavExtCmds.ReportType.RVTLocation)
+                {
+                    try
+                    {
+                        rvtOverlay.Clear();
+                    }
+                    catch { }
+                    if (Settings.Instance["enable_RVT_display"] == "true")
+                    {
+                        object rvt_location_obj = (mavlink_v2_extension_rvt_location_t)Activator.CreateInstance(typeof(mavlink_v2_extension_rvt_location_t));
+                        MavlinkUtil.ByteArrayToStructure(message.buffer, ref rvt_location_obj, report_offset, message.payloadlength);
+                        mavlink_v2_extension_rvt_location_t rvt_location_report = (mavlink_v2_extension_rvt_location_t)rvt_location_obj;
+
+                        /* present the rvt location on the map */
+                        PresentImageMarker(rvtOverlay, Properties.Resources.rvt_small, rvt_location_report.rvt_lat, rvt_location_report.rvt_lon);
+                    }
+                }
+                else if (report_type == (ushort)NvMavExtCmds.ReportType.OGLR)
+                {
+                    if (Settings.Instance["oglr_enable"].Equals("true"))
+                    {
+                        if (!orthoPhotoLoaded)
+                        {
+                            if (!LoadOrthoPhoto(Settings.Instance["orthophoto_path"]))
+                            {
+                                BeginInvoke((Action)delegate
+                                {
+                                    CustomMessageBox.Show("Could Not Load Orthophoto, Please Select A Valid Orthophoto Path");
+                                });
+                                Settings.Instance["oglr_enable"] = "false";
+                                return;
+                            }
+                        }
+
+                        mavlink_v2_extension_oglr_t oglr_report = new mavlink_v2_extension_oglr_t();
+                        oglr_report.time_since_boot = BitConverter.ToUInt32(message.buffer, report_offset + 2);
+                        oglr_report.utc_timestamp = BitConverter.ToUInt64(message.buffer, report_offset + 6);
+                        oglr_report.pts_timestamp = BitConverter.ToUInt32(message.buffer, report_offset + 14);
+                        oglr_report.refinedRectX = BitConverter.ToUInt16(message.buffer, report_offset + 18);
+                        oglr_report.refinedRectY = BitConverter.ToUInt16(message.buffer, report_offset + 20);
+                        oglr_report.refinedRectWidth = BitConverter.ToUInt16(message.buffer, report_offset + 22);
+                        oglr_report.refinedRectHeight = BitConverter.ToUInt16(message.buffer, report_offset + 24);
+                        oglr_report.targetRefinedX = BitConverter.ToUInt16(message.buffer, report_offset + 26);
+                        oglr_report.targetRefinedY = BitConverter.ToUInt16(message.buffer, report_offset + 28);
+                        oglr_report.valid = message.buffer[report_offset + 30];
+                        oglr_report.latitude = BitConverter.ToDouble(message.buffer, report_offset + 32);
+                        oglr_report.longitude = BitConverter.ToDouble(message.buffer, report_offset + 40);
+                        oglr_report.asl = BitConverter.ToSingle(message.buffer, report_offset + 44);
+                        oglr_report.agl = BitConverter.ToSingle(message.buffer, report_offset + 48);
+                        UpdateOGLRImage(oglr_report);
+                    }
+                }
+                else if (report_type == (ushort)NvMavExtCmds.ReportType.ObjectDetection)
+                {                    
+                    if (Settings.Instance["enable_OD_map_display"].Equals("true"))
+                    {
+                        var obj_det_report = ParseObjectDetectionReport(report_offset, message.buffer);
+
+                        if(obj_det_report.detections.Length > 0)
+                        {
+                            BeginInvoke((Action)delegate
+                            {
+                                odOverlayTimer.Enabled = false;
+                            });
+
+                            try
+                            {
+                                odOverlay.Clear();
+                            }
+                            catch { }
+                        }
+
+                        try
+                        {
+                            foreach (detection_object_t obj_det in obj_det_report.detections)
+                            {
+                                var classType = ObjectDetectionClassIdToObjectLut[currentDetectorNetworkType][obj_det.classId];
+                                switch (classType)
+                                {
+                                    case ObjectDetectionObjects.Person:
+                                        PresentImageMarker(odOverlay, Properties.Resources.person_icon, obj_det.lat, obj_det.lon);
+                                        break;
+                                    case ObjectDetectionObjects.Car:
+                                        PresentImageMarker(odOverlay, Properties.Resources.car_icon, obj_det.lat, obj_det.lon);
+                                        break;
+                                }
+                            }
+                        }
+                        catch { }
+                        
+                        if (obj_det_report.detections.Length > 0)
+                        {
+                            BeginInvoke((Action)delegate
+                            {
+                                odOverlayTimer.Enabled = true;
+                            });                                                       
+                        }
+                    }
+                }
+            }
+        }        
+
+        /****************************************************************************************************************************
+        *                                                      UpdateOGLRImage()
+        * Description :   update the OGLR image in orthophoto panel
+        *
+        ****************************************************************************************************************************/
+        private mavlink_v2_extension_object_detection_t ParseObjectDetectionReport(int report_offset, byte[] buffer)
+        {
+            var obj_det_report = new mavlink_v2_extension_object_detection_t();
+            obj_det_report.timeSinceBoot = BitConverter.ToUInt32(buffer, report_offset + 2);
+            obj_det_report.utcTimeStmap = BitConverter.ToUInt64(buffer, report_offset + 6);
+            obj_det_report.detections = new detection_object_t[(buffer.Length - 16 - report_offset) / 32];
+            for (int i = 0; i < obj_det_report.detections.Length; i++)
+            {
+                var detection_obj = new detection_object_t();
+                detection_obj.classId = BitConverter.ToUInt16(buffer, report_offset + 14 + 32 * i);
+                detection_obj.uniqueIdentifier = BitConverter.ToUInt16(buffer, report_offset + 14 + (32 * i) + 2);
+                detection_obj.x = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 4);
+                detection_obj.y = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 8);
+                detection_obj.width = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 12);
+                detection_obj.height = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 16);
+                detection_obj.lat = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 20);
+                detection_obj.lon = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 24);
+                detection_obj.alt = BitConverter.ToSingle(buffer, report_offset + 14 + (32 * i) + 28);
+                obj_det_report.detections[i] = detection_obj;
+            }
+            return obj_det_report;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      UpdateOGLRImage()
+        * Description :   update the OGLR image in orthophoto panel
+        *
+        ****************************************************************************************************************************/
+        private void UpdateOGLRImage(mavlink_v2_extension_oglr_t oglrReport)
+        {
+            int imageSize = Math.Max(oglrReport.refinedRectWidth, oglrReport.refinedRectHeight);
+
+            //if( !int.TryParse(Settings.Instance["oglr_image_size"], out imageSize) )
+            //    imageSize = pictureBoxOrthoPhoto.Width;
+
+            Point pixel = new Point(oglrReport.refinedRectX, oglrReport.refinedRectY);//OrthoPhotoLatLon2XYPixel(latitude, longitude);
+
+            Bitmap newBitmap = new Bitmap(imageSize, imageSize, orthoPhoto.image.PixelFormat);
+
+            int orthoYStart = pixel.Y;// - imageSize / 2;
+            int orthoXStart = pixel.X;// - imageSize / 2;
+
+            int markerStartX = oglrReport.targetRefinedX - Properties.Resources.marker_06.Width / 2;
+            int markerEndX = oglrReport.targetRefinedX + Properties.Resources.marker_06.Width / 2;
+            int markerStartY = oglrReport.targetRefinedY - Properties.Resources.marker_06.Height;
+            int markerEndY = oglrReport.targetRefinedY;
+
+            for (int y = 0; y < imageSize; y++)
+            {
+                for (int x = 0; x < imageSize; x++)
+                {
+                    int orthoY = orthoYStart + y;
+                    int orthoX = orthoXStart + x;
+
+                    if (orthoY < 0 || orthoY >= orthoPhoto.image.Height || orthoX < 0 || orthoX >= orthoPhoto.image.Width)
+                    {
+                        newBitmap.SetPixel(x, y, Color.Black);
+                    }
+                    else
+                    {
+                        newBitmap.SetPixel(x, y, orthoPhoto.image.GetPixel(orthoX, orthoY));
+                    }
+                }
+            }
+
+            Bitmap stretchedImage = new Bitmap(newBitmap, new Size(pictureBoxOrthoPhoto.Width, pictureBoxOrthoPhoto.Height));
+
+            Properties.Resources.marker_06.MakeTransparent();
+            for (int y = markerStartY; y < markerEndY; y++)
+            {
+                for (int x = markerStartX; x < markerEndX; x++)
+                {
+                    Color pixColor = Properties.Resources.marker_06.GetPixel(x - markerStartX, y - markerStartY);
+                    if (pixColor.A != 0)
+                        stretchedImage.SetPixel(x, y, pixColor);
+
+                }
+            }            
+
+            BeginInvoke((Action)delegate
+            {
+                pictureBoxOrthoPhoto.Image = stretchedImage;
+            });
+        }
+
+        /****************************************************************************************************************************
+        *                                                      OrthoPhotoLatLon2XYPoint()
+        * Description :   converts lat lon coordinates to 
+        *
+        ****************************************************************************************************************************/
+        private Point OrthoPhotoLatLon2XYPixel(double latitude, double longitude)
+        {
+            double x = (double)((longitude - orthoPhoto.minLongitude) / (orthoPhoto.maxLongitude - orthoPhoto.minLongitude)) * (double)orthoPhoto.image.Width;
+            double yOffset = (double)((latitude - orthoPhoto.minLatitude) / (orthoPhoto.maxLatitude - orthoPhoto.minLatitude)) * (double)orthoPhoto.image.Height;
+            double y = (double)orthoPhoto.image.Height - yOffset;
+
+            return new Point((int)x, (int)y);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      PresentImageMarker()
+        * Description :   Present image marker on the map
+        *
+        ****************************************************************************************************************************/
+        private void PresentImageMarker(GMapOverlay overlay, Bitmap image, float lat, float lon)
+        {
+            try
+            {
+                image.MakeTransparent();
+                PointLatLng pnt = new PointLatLng((double)lat, (double)lon);
+                GPoint tmp = gMapControl1.FromLatLngToLocal(pnt);
+                pnt = gMapControl1.FromLocalToLatLng((int)tmp.X, (int)tmp.Y + image.Height / 2);
+
+                GMarkerGoogle marker = new GMarkerGoogle(pnt, image);
+                overlay.Markers.Add(marker);
+            }
+            catch { }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      RotateImage()
+        * Description :   Rotating bitmap image in a specific degree
+        *
+        ****************************************************************************************************************************/
+        private Bitmap RotateImage(Bitmap b, float Angle)
+        {
+            // The original bitmap needs to be drawn onto a new bitmap which will probably be bigger 
+            // because the corners of the original will move outside the original rectangle.
+            // An easy way (OK slightly 'brute force') is to calculate the new bounding box is to calculate the positions of the 
+            // corners after rotation and get the difference between the maximum and minimum x and y coordinates.
+            float wOver2 = b.Width / 2.0f;
+            float hOver2 = b.Height / 2.0f;
+            float radians = -(float)(Angle / 180.0 * Math.PI);
+            // Get the coordinates of the corners, taking the origin to be the centre of the bitmap.
+            PointF[] corners = new PointF[]{
+            new PointF(-wOver2, -hOver2),
+            new PointF(+wOver2, -hOver2),
+            new PointF(+wOver2, +hOver2),
+            new PointF(-wOver2, +hOver2)
+            };
+
+            for (int i = 0; i < 4; i++)
+            {
+                PointF p = corners[i];
+                PointF newP = new PointF((float)(p.X * Math.Cos(radians) - p.Y * Math.Sin(radians)), (float)(p.X * Math.Sin(radians) + p.Y * Math.Cos(radians)));
+                corners[i] = newP;
+            }
+
+            // Find the min and max x and y coordinates.
+            float minX = corners[0].X;
+            float maxX = minX;
+            float minY = corners[0].Y;
+            float maxY = minY;
+            for (int i = 1; i < 4; i++)
+            {
+                PointF p = corners[i];
+                minX = Math.Min(minX, p.X);
+                maxX = Math.Max(maxX, p.X);
+                minY = Math.Min(minY, p.Y);
+                maxY = Math.Max(maxY, p.Y);
+            }
+
+            // Get the size of the new bitmap.
+            SizeF newSize = new SizeF(maxX - minX, maxY - minY);
+            // ...and create it.
+            Bitmap returnBitmap = new Bitmap((int)Math.Ceiling(newSize.Width), (int)Math.Ceiling(newSize.Height));
+            // Now draw the old bitmap on it.
+            using (Graphics g = Graphics.FromImage(returnBitmap))
+            {
+                g.TranslateTransform(newSize.Width / 2.0f, newSize.Height / 2.0f);
+                g.RotateTransform(Angle);
+                g.TranslateTransform(-b.Width / 2.0f, -b.Height / 2.0f);
+
+                g.DrawImage(b, 0, 0);
+            }
+
+            return returnBitmap;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      FullScreenTheHud()
+        * Description :   Presents the hud at full screen
+        *
+        ****************************************************************************************************************************/
+        public void FullScreenTheHud()
+        {
+            if (huddropout)
+                return;
+
+            SubMainLeft.Panel1Collapsed = true;
+            Form dropout = new Form();
+            dropout.Size = new Size(hud1.Width, hud1.Height);
+            SubMainLeft.Panel1.Controls.Remove(hud1);
+            dropout.Controls.Add(hud1);
+            dropout.Resize += dropout_Resize;
+            dropout.FormClosed += dropout_FormClosed;
+            dropout.Shown += dropout_FormShowed;
+            dropout.Show();
+            huddropout = true;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      FullScreenTheHud()
+        * Description :   Presents the hud at full screen
+        *
+        ****************************************************************************************************************************/
+        public void FullScreenTheHud2()
+        {
+            if (huddropout2)
+                return;
+
+            fullScreenHUD2 = true;
+            Form dropout = new Form();
+            dropout.Size = new Size(hud2.Width, hud2.Height);
+            splitContainer1.Panel2.Controls.Remove(hud2);
+            hud2.Dock = DockStyle.Fill;
+            dropout.Controls.Add(hud2);
+            dropout.Resize += dropout2_Resize;
+            dropout.FormClosed += dropout2_FormClosed;
+            dropout.Shown += dropout2_FormShowed;
+            dropout.Show();
+            huddropout2 = true;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      dropout_FormShowed()
+        * Description :  hud dropout form showed event handler
+        *
+        ****************************************************************************************************************************/
+        void dropout_FormShowed(object sender, EventArgs e)
+        {
+            ((Form)sender).WindowState = FormWindowState.Maximized;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      dropout_FormShowed()
+        * Description :  hud dropout2 form showed event handler
+        *
+        ****************************************************************************************************************************/
+        void dropout2_FormShowed(object sender, EventArgs e)
+        {
+            if (fullScreenHUD2 || (Settings.Instance["hud_full_screen_2"] != null && Settings.Instance["hud_full_screen_2"].Equals("true")))
+                ((Form)sender).WindowState = FormWindowState.Maximized;
+            BeginInvoke((Action)delegate
+            {
+                if (Settings.Instance["display_secondary_hud"] != null && Settings.Instance["display_secondary_hud"].Equals("false"))
+                {
+                    hud2.Visible = true;
+                    hud2.Enabled = true;
+                }
+            });
+            fullScreenHUD2 = false;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      dropout2_Resize()
+        * Description :  hud2 dropout form resize event handler
+        *
+        ****************************************************************************************************************************/
+        void dropout2_Resize(object sender, EventArgs e)
+        {
+            if (huddropoutresize2)
+                return;
+
+            huddropoutresize2 = true;
+
+            int hudh = hud2.Height;
+            int formh = ((Form)sender).Height - 30;
+
+            if (((Form)sender).Height < hudh)
+            {
+                if (((Form)sender).WindowState == FormWindowState.Maximized)
+                {
+                    Point tl = ((Form)sender).DesktopLocation;
+                    ((Form)sender).WindowState = FormWindowState.Normal;
+                    ((Form)sender).Location = tl;
+                }
+
+                ((Form)sender).Width = (int)(formh * (hud2.SixteenXNine ? 1.777f : (hud2.ThirtyTwoXNine ? 1.777f * 2f : 1.333f)));
+                ((Form)sender).Height = formh + 20;
+            }
+
+            hud2.Refresh();
+            huddropoutresize2 = false;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      dropout2_Resize()
+        * Description :  hud2 dropout form closed event handler
+        *
+        ****************************************************************************************************************************/
+        void dropout2_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            splitContainer1.Panel2.Controls.Add(hud2);
+            RefreshHud(hud2);
+            huddropout2 = false;
+            BeginInvoke((Action)delegate
+            {
+                if (Settings.Instance["display_secondary_hud"] != null)
+                {
+                    if (Settings.Instance["display_secondary_hud"].Equals("false"))
+                    {
+                        hud2.Visible = false;
+                        hud2.Enabled = false;
+                    }
+                }
+            });
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxManualDayColorTemp_CheckedChanged()
+        * Description :  manual day color temp checkbox checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxManualDayColorTemp_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxManualDayColorTemp.Checked)
+            {
+                labelDayColorTemp.Enabled = true;
+                textBoxDayColorTemp.Enabled = true;
+                BTN_set_color_temp.Enabled = true;
+            }
+            else
+            {
+                labelDayColorTemp.Enabled = false;
+                textBoxDayColorTemp.Enabled = false;
+                BTN_set_color_temp.Enabled = false;
+
+                if (!MainV2.comPort.BaseStream.IsOpen)
+                    return;
+                MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetDayWhiteBalance, 0, 0, 0, 0, 0, 0, false);
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_set_color_temp_Click()
+        * Description :  set color temperature button event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_set_color_temp_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+            float temp;
+            if (!float.TryParse(textBoxDayColorTemp.Text, out temp))
+            {
+                CustomMessageBox.Show("Color Temperature, Bad Value Entered");
+                textBoxDayColorTemp.Text = "";
+                return;
+            }
+            if (temp < 2000 || temp > 7000)
+            {
+                CustomMessageBox.Show("Color Temperature, Bad Value Entered, Valid Range Is: 2000 - 7000 [K]");
+                textBoxDayColorTemp.Text = "";
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetDayWhiteBalance, 1, temp, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxInfiniteSnapshots_CheckedChanged()
+        * Description :  Infinite Snapshots checkbox checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxInfiniteSnapshots_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox checkBoxInfiniteSnapshots = sender as CheckBox;
+            Label labelSnapshotsCount = null;
+            TextBox textBoxSnapshotsCount = null;
+
+            if (checkBoxInfiniteSnapshots == checkBoxInfiniteSnapshotsChannel0)
+            {
+                labelSnapshotsCount = labelSnapshotsCountChannel0;
+                textBoxSnapshotsCount = textBoxSnapshotsCountChannel0;
+            }
+            else if (checkBoxInfiniteSnapshots == checkBoxInfiniteSnapshotsChannel1)
+            {
+                labelSnapshotsCount = labelSnapshotsCountChannel1;
+                textBoxSnapshotsCount = textBoxSnapshotsCountChannel1;
+            }
+            else
+                return;
+
+            if (checkBoxInfiniteSnapshots.Checked)
+            {
+                labelSnapshotsCount.Enabled = false;
+                textBoxSnapshotsCount.Enabled = false;
+            }
+            else
+            {
+                labelSnapshotsCount.Enabled = true;
+                textBoxSnapshotsCount.Enabled = true;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BUT_hudfullscreen_Click()
+        * Description :  Full Screen button event handler
+        *
+        ****************************************************************************************************************************/
+        private void BUT_hudfullscreen_Click(object sender, EventArgs e)
+        {
+            FullScreenTheHud();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      deleteToolStripMenuItem_Click()
+        * Description :  delete toolstrip menu item click event handler, supports POIs
+        *
+        ****************************************************************************************************************************/
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (CurrentGMapDelPOIMarker == null)
+                return;
+
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            PointLatLngAlt pnt = POI.POI_Delete((GMapMarkerPOI)CurrentGMapDelPOIMarker);
+
+            if (pnt != null)
+            {
+                try
+                {
+                    SendPOICmd(NvMavExtCmds.POICommand.DelTarget, pnt);
+                }
+                catch
+                {
+                    CustomMessageBox.Show(Strings.CommandFailed, Strings.ERROR);
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      addPoiToolStripMenuItem_Click()
+        * Description :  add toolstrip menu item click event handler, supports POIs
+        *
+        ****************************************************************************************************************************/
+        private void addPoiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            if (MouseDownStart.Lat == 0 || MouseDownStart.Lng == 0)
+            {
+                CustomMessageBox.Show("Bad Lat/Long");
+                return;
+            }
+
+            PointLatLngAlt pnt = POI.POI_Add(MouseDownStart);
+
+            if (pnt != null)
+            {
+                try
+                {
+                    SendPOICmd(NvMavExtCmds.POICommand.AddTarget, pnt);
+                }
+                catch
+                {
+                    CustomMessageBox.Show(Strings.CommandFailed, Strings.ERROR);
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      loadFileToolStripMenuItem_Click()
+        * Description :  load file toolstrip menu item click event handler, supports POIs
+        *
+        ****************************************************************************************************************************/
+        private void loadFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            ObservableCollection<PointLatLngAlt> POIs = POI.POILoad();
+            int count = POIs.Count;
+
+            for (int a = 0; a < count; a++)
+            {
+                PointLatLngAlt pnt = POIs[a];
+                if (pnt != null)
+                {
+                    try
+                    {
+                        SendPOICmd(NvMavExtCmds.POICommand.AddTarget, pnt);
+                    }
+                    catch
+                    {
+                        GMapMarkerPOI point = new GMapMarkerPOI(pnt);
+                        POI.POI_Delete(point);
+                        CustomMessageBox.Show(Strings.CommandFailed, Strings.ERROR);
+                    }
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      LoadPOIsOnConnect()
+        * Description :  loading the POIs collection when connecting
+        *
+        ****************************************************************************************************************************/
+        public void LoadPOIsOnConnect()
+        {
+            /* clear any existing POI on the target */
+            try
+            {
+                SendPOICmd(NvMavExtCmds.POICommand.DelAllTargets, null);
+            }
+            catch
+            {
+                CustomMessageBox.Show(Strings.CommandFailed, Strings.ERROR);
+                return;
+            }
+
+            ObservableCollection<PointLatLngAlt> POIs = POI.POILoadDefaultPath();
+            int count = POIs.Count;
+
+            for (int a = 0; a < count; a++)
+            {
+                PointLatLngAlt pnt = POIs[a];
+                if (pnt != null)
+                {
+                    try
+                    {
+                        SendPOICmd(NvMavExtCmds.POICommand.AddTarget, pnt);
+                    }
+                    catch
+                    {
+                        GMapMarkerPOI point = new GMapMarkerPOI(pnt);
+                        POI.POI_Delete(point);
+                        CustomMessageBox.Show(Strings.CommandFailed, Strings.ERROR);
+                    }
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      gMapControl1_MouseUp()
+        * Description :  gMapControl1 mouse Up event handler
+        *
+        ****************************************************************************************************************************/
+        private void gMapControl1_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (CurrentGMapMarker != null)
+            {
+                if (CurrentGMapMarker is GMapMarkerPOI)
+                {
+                    /* move the POI to its new location only if the connection is open */
+                    if (MainV2.comPort.BaseStream.IsOpen && e.Button == MouseButtons.Left)
+                    {
+                        PointLatLngAlt pnt = POI.POI_Move((GMapMarkerPOI)CurrentGMapMarker);
+                        try
+                        {
+                            SendPOICmd(NvMavExtCmds.POICommand.AddTarget, pnt);
+                        }
+                        catch
+                        {
+                            CustomMessageBox.Show(Strings.CommandFailed, Strings.ERROR);
+                        }
+                    }
+                    /* reset the mouse down started on marker flag */
+                    MouseDownStartedOnMarker = false;
+
+                    /* enable the marker events */
+                    gMapControl1.OnMarkerEnter += gMapControl1_OnMarkerEnter;
+                    gMapControl1.OnMarkerLeave += gMapControl1_OnMarkerLeave;
+
+                    /* clear the last marker */
+                    CurrentGMapMarker = null;
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_laser_on_Click()
+        * Description :  button laser on event click handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_laser_on_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetLaser, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_laser_off_Click()
+        * Description :  button laser off event click handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_laser_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetLaser, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_set_laser_mode_Click()
+        * Description :  button set laser mode click event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_set_laser_mode_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            float mode = (float)CMB_laser_mode.SelectedIndex;
+            if (mode == -1f)
+            {
+                CustomMessageBox.Show("You must choose a laser mode", Strings.ERROR);
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetLaserMode, mode, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_gain_inc_Click()
+        * Description :  button thermal Gain Increment event handler
+        *
+         ****************************************************************************************************************************/
+        private void btn_gain_inc_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIRGainLevel, (float)NvMavExtCmds.SetThermalGainLevelArgs.GainIncrement, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_gain_dec_Click()
+        * Description :  button thermal Gain decrement event handler
+        *
+         ****************************************************************************************************************************/
+        private void btn_gain_dec_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIRGainLevel, (float)NvMavExtCmds.SetThermalGainLevelArgs.GainDecrement, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+       *                                                      btn_level_inc_Click()
+       * Description :  button level increment event handler
+       *
+        ****************************************************************************************************************************/
+        private void btn_level_inc_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIRGainLevel, (float)NvMavExtCmds.SetThermalGainLevelArgs.LevelIncrement, 0, 0, 0, 0, 0, false);
+
+        }
+
+        /****************************************************************************************************************************
+       *                                                      btn_level_dec_Click()
+       * Description :  button level decrement event handler
+       *
+        ****************************************************************************************************************************/
+        private void btn_level_dec_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIRGainLevel, (float)NvMavExtCmds.SetThermalGainLevelArgs.LevelDecrement, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+       *                                                      btn_reset_gain_level_Click()
+       * Description :  button reset gain and level event handler
+       *
+        ****************************************************************************************************************************/
+        private void btn_reset_gain_level_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetIRGainLevel, (float)NvMavExtCmds.SetThermalGainLevelArgs.GainLevelReset, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+       *                                                      BTN_enable_object_detection_Click()
+       * Description :  button enable object detection event handler
+       *
+        ****************************************************************************************************************************/
+        private void BTN_enable_object_detection_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.DetectionControl, (float)NvMavExtCmds.DetectionControlArgs.DetectorEnableDisable, 1, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+       *                                                      BTN_disable_object_detection_Click()
+       * Description :  button disable object detection event handler
+       *
+        ****************************************************************************************************************************/
+        private void BTN_disable_object_detection_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.DetectionControl, (float)NvMavExtCmds.DetectionControlArgs.DetectorEnableDisable, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+       *                                                      BTN_resume_mission_object_detection_Click()
+       * Description :  button resume mission on object detection event handler
+       *
+        ****************************************************************************************************************************/
+        private void BTN_resume_mission_object_detection_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.ResumeAIScan, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_fly_above_on_Click()
+        * Description :  button fly above on click event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_fly_above_on_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetFlyAbove, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_fly_above_off_Click()
+        * Description :  button fly above off click event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_fly_above_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetFlyAbove, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        private void elementHost1_ChildChanged(object sender, System.Windows.Forms.Integration.ChildChangedEventArgs e)
+        {
+            var ctr = (elementHost1.Child as WpfCustomControls.OnScreenJoystick);
+            if (ctr == null)
+                return;
+            ctr.Moved += VirtualJoystick_Moved;
+            ctr.MouseDown += OnScreenJoystick_MouseDown;
+            ctr.MouseUp += OnScreenJoystick_MouseUp;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_nadir_Click()
+        * Description :  button nadir system mode click event handler
+        *
+        ****************************************************************************************************************************/
+        private void but_nadir_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.Nadir);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      but_nadir_Click()
+        * Description :  button nadir scan system mode click event handler
+        *
+        ****************************************************************************************************************************/
+        private void but_nadir_scan_Click(object sender, EventArgs e)
+        {
+            setCameraMode(NvMavExtCmds.SetSystemModeArgs.NadirScan);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_set_od_detector_type_Click()
+        * Description :  button set object detection detector event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_set_od_detector_type_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            if (CMB_od_net_type.SelectedIndex >= 0)
+            {
+                MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.DetectionControl, (float)NvMavExtCmds.DetectionControlArgs.DetectorSelect, (float)CMB_od_net_type.SelectedIndex, 0, 0, 0, 0, false);
+            }
+            else
+            {
+                CustomMessageBox.Show("Please Select Detector Type First!!");
+                return;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_set_od_conf_thres_Click()
+        * Description :  button set object detection confidence threshold event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_set_od_conf_thres_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            float threshold;
+            if (!float.TryParse(textBoxODConfThres.Text, out threshold))
+            {
+                CustomMessageBox.Show("Object Detection Confidence Threshold, Bad Value Entered");
+                textBoxODConfThres.Text = "";
+                return;
+            }
+            if (threshold < 20 || threshold > 90)
+            {
+                CustomMessageBox.Show("Object Detection Confidence Threshold, Bad Value Entered, Valid Range Is: 20 - 90 [%]");
+                textBoxODConfThres.Text = "";
+                return;
+            }
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.DetectionControl, (float)NvMavExtCmds.DetectionControlArgs.DetectorThreshold, threshold, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_set_od_fire_thres_Click()
+        * Description :  button set object detection fire threshold event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_set_od_fire_thres_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            float threshold;
+            if (!float.TryParse(textBoxODConfThres.Text, out threshold))
+            {
+                CustomMessageBox.Show("Object Detection Fire Threshold, Bad Value Entered");
+                textBoxODConfThres.Text = "";
+                return;
+            }
+            if (threshold < 0 || threshold > 65535)
+            {
+                CustomMessageBox.Show("Object Detection Fire Threshold, Bad Value Entered, Valid Range Is: 0 - 65535");
+                textBoxODConfThres.Text = "";
+                return;
+            }
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.DetectionControl, (float)NvMavExtCmds.DetectionControlArgs.FireThreshold, threshold, 0, 0, 0, 0, false);
+        }
+        /****************************************************************************************************************************
+        *                                                      btn_2d_scan_Click()
+        * Description :  button 2D Scan system mode event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_2d_scan_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSystemMode, (float)NvMavExtCmds.SetSystemModeArgs.TwoDScan, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_enable_geo_avg_Click()
+        * Description :  button enable Geo average event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_enable_geo_avg_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetGeoAvg, 1, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_disaable_geo_avg_Click()
+        * Description :  button disable Geo average event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_disaable_geo_avg_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetGeoAvg, 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      comboBoxHUDClickCommand_SelectedIndexChanged()
+        * Description :  combo box hud click command selected index changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void comboBoxHUDClickCommand_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Settings.Instance["hud_click_command"] = comboBoxHUDClickCommand.Text;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BTN_set_reference_point_Click()
+        * Description :  button aset reference point click event handler
+        *
+        ****************************************************************************************************************************/
+        private void BTN_set_reference_point_Click(object sender, EventArgs e)
+        {
+            double lat;
+            float latPart1, latPart2;
+            double lon;
+            float lonPart1, lonPart2;
+            float elevation;
+
+            // The latitude must be a number between -90 and 90 and the longitude between -180 and 180
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            /* Parse the latitude */
+            if (!double.TryParse(textBoxReferencePointLat.Text, out lat))
+            {
+                CustomMessageBox.Show("Reference Point Latitude, Bad Value Entered");
+                textBoxReferencePointLat.Text = "";
+                return;
+            }
+            if (lat < -90 || lat > 90)
+            {
+                CustomMessageBox.Show("Reference Point Latitude, Bad Value Entered, Valid Range Is: (-90) - 90");
+                textBoxReferencePointLat.Text = "";
+                return;
+            }
+
+            byte[] latBytes = BitConverter.GetBytes(lat);
+            latPart1 = BitConverter.ToSingle(latBytes, 0);
+            latPart2 = BitConverter.ToSingle(latBytes, 4);
+
+            /* Parse the longitude */
+            if (!double.TryParse(textBoxReferencePointLon.Text, out lon))
+            {
+                CustomMessageBox.Show("Reference Point Longitude, Bad Value Entered");
+                textBoxReferencePointLon.Text = "";
+                return;
+            }
+            if (lon < -180 || lon > 180)
+            {
+                CustomMessageBox.Show("Reference Point Longitude, Bad Value Entered, Valid Range Is: (-180) - 180");
+                textBoxReferencePointLon.Text = "";
+                return;
+            }
+            byte[] lonBytes = BitConverter.GetBytes(lon);
+            lonPart1 = BitConverter.ToSingle(lonBytes, 0);
+            lonPart2 = BitConverter.ToSingle(lonBytes, 4);
+
+            if (!float.TryParse(textBoxReferencePointElevation.Text, out elevation))
+            {
+                CustomMessageBox.Show("Reference Point Elevation, Bad Value Entered");
+                textBoxReferencePointElevation.Text = "";
+                return;
+            }
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.GeoMapControl, (float)NvMavExtCmds.GeoMapControlArgs.SetReferencePoint, latPart1, latPart2, lonPart1, lonPart2, elevation);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      buttonSetSBSMode_Click()
+        * Description :  button set SBS mode click event handler
+        *
+        ****************************************************************************************************************************/
+        private void buttonSetSBSMode_Click(object sender, EventArgs e)
+        {
+            // validate system connection
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            // validate that the mode is selected
+            if (comboBoxSBSMode.SelectedIndex < 0)
+            {
+                CustomMessageBox.Show("Please Select Stream Modes Combination");
+                return;
+            }
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetSBSMode,
+                        (float)comboBoxSBSMode.SelectedIndex, 0, 0, 0, 0);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      buttonSetPIPMode_Click()
+        * Description :  button set PIP mode click event handler
+        *
+        ****************************************************************************************************************************/
+        private void buttonSetPIPMode_Click(object sender, EventArgs e)
+        {
+            // validate system connection
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            // validate that the mode is selected
+            if (comboBoxPIPMode.SelectedIndex < 0)
+            {
+                CustomMessageBox.Show("Please Select Stream Modes Combination");
+                return;
+            }
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetPIPMode,
+                        (float)comboBoxPIPMode.SelectedIndex, 0, 0, 0, 0);
+
+        }
+
+        /****************************************************************************************************************************
+        *                                                      buttonSetStreamModes_Click()
+        * Description :  button set stream modes click event handler
+        *
+        ****************************************************************************************************************************/
+        private void buttonSetStreamModes_Click(object sender, EventArgs e)
+        {
+            // validate system connection
+            if (!MainV2.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Please Connect First");
+                return;
+            }
+
+            // validate that the mode is selected
+            if (comboBoxStreamModes.SelectedIndex < 0)
+            {
+                CustomMessageBox.Show("Please Select Stream Modes Combination");
+                return;
+            }
+
+            AllowedStreamModesCombination selectedCombination = (AllowedStreamModesCombination)comboBoxStreamModes.SelectedIndex;
+
+            switch (selectedCombination)
+            {
+                case AllowedStreamModesCombination.Ch0DayIR_Ch1Disabled:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.Day, (float)NvMavExtCmds.SetStreamModeArgs.Disabled, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0Day_Ch1IR:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.Day, (float)NvMavExtCmds.SetStreamModeArgs.IR, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0Day_Ch1Fusion:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.Day, (float)NvMavExtCmds.SetStreamModeArgs.Fusion, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0Day_Ch1PIP:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.Day, (float)NvMavExtCmds.SetStreamModeArgs.PIP, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0Day_Ch1SBS:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.Day, (float)NvMavExtCmds.SetStreamModeArgs.SideBySide, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0IR_Ch1Fusion:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.IR, (float)NvMavExtCmds.SetStreamModeArgs.Fusion, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0IR_Ch1PIP:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.IR, (float)NvMavExtCmds.SetStreamModeArgs.PIP, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0IR_Ch1SBS:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.IR, (float)NvMavExtCmds.SetStreamModeArgs.SideBySide, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0Fusion_Ch1Disabled:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.Fusion, (float)NvMavExtCmds.SetStreamModeArgs.Disabled, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0PIP_Ch1Disabled:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.PIP, (float)NvMavExtCmds.SetStreamModeArgs.Disabled, 0, 0, 0);
+                    break;
+                case AllowedStreamModesCombination.Ch0SBS_Ch1Disabled:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                        (float)NvMavExtCmds.Cmd.StreamControl, (float)NvMavExtCmds.StreamControlArgs.SetStreamMode,
+                        (float)NvMavExtCmds.SetStreamModeArgs.SideBySide, (float)NvMavExtCmds.SetStreamModeArgs.Disabled, 0, 0, 0);
+                    break;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      cam_camimage_channel0()
+        * Description :  callback for channel 1 frame received
+        *
+        ****************************************************************************************************************************/
+        void cam_camimage_channel0(Image camimage)
+        {
+            try
+            {
+                float width = (float)camimage.Width;
+                float height = (float)camimage.Height;
+                float aspectRatio = width / height;
+
+                // check which channel is on main hud
+                if (channel0OnMainHUD)
+                {
+                    // update the hud image
+                    hud1.bgimage = camimage;
+                    SetAspectRatioForHUD(hud1, aspectRatio);
+                }
+                else
+                {
+                    // update the hud image
+                    hud2.bgimage = camimage;
+                    SetAspectRatioForHUD(hud2, aspectRatio);
+                }
+            }
+            catch { }            
+        }
+
+        /****************************************************************************************************************************
+        *                                                      cam_camimage_channel1()
+        * Description :  callback for channel 1 frame received
+        *
+        ****************************************************************************************************************************/
+        void cam_camimage_channel1(Image camimage)
+        {
+            try
+            {
+                float width = (float)camimage.Width;
+                float height = (float)camimage.Height;
+                float aspectRatio = width / height;
+
+                // check which channel is on main hud
+                if (!channel0OnMainHUD)
+                {
+                    // update the hud image
+                    hud1.bgimage = camimage;
+                    SetAspectRatioForHUD(hud1, aspectRatio);
+                }
+                else
+                {
+                    // update the hud image
+                    hud2.bgimage = camimage;
+                    SetAspectRatioForHUD(hud2, aspectRatio);
+                }
+            }
+            catch { }            
+        }
+
+        /****************************************************************************************************************************
+        *                                                      SetAspectRatioForHUD()
+        * Description :  sets the aspect ratio for a given hud
+        *
+        ****************************************************************************************************************************/
+        void SetAspectRatioForHUD(HUD hud, float aspectRatio)
+        {
+            bool doRefresh = false;
+
+            // check if the new image aspect ratio
+            if (aspectRatio == 16f / 9f) // 16 : 9
+            {
+                if (!hud.SixteenXNine)
+                {
+                    hud.SixteenXNine = true;
+                    doRefresh = true;
+                }
+            }
+            else if (aspectRatio == 32f / 9f) // 32 : 2
+            {
+                if (!hud.ThirtyTwoXNine)
+                {
+                    hud.ThirtyTwoXNine = true;
+                    doRefresh = true;
+                }
+            }
+            else // 4 : 3
+            {
+                if (hud.SixteenXNine || hud.ThirtyTwoXNine)
+                {
+                    hud.SixteenXNine = false;
+                    hud.ThirtyTwoXNine = false;
+                    doRefresh = true;
+                }
+            }
+
+            // refresh the selected hud
+            if (doRefresh)
+                RefreshHud(hud);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      radioButtonChannel0OnMainHUD_CheckedChanged()
+        * Description :  channel 0 on main hud radio button checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void radioButtonChannel0OnMainHUD_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButtonChannel0OnMainHUD.Checked)
+            {
+                channel0OnMainHUD = true;
+                Settings.Instance["channel0_on_main_hud"] = "true";
+            }
+            else
+            {
+                channel0OnMainHUD = false;
+                Settings.Instance["channel0_on_main_hud"] = "false";
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      hud2_DoubleClick()
+        * Description :  hud2 double click event handler
+        *
+        ****************************************************************************************************************************/
+        private void hud2_DoubleClick(object sender, EventArgs e)
+        {
+            if (huddropout2)
+                return;
+
+            Form dropout = new Form();
+            dropout.Size = new Size(hud2.Width, hud2.Height);
+            splitContainer1.Panel2.Controls.Remove(hud2);
+            hud2.Dock = DockStyle.Fill;
+            dropout.Controls.Add(hud2);
+            dropout.Resize += dropout2_Resize;
+            dropout.FormClosed += dropout2_FormClosed;
+            dropout.Shown += dropout2_FormShowed;
+            dropout.Show();
+            huddropout2 = true;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      hud2_Resize()
+        * Description :  hud2 double resize event handler
+        *
+        ****************************************************************************************************************************/
+        private void hud2_Resize(object sender, EventArgs e)
+        {
+
+        }
+
+        /****************************************************************************************************************************
+        *                                                      splitContainer1_Panel2_Resize()
+        * Description :  splitcontainer 1 panel 2 resize event handler ( for hud 2)
+        *
+        ****************************************************************************************************************************/
+        private void splitContainer1_Panel2_Resize(object sender, EventArgs e)
+        {
+            RefreshHud(hud2);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      RefreshHud()
+        * Description :  refreshes a given hud display properties
+        *
+        ****************************************************************************************************************************/
+        private void RefreshHud(HUD hud)
+        {
+            BeginInvoke((Action)delegate
+            {
+                // check the hud parent
+                if (hud.Parent == splitContainer1.Panel2)// split container panel 2 special case
+                {
+                    splitContainer1.Panel2.SuspendLayout();
+                    hud.Dock = DockStyle.None;
+                    if (hud.SixteenXNine)
+                        hud.Width = 500;
+                    else if (hud.ThirtyTwoXNine)
+                        hud.Width = 1000;
+                    hud.doResize();
+                    hud.Location = new Point(splitContainer1.Panel2.Width - hud.Width - TRK_zoom.Width, splitContainer1.Panel2.Height - hud.Height);
+                    splitContainer1.Panel2.Controls.SetChildIndex(hud, 0);
+                    splitContainer1.Panel2.ResumeLayout();
+                }
+                else
+                {
+                    hud.Dock = DockStyle.Fill;
+                    hud.doResize();
+                }
+            });
+        }
+
+        /****************************************************************************************************************************
+        *                                                      hud2_Click()
+        * Description :  hud2 click event handler
+        *
+        ****************************************************************************************************************************/
+        private void hud2_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            int chanId = 1;
+            double win_width = hud2.Width;
+            double win_height = hud2.Height;
+            MouseEventArgs mouse_e = (MouseEventArgs)e;
+            int x_pos = (int)(((double)mouse_e.X * 1280.0) / win_width);
+            int y_pos = (int)(((double)mouse_e.Y * 720.0) / win_height);
+
+            if (!channel0OnMainHUD)
+                chanId = 0;
+
+            switch ((HUDClickCommand)comboBoxHUDClickCommand.SelectedIndex)
+            {
+                default:
+                case HUDClickCommand.Tracking:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSystemMode,
+                        (float)NvMavExtCmds.SetSystemModeArgs.Tracking, x_pos, y_pos, (float)0, chanId, 0);
+                    break;
+                case HUDClickCommand.RefineLocation:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.GeoMapControl,
+                        (float)NvMavExtCmds.GeoMapControlArgs.RefineLocation, x_pos, y_pos, (float)chanId, 0, 0, false);
+                    break;
+                case HUDClickCommand.Both:
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.SetSystemMode,
+                        (float)NvMavExtCmds.SetSystemModeArgs.Tracking, x_pos, y_pos, (float)0, chanId, 0);
+                    MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.GeoMapControl,
+                        (float)NvMavExtCmds.GeoMapControlArgs.RefineLocation, x_pos, y_pos, (float)chanId, 0, 0, false);
+                    break;
+            }
+        }
+
+        private void checkBoxDisplaySecondaryHUD_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxDisplaySecondaryHUD.Checked)
+            {
+                Settings.Instance["display_secondary_hud"] = "true";
+                hud2.Visible = true;
+                hud2.Enabled = true;
+            }
+            else
+            {
+                Settings.Instance["display_secondary_hud"] = "false";
+                if (!huddropout2)
+                {
+                    hud2.Visible = false;
+                    hud2.Enabled = false;
+                }
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      buttonFullScreenSecondaryHud_Click()
+        * Description :  full screen secondary hud button click event handler
+        *
+        ****************************************************************************************************************************/
+        private void buttonFullScreenSecondaryHud_Click(object sender, EventArgs e)
+        {
+            FullScreenTheHud2();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      LoadOrthoPhoto()
+        * Description :  loads the orthophoto image
+        *
+        ****************************************************************************************************************************/
+        public static bool LoadOrthoPhoto(string dirpath)
+        {
+            try
+            {
+                orthoPhoto = new OrthoPhotoData();
+                orthoPhoto.image = new Bitmap(Bitmap.FromFile(dirpath + "\\ortho.tif"));
+                string[] geoDataStr = File.ReadAllLines(dirpath + "\\tile.txt");
+                orthoPhoto.minLatitude = double.Parse(geoDataStr[0]);
+                orthoPhoto.maxLatitude = double.Parse(geoDataStr[1]);
+                orthoPhoto.minLongitude = double.Parse(geoDataStr[2]);
+                orthoPhoto.maxLongitude = double.Parse(geoDataStr[3]);
+            }
+            catch
+            {
+                orthoPhotoLoaded = true;
+                return false;
+            }
+            orthoPhotoLoaded = true;
+            return true;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_VMD_on_Click()
+        * Description :  VMD on button click event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_VMD_on_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.VMDControl,
+                        (float)NvMavExtCmds.VMDControlArgs.VMDEnable, (float)NvMavExtCmds.DisArgs.Enable, 0, 0, 0, 0);
+        }
+
+        /****************************************************************************************************************************
+       *                                                      btn_VMD_off_Click()
+       * Description :  VMD off button click event handler
+       *
+       ****************************************************************************************************************************/
+        private void btn_VMD_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.VMDControl,
+                        (float)NvMavExtCmds.VMDControlArgs.VMDEnable, (float)NvMavExtCmds.DisArgs.Disable, 0, 0, 0, 0);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      comboBoxPositionCommand_SelectedIndexChanged()
+        * Description :  combo box position command selected index changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void comboBoxPositionCommand_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Settings.Instance["position_command"] = comboBoxPositionCommand.Text;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      buttonSetOGLRImageSize_Click()
+        * Description : button set OGLR image size click event handler
+        *
+        ****************************************************************************************************************************/
+        private void buttonSetOGLRImageSize_Click(object sender, EventArgs e)
+        {
+            int imageSize;
+
+            if(int.TryParse(textBoxOGLRImageSize.Text, out imageSize))
+                Settings.Instance["oglr_image_size"] = imageSize.ToString();
+            else
+                CustomMessageBox.Show("Wrong OGLR image size, should be integer number", Strings.ERROR);
+
+            //LoadOrthoPhoto(Settings.Instance["orthophoto_path"]);
+
+            //UpdateOGLRImage(32.2656773645, 34.9476735178, 100);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      odOverlayTimer_Tick()
+        * Description : object detection overlay timer tick event handler
+        *
+        ****************************************************************************************************************************/
+        private void odOverlayTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                odOverlay.Clear();
+            }
+            catch { }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_multi_gcs_on_Click()
+        * Description :  Multiple GCS on button click event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_multi_gcs_on_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.MultipleGCSControl,
+                        (float)NvMavExtCmds.MultipleGCSControlArgs.MultipleGCSEnableSecondaryControl, (float)NvMavExtCmds.DisArgs.Enable, 0, 0, 0, 0);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      btn_muli_gcs_off_Click()
+        * Description :  Multiple GCS off button click event handler
+        *
+        ****************************************************************************************************************************/
+        private void btn_multi_gcs_off_Click(object sender, EventArgs e)
+        {
+            if (!MainV2.comPort.BaseStream.IsOpen)
+                return;
+
+            MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid,
+                        MAVLink.MAV_CMD.DO_DIGICAM_CONTROL, (float)NvMavExtCmds.Cmd.MultipleGCSControl,
+                        (float)NvMavExtCmds.MultipleGCSControlArgs.MultipleGCSEnableSecondaryControl, (float)NvMavExtCmds.DisArgs.Disable, 0, 0, 0, 0);
+        }
+
+        /****************************************************************************************************************************
+        *                                                      SendPOICmd()
+        * Description :  Sending POI command to the TRIP
+        *
+        ****************************************************************************************************************************/
+        private void SendPOICmd(NvMavExtCmds.POICommand cmd, PointLatLngAlt poi)
+        {
+            if (cmd == NvMavExtCmds.POICommand.DelAllTargets)
+            {
+                byte[] poi_cmd_byte = new byte[4];
+                poi_cmd_byte[1] = (byte)NvMavExtCmds.POICommand.DelAllTargets;
+                float poi_cmd = BitConverter.ToSingle(poi_cmd_byte, 0);
+                MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_SET_ROI_LOCATION, poi_cmd, 0, 0, 0, 0, 0, 0, false);
+            }
+            else
+            {
+                /* generate the target command */
+                byte[] poi_cmd_byte = new byte[4];
+                //poi_cmd_byte[0] = (byte)poi.TagId;
+                poi_cmd_byte[1] = (byte)cmd;
+                float poi_cmd = BitConverter.ToSingle(poi_cmd_byte, 0);
+
+                /* generate the target name */
+                string[] lines = poi.Tag.Split('\n');
+                byte[] poi_name = Encoding.ASCII.GetBytes(lines[0]);
+                byte[] poi_name_stuffed = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                Array.Copy(poi_name, 0, poi_name_stuffed, 0, Math.Min(poi_name.Length, 12));
+
+                float poi_name_f1, poi_name_f2, poi_name_f3;
+                poi_name_f1 = BitConverter.ToSingle(poi_name_stuffed, 0);
+                poi_name_f2 = BitConverter.ToSingle(poi_name_stuffed, 4);
+                poi_name_f3 = BitConverter.ToSingle(poi_name_stuffed, 8);
+
+                MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_SET_ROI_LOCATION, poi_cmd, poi_name_f1, poi_name_f2, poi_name_f3, (float)poi.Lat,
+                    (float)poi.Lng, 0, false);
+            }
         }
     }
 }

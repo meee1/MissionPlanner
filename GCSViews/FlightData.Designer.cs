@@ -33,6 +33,7 @@ namespace MissionPlanner.GCSViews
             this.tabControlactions = new System.Windows.Forms.TabControl();
             this.contextMenuStripactionstab = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.customizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.multiLineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabQuick = new System.Windows.Forms.TabPage();
             this.tableLayoutPanelQuick = new System.Windows.Forms.TableLayoutPanel();
             this.quickView6 = new MissionPlanner.Controls.QuickView();
@@ -47,14 +48,14 @@ namespace MissionPlanner.GCSViews
             this.quickView1 = new MissionPlanner.Controls.QuickView();
             this.tabActions = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.BUT_camjoystick = new MissionPlanner.Controls.MyButton();
+            this.buttonFullScreenSecondaryHud = new MissionPlanner.Controls.MyButton();
+            this.BUT_hudfullscreen = new MissionPlanner.Controls.MyButton();
             this.BUT_abortland = new MissionPlanner.Controls.MyButton();
-            this.modifyandSetLoiterRad = new MissionPlanner.Controls.ModifyandSet();
             this.BUT_clear_track = new MissionPlanner.Controls.MyButton();
             this.CMB_action = new System.Windows.Forms.ComboBox();
             this.BUTactiondo = new MissionPlanner.Controls.MyButton();
             this.BUT_resumemis = new MissionPlanner.Controls.MyButton();
-            this.modifyandSetAlt = new MissionPlanner.Controls.ModifyandSet();
-            this.modifyandSetSpeed = new MissionPlanner.Controls.ModifyandSet();
             this.CMB_setwp = new System.Windows.Forms.ComboBox();
             this.BUT_ARM = new MissionPlanner.Controls.MyButton();
             this.BUT_mountmode = new MissionPlanner.Controls.MyButton();
@@ -69,6 +70,170 @@ namespace MissionPlanner.GCSViews
             this.CMB_modes = new System.Windows.Forms.ComboBox();
             this.BUT_quickauto = new MissionPlanner.Controls.MyButton();
             this.BUT_setmode = new MissionPlanner.Controls.MyButton();
+            this.tabCameraActions = new System.Windows.Forms.TabPage();
+            this.groupBox27 = new System.Windows.Forms.GroupBox();
+            this.btn_multi_gcs_off = new MissionPlanner.Controls.MyButton();
+            this.btn_multi_gcs_on = new MissionPlanner.Controls.MyButton();
+            this.groupBoxVMDControl = new System.Windows.Forms.GroupBox();
+            this.btn_VMD_off = new MissionPlanner.Controls.MyButton();
+            this.btn_VMD_on = new MissionPlanner.Controls.MyButton();
+            this.groupBoxOrthoPhoto = new System.Windows.Forms.GroupBox();
+            this.pictureBoxOrthoPhoto = new System.Windows.Forms.PictureBox();
+            this.groupBox13 = new System.Windows.Forms.GroupBox();
+            this.buttonSetOGLRImageSize = new MissionPlanner.Controls.MyButton();
+            this.label10 = new System.Windows.Forms.Label();
+            this.textBoxOGLRImageSize = new System.Windows.Forms.TextBox();
+            this.BTN_set_reference_point = new MissionPlanner.Controls.MyButton();
+            this.label17 = new System.Windows.Forms.Label();
+            this.textBoxReferencePointElevation = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.textBoxReferencePointLon = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.textBoxReferencePointLat = new System.Windows.Forms.TextBox();
+            this.comboBoxHUDClickCommand = new System.Windows.Forms.ComboBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.textBoxCameraFov = new System.Windows.Forms.TextBox();
+            this.btn_set_fov = new MissionPlanner.Controls.MyButton();
+            this.groupBoxObjectDetectionControl = new System.Windows.Forms.GroupBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.BTN_set_od_fire_thres = new MissionPlanner.Controls.MyButton();
+            this.textBoxODFireThres = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.BTN_set_od_detector_type = new MissionPlanner.Controls.MyButton();
+            this.BTN_set_od_conf_thres = new MissionPlanner.Controls.MyButton();
+            this.textBoxODConfThres = new System.Windows.Forms.TextBox();
+            this.CMB_od_net_type = new System.Windows.Forms.ComboBox();
+            this.BTN_resume_mission_AI = new MissionPlanner.Controls.MyButton();
+            this.BTN_disable_OD = new MissionPlanner.Controls.MyButton();
+            this.BTN_enable_OD = new MissionPlanner.Controls.MyButton();
+            this.camGainLevelGroupBox = new System.Windows.Forms.GroupBox();
+            this.btn_reset_gain_level = new MissionPlanner.Controls.MyButton();
+            this.btn_level_dec = new MissionPlanner.Controls.MyButton();
+            this.btn_gain_dec = new MissionPlanner.Controls.MyButton();
+            this.btn_level_inc = new MissionPlanner.Controls.MyButton();
+            this.btn_gain_inc = new MissionPlanner.Controls.MyButton();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.BUT_ir_sharpnessmode = new MissionPlanner.Controls.MyButton();
+            this.BUT_day_sharpnessmode = new MissionPlanner.Controls.MyButton();
+            this.CMB_sharpnessmode = new System.Windows.Forms.ComboBox();
+            this.groupBox12 = new System.Windows.Forms.GroupBox();
+            this.CMB_laser_mode = new System.Windows.Forms.ComboBox();
+            this.BTN_set_laser_mode = new MissionPlanner.Controls.MyButton();
+            this.BTN_laser_off = new MissionPlanner.Controls.MyButton();
+            this.BTN_laser_on = new MissionPlanner.Controls.MyButton();
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.elementHost1 = new System.Windows.Forms.Integration.ElementHost();
+            this.onScreenJoystick1 = new WpfCustomControls.OnScreenJoystick();
+            this.VirtJoyBar = new System.Windows.Forms.TrackBar();
+            this.btn_zoom_out = new MissionPlanner.Controls.MyButton();
+            this.btn_zoom_in = new MissionPlanner.Controls.MyButton();
+            this.groupBox10 = new System.Windows.Forms.GroupBox();
+            this.btn_black_white_pallete = new MissionPlanner.Controls.MyButton();
+            this.btn_color_pallete = new MissionPlanner.Controls.MyButton();
+            this.btn_polarity_black_hot = new MissionPlanner.Controls.MyButton();
+            this.btn_polarity_white_hot = new MissionPlanner.Controls.MyButton();
+            this.btn_nuc = new MissionPlanner.Controls.MyButton();
+            this.groupBox9 = new System.Windows.Forms.GroupBox();
+            this.btn_disaable_geo_avg = new MissionPlanner.Controls.MyButton();
+            this.btn_enable_geo_avg = new MissionPlanner.Controls.MyButton();
+            this.BUT_RetractRelease = new MissionPlanner.Controls.MyButton();
+            this.btn_disable_roll_derot = new MissionPlanner.Controls.MyButton();
+            this.btn_enable_roll_derot = new MissionPlanner.Controls.MyButton();
+            this.btn__ir = new MissionPlanner.Controls.MyButton();
+            this.btn_retracting = new MissionPlanner.Controls.MyButton();
+            this.btn_day_ir = new MissionPlanner.Controls.MyButton();
+            this.flightModesGroupBox = new System.Windows.Forms.GroupBox();
+            this.BTN_fly_above_off = new MissionPlanner.Controls.MyButton();
+            this.BTN_fly_above_on = new MissionPlanner.Controls.MyButton();
+            this.btn_follow_target_off = new MissionPlanner.Controls.MyButton();
+            this.btn_single_yaw_off = new MissionPlanner.Controls.MyButton();
+            this.btn_follow_target_on = new MissionPlanner.Controls.MyButton();
+            this.btn_single_yaw_on = new MissionPlanner.Controls.MyButton();
+            this.groupBox11 = new System.Windows.Forms.GroupBox();
+            this.checkBoxManualDayColorTemp = new System.Windows.Forms.CheckBox();
+            this.BTN_set_color_temp = new MissionPlanner.Controls.MyButton();
+            this.labelDayColorTemp = new System.Windows.Forms.Label();
+            this.textBoxDayColorTemp = new System.Windows.Forms.TextBox();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.btn_2d_scan = new MissionPlanner.Controls.MyButton();
+            this.but_nadir_scan = new MissionPlanner.Controls.MyButton();
+            this.but_nadir = new MissionPlanner.Controls.MyButton();
+            this.but_epr = new MissionPlanner.Controls.MyButton();
+            this.but_pilot = new MissionPlanner.Controls.MyButton();
+            this.but_stow = new MissionPlanner.Controls.MyButton();
+            this.but_hold = new MissionPlanner.Controls.MyButton();
+            this.but_observation = new MissionPlanner.Controls.MyButton();
+            this.but_grr = new MissionPlanner.Controls.MyButton();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.btn_global_position = new MissionPlanner.Controls.MyButton();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBoxGlobalPosAzimuth = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.textBoxGlobalPosElevation = new System.Windows.Forms.TextBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.comboBoxPositionCommand = new System.Windows.Forms.ComboBox();
+            this.btn_local_position = new MissionPlanner.Controls.MyButton();
+            this.label14 = new System.Windows.Forms.Label();
+            this.textBoxLocalPosRoll = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.textBoxLocalPosPitch = new System.Windows.Forms.TextBox();
+            this.tabChannelActions = new System.Windows.Forms.TabPage();
+            this.groupBox22 = new System.Windows.Forms.GroupBox();
+            this.groupBox23 = new System.Windows.Forms.GroupBox();
+            this.checkBoxDisplaySecondaryHUD = new System.Windows.Forms.CheckBox();
+            this.radioButtonChannel1OnMainHUD = new System.Windows.Forms.RadioButton();
+            this.radioButtonChannel0OnMainHUD = new System.Windows.Forms.RadioButton();
+            this.groupBox19 = new System.Windows.Forms.GroupBox();
+            this.groupBox21 = new System.Windows.Forms.GroupBox();
+            this.buttonSetStreamModes = new MissionPlanner.Controls.MyButton();
+            this.comboBoxStreamModes = new System.Windows.Forms.ComboBox();
+            this.groupBox20 = new System.Windows.Forms.GroupBox();
+            this.buttonSetPIPMode = new MissionPlanner.Controls.MyButton();
+            this.comboBoxPIPMode = new System.Windows.Forms.ComboBox();
+            this.groupBoxSideBySideControl = new System.Windows.Forms.GroupBox();
+            this.buttonSetSBSMode = new MissionPlanner.Controls.MyButton();
+            this.comboBoxSBSMode = new System.Windows.Forms.ComboBox();
+            this.groupBoxChannel1Actions = new System.Windows.Forms.GroupBox();
+            this.groupBox25 = new System.Windows.Forms.GroupBox();
+            this.labelSnapshotStatusChannel1 = new System.Windows.Forms.Label();
+            this.textBoxSnapshotsIntervalChannel1 = new System.Windows.Forms.TextBox();
+            this.checkBoxInfiniteSnapshotsChannel1 = new System.Windows.Forms.CheckBox();
+            this.buttonStartSnapshotIntervalChannel1 = new MissionPlanner.Controls.MyButton();
+            this.buttonStopSnashotIntervalChannel1 = new MissionPlanner.Controls.MyButton();
+            this.labelSnapshotsCountChannel1 = new System.Windows.Forms.Label();
+            this.textBoxSnapshotsCountChannel1 = new System.Windows.Forms.TextBox();
+            this.label27 = new System.Windows.Forms.Label();
+            this.groupBox15 = new System.Windows.Forms.GroupBox();
+            this.buttonStartChannel1Video = new MissionPlanner.Controls.MyButton();
+            this.groupBox17 = new System.Windows.Forms.GroupBox();
+            this.buttonChannel1StartLocalRecord = new MissionPlanner.Controls.MyButton();
+            this.groupBox18 = new System.Windows.Forms.GroupBox();
+            this.buttonChannel1RecordOff = new MissionPlanner.Controls.MyButton();
+            this.buttonChannel1RecordOn = new MissionPlanner.Controls.MyButton();
+            this.buttonChannel1ImageCapture = new MissionPlanner.Controls.MyButton();
+            this.groupBoxChannel0Actions = new System.Windows.Forms.GroupBox();
+            this.groupBox24 = new System.Windows.Forms.GroupBox();
+            this.labelSnapshotStatusChannel0 = new System.Windows.Forms.Label();
+            this.textBoxSnapshotsIntervalChannel0 = new System.Windows.Forms.TextBox();
+            this.checkBoxInfiniteSnapshotsChannel0 = new System.Windows.Forms.CheckBox();
+            this.buttonStartSnapshotIntervalChannel0 = new MissionPlanner.Controls.MyButton();
+            this.buttonStopSnashotIntervalChannel0 = new MissionPlanner.Controls.MyButton();
+            this.labelSnapshotsCountChannel0 = new System.Windows.Forms.Label();
+            this.textBoxSnapshotsCountChannel0 = new System.Windows.Forms.TextBox();
+            this.label24 = new System.Windows.Forms.Label();
+            this.groupBox14 = new System.Windows.Forms.GroupBox();
+            this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.groupBox26 = new System.Windows.Forms.GroupBox();
+            this.radioButton1 = new System.Windows.Forms.RadioButton();
+            this.radioButton2 = new System.Windows.Forms.RadioButton();
+            this.buttonStartChannel0Video = new MissionPlanner.Controls.MyButton();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.buttonChannel0StartLocalRecord = new MissionPlanner.Controls.MyButton();
+            this.groupBox16 = new System.Windows.Forms.GroupBox();
+            this.buttonChannel0RecordOff = new MissionPlanner.Controls.MyButton();
+            this.buttonChannel0RecordOn = new MissionPlanner.Controls.MyButton();
+            this.buttonChannel0ImageCapture = new MissionPlanner.Controls.MyButton();
             this.tabPagemessages = new System.Windows.Forms.TabPage();
             this.txt_messagebox = new System.Windows.Forms.TextBox();
             this.tabActionsSimple = new System.Windows.Forms.TabPage();
@@ -76,7 +241,6 @@ namespace MissionPlanner.GCSViews
             this.myButton2 = new MissionPlanner.Controls.MyButton();
             this.myButton3 = new MissionPlanner.Controls.MyButton();
             this.tabPagePreFlight = new System.Windows.Forms.TabPage();
-            this.checkListControl1 = new MissionPlanner.Controls.PreFlight.CheckListControl();
             this.tabGauges = new System.Windows.Forms.TabPage();
             this.Gvspeed = new AGaugeApp.AGauge();
             this.bindingSourceGaugesTab = new System.Windows.Forms.BindingSource(this.components);
@@ -102,24 +266,6 @@ namespace MissionPlanner.GCSViews
             this.tabStatus = new System.Windows.Forms.TabPage();
             this.tabServo = new System.Windows.Forms.TabPage();
             this.flowLayoutPanelServos = new System.Windows.Forms.FlowLayoutPanel();
-            this.servoOptions1 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions2 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions3 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions4 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions5 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions6 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions7 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions8 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions9 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions10 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions11 = new MissionPlanner.Controls.ServoOptions();
-            this.servoOptions12 = new MissionPlanner.Controls.ServoOptions();
-            this.relayOptions1 = new MissionPlanner.Controls.RelayOptions();
-            this.relayOptions2 = new MissionPlanner.Controls.RelayOptions();
-            this.relayOptions3 = new MissionPlanner.Controls.RelayOptions();
-            this.relayOptions4 = new MissionPlanner.Controls.RelayOptions();
-            this.relayOptions5 = new MissionPlanner.Controls.RelayOptions();
-            this.relayOptions6 = new MissionPlanner.Controls.RelayOptions();
             this.tabScripts = new System.Windows.Forms.TabPage();
             this.checkBoxRedirectOutput = new System.Windows.Forms.CheckBox();
             this.BUT_edit_selected = new MissionPlanner.Controls.MyButton();
@@ -190,8 +336,9 @@ namespace MissionPlanner.GCSViews
             this.takeOffToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.onOffCameraOverlapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.altitudeAngelSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.hud2 = new MissionPlanner.Controls.HUD();
+            this.but_disableCamjoystick = new MissionPlanner.Controls.MyButton();
             this.but_disablejoystick = new MissionPlanner.Controls.MyButton();
-            this.distanceBar1 = new MissionPlanner.Controls.DistanceBar();
             this.windDir1 = new MissionPlanner.Controls.WindDir();
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
             this.label6 = new System.Windows.Forms.Label();
@@ -214,7 +361,34 @@ namespace MissionPlanner.GCSViews
             this.scriptChecker = new System.Windows.Forms.Timer(this.components);
             this.Messagetabtimer = new System.Windows.Forms.Timer(this.components);
             this.bindingSourceStatusTab = new System.Windows.Forms.BindingSource(this.components);
-            this.multiLineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.vJoystickTimer = new System.Windows.Forms.Timer(this.components);
+            this.contextMenuStripHud2 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.HideHud2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SwapWithMainHudToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.odOverlayTimer = new System.Windows.Forms.Timer(this.components);
+            this.modifyandSetLoiterRad = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetAlt = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetSpeed = new MissionPlanner.Controls.ModifyandSet();
+            this.checkListControl1 = new MissionPlanner.Controls.PreFlight.CheckListControl();
+            this.servoOptions1 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions2 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions3 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions4 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions5 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions6 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions7 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions8 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions9 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions10 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions11 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions12 = new MissionPlanner.Controls.ServoOptions();
+            this.relayOptions1 = new MissionPlanner.Controls.RelayOptions();
+            this.relayOptions2 = new MissionPlanner.Controls.RelayOptions();
+            this.relayOptions3 = new MissionPlanner.Controls.RelayOptions();
+            this.relayOptions4 = new MissionPlanner.Controls.RelayOptions();
+            this.relayOptions5 = new MissionPlanner.Controls.RelayOptions();
+            this.relayOptions6 = new MissionPlanner.Controls.RelayOptions();
+            this.distanceBar1 = new MissionPlanner.Controls.DistanceBar();
             ((System.ComponentModel.ISupportInitialize)(this.MainH)).BeginInit();
             this.MainH.Panel1.SuspendLayout();
             this.MainH.Panel2.SuspendLayout();
@@ -233,6 +407,45 @@ namespace MissionPlanner.GCSViews
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceQuickTab)).BeginInit();
             this.tabActions.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
+            this.tabCameraActions.SuspendLayout();
+            this.groupBox27.SuspendLayout();
+            this.groupBoxVMDControl.SuspendLayout();
+            this.groupBoxOrthoPhoto.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOrthoPhoto)).BeginInit();
+            this.groupBox13.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBoxObjectDetectionControl.SuspendLayout();
+            this.camGainLevelGroupBox.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.groupBox12.SuspendLayout();
+            this.groupBox7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.VirtJoyBar)).BeginInit();
+            this.groupBox10.SuspendLayout();
+            this.groupBox9.SuspendLayout();
+            this.flightModesGroupBox.SuspendLayout();
+            this.groupBox11.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.groupBox5.SuspendLayout();
+            this.groupBox4.SuspendLayout();
+            this.tabChannelActions.SuspendLayout();
+            this.groupBox22.SuspendLayout();
+            this.groupBox23.SuspendLayout();
+            this.groupBox19.SuspendLayout();
+            this.groupBox21.SuspendLayout();
+            this.groupBox20.SuspendLayout();
+            this.groupBoxSideBySideControl.SuspendLayout();
+            this.groupBoxChannel1Actions.SuspendLayout();
+            this.groupBox25.SuspendLayout();
+            this.groupBox15.SuspendLayout();
+            this.groupBox17.SuspendLayout();
+            this.groupBox18.SuspendLayout();
+            this.groupBoxChannel0Actions.SuspendLayout();
+            this.groupBox24.SuspendLayout();
+            this.groupBox14.SuspendLayout();
+            this.groupBox8.SuspendLayout();
+            this.groupBox26.SuspendLayout();
+            this.groupBox6.SuspendLayout();
+            this.groupBox16.SuspendLayout();
             this.tabPagemessages.SuspendLayout();
             this.tabActionsSimple.SuspendLayout();
             this.tabPagePreFlight.SuspendLayout();
@@ -268,6 +481,7 @@ namespace MissionPlanner.GCSViews
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.Zoomlevel)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceStatusTab)).BeginInit();
+            this.contextMenuStripHud2.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainH
@@ -387,6 +601,7 @@ namespace MissionPlanner.GCSViews
             this.hud1.pitch = 0F;
             this.hud1.roll = 0F;
             this.hud1.Russian = false;
+            this.hud1.SixteenXNine = true;
             this.hud1.skyColor1 = System.Drawing.Color.Blue;
             this.hud1.skyColor2 = System.Drawing.Color.LightBlue;
             this.hud1.speedunit = null;
@@ -395,6 +610,7 @@ namespace MissionPlanner.GCSViews
             this.hud1.targetalt = 0F;
             this.hud1.targetheading = 0F;
             this.hud1.targetspeed = 0F;
+            this.hud1.ThirtyTwoXNine = false;
             this.hud1.turnrate = 0F;
             this.hud1.verticalspeed = 0F;
             this.hud1.vibex = 0F;
@@ -406,6 +622,7 @@ namespace MissionPlanner.GCSViews
             this.hud1.ekfclick += new System.EventHandler(this.hud1_ekfclick);
             this.hud1.vibeclick += new System.EventHandler(this.hud1_vibeclick);
             this.hud1.Load += new System.EventHandler(this.hud1_Load);
+            this.hud1.Click += new System.EventHandler(this.hud1_Click);
             this.hud1.DoubleClick += new System.EventHandler(this.hud1_DoubleClick);
             this.hud1.Resize += new System.EventHandler(this.hud1_Resize);
             // 
@@ -530,6 +747,8 @@ namespace MissionPlanner.GCSViews
             this.tabControlactions.ContextMenuStrip = this.contextMenuStripactionstab;
             this.tabControlactions.Controls.Add(this.tabQuick);
             this.tabControlactions.Controls.Add(this.tabActions);
+            this.tabControlactions.Controls.Add(this.tabCameraActions);
+            this.tabControlactions.Controls.Add(this.tabChannelActions);
             this.tabControlactions.Controls.Add(this.tabPagemessages);
             this.tabControlactions.Controls.Add(this.tabActionsSimple);
             this.tabControlactions.Controls.Add(this.tabPagePreFlight);
@@ -560,6 +779,12 @@ namespace MissionPlanner.GCSViews
             this.customizeToolStripMenuItem.Name = "customizeToolStripMenuItem";
             resources.ApplyResources(this.customizeToolStripMenuItem, "customizeToolStripMenuItem");
             this.customizeToolStripMenuItem.Click += new System.EventHandler(this.customizeToolStripMenuItem_Click);
+            // 
+            // multiLineToolStripMenuItem
+            // 
+            this.multiLineToolStripMenuItem.Name = "multiLineToolStripMenuItem";
+            resources.ApplyResources(this.multiLineToolStripMenuItem, "multiLineToolStripMenuItem");
+            this.multiLineToolStripMenuItem.Click += new System.EventHandler(this.multiLineToolStripMenuItem_Click);
             // 
             // tabQuick
             // 
@@ -693,6 +918,9 @@ namespace MissionPlanner.GCSViews
             // tableLayoutPanel1
             // 
             resources.ApplyResources(this.tableLayoutPanel1, "tableLayoutPanel1");
+            this.tableLayoutPanel1.Controls.Add(this.BUT_camjoystick, 0, 4);
+            this.tableLayoutPanel1.Controls.Add(this.buttonFullScreenSecondaryHud, 0, 4);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_hudfullscreen, 0, 4);
             this.tableLayoutPanel1.Controls.Add(this.BUT_abortland, 4, 4);
             this.tableLayoutPanel1.Controls.Add(this.modifyandSetLoiterRad, 4, 2);
             this.tableLayoutPanel1.Controls.Add(this.BUT_clear_track, 4, 3);
@@ -717,6 +945,37 @@ namespace MissionPlanner.GCSViews
             this.tableLayoutPanel1.Controls.Add(this.BUT_setmode, 1, 2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             // 
+            // BUT_camjoystick
+            // 
+            this.BUT_camjoystick.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_camjoystick.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_camjoystick.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BUT_camjoystick, "BUT_camjoystick");
+            this.BUT_camjoystick.Name = "BUT_camjoystick";
+            this.toolTip1.SetToolTip(this.BUT_camjoystick, resources.GetString("BUT_camjoystick.ToolTip"));
+            this.BUT_camjoystick.UseVisualStyleBackColor = true;
+            this.BUT_camjoystick.Click += new System.EventHandler(this.BUT_camjoystick_Click);
+            // 
+            // buttonFullScreenSecondaryHud
+            // 
+            this.buttonFullScreenSecondaryHud.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonFullScreenSecondaryHud.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonFullScreenSecondaryHud.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonFullScreenSecondaryHud, "buttonFullScreenSecondaryHud");
+            this.buttonFullScreenSecondaryHud.Name = "buttonFullScreenSecondaryHud";
+            this.buttonFullScreenSecondaryHud.UseVisualStyleBackColor = true;
+            this.buttonFullScreenSecondaryHud.Click += new System.EventHandler(this.buttonFullScreenSecondaryHud_Click);
+            // 
+            // BUT_hudfullscreen
+            // 
+            this.BUT_hudfullscreen.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_hudfullscreen.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_hudfullscreen.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BUT_hudfullscreen, "BUT_hudfullscreen");
+            this.BUT_hudfullscreen.Name = "BUT_hudfullscreen";
+            this.BUT_hudfullscreen.UseVisualStyleBackColor = true;
+            this.BUT_hudfullscreen.Click += new System.EventHandler(this.BUT_hudfullscreen_Click);
+            // 
             // BUT_abortland
             // 
             this.BUT_abortland.ColorMouseDown = System.Drawing.Color.Empty;
@@ -727,34 +986,6 @@ namespace MissionPlanner.GCSViews
             this.toolTip1.SetToolTip(this.BUT_abortland, resources.GetString("BUT_abortland.ToolTip"));
             this.BUT_abortland.UseVisualStyleBackColor = true;
             this.BUT_abortland.Click += new System.EventHandler(this.BUT_abortland_Click);
-            // 
-            // modifyandSetLoiterRad
-            // 
-            resources.ApplyResources(this.modifyandSetLoiterRad, "modifyandSetLoiterRad");
-            this.modifyandSetLoiterRad.ButtonText = "Set Loiter Rad";
-            this.modifyandSetLoiterRad.DecimalPlaces = 0;
-            this.modifyandSetLoiterRad.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.modifyandSetLoiterRad.Maximum = new decimal(new int[] {
-            10000,
-            0,
-            0,
-            0});
-            this.modifyandSetLoiterRad.Minimum = new decimal(new int[] {
-            10000,
-            0,
-            0,
-            -2147483648});
-            this.modifyandSetLoiterRad.Name = "modifyandSetLoiterRad";
-            this.modifyandSetLoiterRad.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-            this.modifyandSetLoiterRad.Click += new System.EventHandler(this.modifyandSetLoiterRad_Click);
             // 
             // BUT_clear_track
             // 
@@ -795,63 +1026,6 @@ namespace MissionPlanner.GCSViews
             this.BUT_resumemis.Name = "BUT_resumemis";
             this.BUT_resumemis.UseVisualStyleBackColor = true;
             this.BUT_resumemis.Click += new System.EventHandler(this.BUT_resumemis_Click);
-            // 
-            // modifyandSetAlt
-            // 
-            resources.ApplyResources(this.modifyandSetAlt, "modifyandSetAlt");
-            this.modifyandSetAlt.ButtonText = "Change Alt";
-            this.modifyandSetAlt.DecimalPlaces = 1;
-            this.modifyandSetAlt.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.modifyandSetAlt.Maximum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.modifyandSetAlt.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.modifyandSetAlt.Name = "modifyandSetAlt";
-            this.modifyandSetAlt.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-            this.modifyandSetAlt.Click += new System.EventHandler(this.modifyandSetAlt_Click);
-            // 
-            // modifyandSetSpeed
-            // 
-            resources.ApplyResources(this.modifyandSetSpeed, "modifyandSetSpeed");
-            this.modifyandSetSpeed.ButtonText = "Change Speed";
-            this.modifyandSetSpeed.DecimalPlaces = 1;
-            this.modifyandSetSpeed.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.modifyandSetSpeed.Maximum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.modifyandSetSpeed.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.modifyandSetSpeed.Name = "modifyandSetSpeed";
-            this.modifyandSetSpeed.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-            this.modifyandSetSpeed.Click += new System.EventHandler(this.modifyandSetSpeed_Click);
-            this.modifyandSetSpeed.ParentChanged += new System.EventHandler(this.modifyandSetSpeed_ParentChanged);
             // 
             // CMB_setwp
             // 
@@ -1002,6 +1176,1557 @@ namespace MissionPlanner.GCSViews
             this.BUT_setmode.UseVisualStyleBackColor = true;
             this.BUT_setmode.Click += new System.EventHandler(this.BUT_setmode_Click);
             // 
+            // tabCameraActions
+            // 
+            resources.ApplyResources(this.tabCameraActions, "tabCameraActions");
+            this.tabCameraActions.Controls.Add(this.groupBox27);
+            this.tabCameraActions.Controls.Add(this.groupBoxVMDControl);
+            this.tabCameraActions.Controls.Add(this.groupBoxOrthoPhoto);
+            this.tabCameraActions.Controls.Add(this.groupBox13);
+            this.tabCameraActions.Controls.Add(this.groupBox2);
+            this.tabCameraActions.Controls.Add(this.groupBoxObjectDetectionControl);
+            this.tabCameraActions.Controls.Add(this.camGainLevelGroupBox);
+            this.tabCameraActions.Controls.Add(this.groupBox1);
+            this.tabCameraActions.Controls.Add(this.groupBox12);
+            this.tabCameraActions.Controls.Add(this.groupBox7);
+            this.tabCameraActions.Controls.Add(this.groupBox10);
+            this.tabCameraActions.Controls.Add(this.groupBox9);
+            this.tabCameraActions.Controls.Add(this.flightModesGroupBox);
+            this.tabCameraActions.Controls.Add(this.groupBox11);
+            this.tabCameraActions.Controls.Add(this.groupBox3);
+            this.tabCameraActions.Name = "tabCameraActions";
+            this.tabCameraActions.UseVisualStyleBackColor = true;
+            // 
+            // groupBox27
+            // 
+            this.groupBox27.Controls.Add(this.btn_multi_gcs_off);
+            this.groupBox27.Controls.Add(this.btn_multi_gcs_on);
+            resources.ApplyResources(this.groupBox27, "groupBox27");
+            this.groupBox27.Name = "groupBox27";
+            this.groupBox27.TabStop = false;
+            // 
+            // btn_multi_gcs_off
+            // 
+            this.btn_multi_gcs_off.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_multi_gcs_off.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_multi_gcs_off.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_multi_gcs_off, "btn_multi_gcs_off");
+            this.btn_multi_gcs_off.Name = "btn_multi_gcs_off";
+            this.btn_multi_gcs_off.UseVisualStyleBackColor = true;
+            this.btn_multi_gcs_off.Click += new System.EventHandler(this.btn_multi_gcs_off_Click);
+            // 
+            // btn_multi_gcs_on
+            // 
+            this.btn_multi_gcs_on.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_multi_gcs_on.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_multi_gcs_on.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_multi_gcs_on, "btn_multi_gcs_on");
+            this.btn_multi_gcs_on.Name = "btn_multi_gcs_on";
+            this.btn_multi_gcs_on.UseVisualStyleBackColor = true;
+            this.btn_multi_gcs_on.Click += new System.EventHandler(this.btn_multi_gcs_on_Click);
+            // 
+            // groupBoxVMDControl
+            // 
+            this.groupBoxVMDControl.Controls.Add(this.btn_VMD_off);
+            this.groupBoxVMDControl.Controls.Add(this.btn_VMD_on);
+            resources.ApplyResources(this.groupBoxVMDControl, "groupBoxVMDControl");
+            this.groupBoxVMDControl.Name = "groupBoxVMDControl";
+            this.groupBoxVMDControl.TabStop = false;
+            // 
+            // btn_VMD_off
+            // 
+            this.btn_VMD_off.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_VMD_off.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_VMD_off.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_VMD_off, "btn_VMD_off");
+            this.btn_VMD_off.Name = "btn_VMD_off";
+            this.btn_VMD_off.UseVisualStyleBackColor = true;
+            this.btn_VMD_off.Click += new System.EventHandler(this.btn_VMD_off_Click);
+            // 
+            // btn_VMD_on
+            // 
+            this.btn_VMD_on.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_VMD_on.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_VMD_on.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_VMD_on, "btn_VMD_on");
+            this.btn_VMD_on.Name = "btn_VMD_on";
+            this.btn_VMD_on.UseVisualStyleBackColor = true;
+            this.btn_VMD_on.Click += new System.EventHandler(this.btn_VMD_on_Click);
+            // 
+            // groupBoxOrthoPhoto
+            // 
+            this.groupBoxOrthoPhoto.Controls.Add(this.pictureBoxOrthoPhoto);
+            resources.ApplyResources(this.groupBoxOrthoPhoto, "groupBoxOrthoPhoto");
+            this.groupBoxOrthoPhoto.Name = "groupBoxOrthoPhoto";
+            this.groupBoxOrthoPhoto.TabStop = false;
+            // 
+            // pictureBoxOrthoPhoto
+            // 
+            this.pictureBoxOrthoPhoto.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            resources.ApplyResources(this.pictureBoxOrthoPhoto, "pictureBoxOrthoPhoto");
+            this.pictureBoxOrthoPhoto.Name = "pictureBoxOrthoPhoto";
+            this.pictureBoxOrthoPhoto.TabStop = false;
+            // 
+            // groupBox13
+            // 
+            this.groupBox13.Controls.Add(this.buttonSetOGLRImageSize);
+            this.groupBox13.Controls.Add(this.label10);
+            this.groupBox13.Controls.Add(this.textBoxOGLRImageSize);
+            this.groupBox13.Controls.Add(this.BTN_set_reference_point);
+            this.groupBox13.Controls.Add(this.label17);
+            this.groupBox13.Controls.Add(this.textBoxReferencePointElevation);
+            this.groupBox13.Controls.Add(this.label16);
+            this.groupBox13.Controls.Add(this.textBoxReferencePointLon);
+            this.groupBox13.Controls.Add(this.label15);
+            this.groupBox13.Controls.Add(this.textBoxReferencePointLat);
+            this.groupBox13.Controls.Add(this.comboBoxHUDClickCommand);
+            resources.ApplyResources(this.groupBox13, "groupBox13");
+            this.groupBox13.Name = "groupBox13";
+            this.groupBox13.TabStop = false;
+            // 
+            // buttonSetOGLRImageSize
+            // 
+            this.buttonSetOGLRImageSize.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonSetOGLRImageSize.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonSetOGLRImageSize.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonSetOGLRImageSize, "buttonSetOGLRImageSize");
+            this.buttonSetOGLRImageSize.Name = "buttonSetOGLRImageSize";
+            this.toolTip1.SetToolTip(this.buttonSetOGLRImageSize, resources.GetString("buttonSetOGLRImageSize.ToolTip"));
+            this.buttonSetOGLRImageSize.UseVisualStyleBackColor = true;
+            this.buttonSetOGLRImageSize.Click += new System.EventHandler(this.buttonSetOGLRImageSize_Click);
+            // 
+            // label10
+            // 
+            resources.ApplyResources(this.label10, "label10");
+            this.label10.Name = "label10";
+            // 
+            // textBoxOGLRImageSize
+            // 
+            resources.ApplyResources(this.textBoxOGLRImageSize, "textBoxOGLRImageSize");
+            this.textBoxOGLRImageSize.Name = "textBoxOGLRImageSize";
+            // 
+            // BTN_set_reference_point
+            // 
+            this.BTN_set_reference_point.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_set_reference_point.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_set_reference_point.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_set_reference_point, "BTN_set_reference_point");
+            this.BTN_set_reference_point.Name = "BTN_set_reference_point";
+            this.toolTip1.SetToolTip(this.BTN_set_reference_point, resources.GetString("BTN_set_reference_point.ToolTip"));
+            this.BTN_set_reference_point.UseVisualStyleBackColor = true;
+            this.BTN_set_reference_point.Click += new System.EventHandler(this.BTN_set_reference_point_Click);
+            // 
+            // label17
+            // 
+            resources.ApplyResources(this.label17, "label17");
+            this.label17.Name = "label17";
+            // 
+            // textBoxReferencePointElevation
+            // 
+            resources.ApplyResources(this.textBoxReferencePointElevation, "textBoxReferencePointElevation");
+            this.textBoxReferencePointElevation.Name = "textBoxReferencePointElevation";
+            // 
+            // label16
+            // 
+            resources.ApplyResources(this.label16, "label16");
+            this.label16.Name = "label16";
+            // 
+            // textBoxReferencePointLon
+            // 
+            resources.ApplyResources(this.textBoxReferencePointLon, "textBoxReferencePointLon");
+            this.textBoxReferencePointLon.Name = "textBoxReferencePointLon";
+            // 
+            // label15
+            // 
+            resources.ApplyResources(this.label15, "label15");
+            this.label15.Name = "label15";
+            // 
+            // textBoxReferencePointLat
+            // 
+            resources.ApplyResources(this.textBoxReferencePointLat, "textBoxReferencePointLat");
+            this.textBoxReferencePointLat.Name = "textBoxReferencePointLat";
+            // 
+            // comboBoxHUDClickCommand
+            // 
+            this.comboBoxHUDClickCommand.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("comboBoxHUDClickCommand.AutoCompleteCustomSource"),
+            resources.GetString("comboBoxHUDClickCommand.AutoCompleteCustomSource1"),
+            resources.GetString("comboBoxHUDClickCommand.AutoCompleteCustomSource2")});
+            this.comboBoxHUDClickCommand.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxHUDClickCommand.FormattingEnabled = true;
+            this.comboBoxHUDClickCommand.Items.AddRange(new object[] {
+            resources.GetString("comboBoxHUDClickCommand.Items"),
+            resources.GetString("comboBoxHUDClickCommand.Items1"),
+            resources.GetString("comboBoxHUDClickCommand.Items2")});
+            resources.ApplyResources(this.comboBoxHUDClickCommand, "comboBoxHUDClickCommand");
+            this.comboBoxHUDClickCommand.Name = "comboBoxHUDClickCommand";
+            this.comboBoxHUDClickCommand.SelectedIndexChanged += new System.EventHandler(this.comboBoxHUDClickCommand_SelectedIndexChanged);
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.label9);
+            this.groupBox2.Controls.Add(this.textBoxCameraFov);
+            this.groupBox2.Controls.Add(this.btn_set_fov);
+            resources.ApplyResources(this.groupBox2, "groupBox2");
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.TabStop = false;
+            // 
+            // label9
+            // 
+            resources.ApplyResources(this.label9, "label9");
+            this.label9.Name = "label9";
+            // 
+            // textBoxCameraFov
+            // 
+            resources.ApplyResources(this.textBoxCameraFov, "textBoxCameraFov");
+            this.textBoxCameraFov.Name = "textBoxCameraFov";
+            // 
+            // btn_set_fov
+            // 
+            this.btn_set_fov.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_set_fov.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_set_fov.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_set_fov, "btn_set_fov");
+            this.btn_set_fov.Name = "btn_set_fov";
+            this.btn_set_fov.UseVisualStyleBackColor = true;
+            this.btn_set_fov.Click += new System.EventHandler(this.btn_set_fov_Click);
+            // 
+            // groupBoxObjectDetectionControl
+            // 
+            this.groupBoxObjectDetectionControl.Controls.Add(this.label13);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.BTN_set_od_fire_thres);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.textBoxODFireThres);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.label12);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.BTN_set_od_detector_type);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.BTN_set_od_conf_thres);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.textBoxODConfThres);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.CMB_od_net_type);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.BTN_resume_mission_AI);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.BTN_disable_OD);
+            this.groupBoxObjectDetectionControl.Controls.Add(this.BTN_enable_OD);
+            resources.ApplyResources(this.groupBoxObjectDetectionControl, "groupBoxObjectDetectionControl");
+            this.groupBoxObjectDetectionControl.Name = "groupBoxObjectDetectionControl";
+            this.groupBoxObjectDetectionControl.TabStop = false;
+            // 
+            // label13
+            // 
+            resources.ApplyResources(this.label13, "label13");
+            this.label13.Name = "label13";
+            // 
+            // BTN_set_od_fire_thres
+            // 
+            this.BTN_set_od_fire_thres.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_set_od_fire_thres.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_set_od_fire_thres.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_set_od_fire_thres, "BTN_set_od_fire_thres");
+            this.BTN_set_od_fire_thres.Name = "BTN_set_od_fire_thres";
+            this.toolTip1.SetToolTip(this.BTN_set_od_fire_thres, resources.GetString("BTN_set_od_fire_thres.ToolTip"));
+            this.BTN_set_od_fire_thres.UseVisualStyleBackColor = true;
+            this.BTN_set_od_fire_thres.Click += new System.EventHandler(this.BTN_set_od_fire_thres_Click);
+            // 
+            // textBoxODFireThres
+            // 
+            resources.ApplyResources(this.textBoxODFireThres, "textBoxODFireThres");
+            this.textBoxODFireThres.Name = "textBoxODFireThres";
+            // 
+            // label12
+            // 
+            resources.ApplyResources(this.label12, "label12");
+            this.label12.Name = "label12";
+            // 
+            // BTN_set_od_detector_type
+            // 
+            this.BTN_set_od_detector_type.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_set_od_detector_type.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_set_od_detector_type.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_set_od_detector_type, "BTN_set_od_detector_type");
+            this.BTN_set_od_detector_type.Name = "BTN_set_od_detector_type";
+            this.toolTip1.SetToolTip(this.BTN_set_od_detector_type, resources.GetString("BTN_set_od_detector_type.ToolTip"));
+            this.BTN_set_od_detector_type.UseVisualStyleBackColor = true;
+            this.BTN_set_od_detector_type.Click += new System.EventHandler(this.BTN_set_od_detector_type_Click);
+            // 
+            // BTN_set_od_conf_thres
+            // 
+            this.BTN_set_od_conf_thres.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_set_od_conf_thres.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_set_od_conf_thres.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_set_od_conf_thres, "BTN_set_od_conf_thres");
+            this.BTN_set_od_conf_thres.Name = "BTN_set_od_conf_thres";
+            this.toolTip1.SetToolTip(this.BTN_set_od_conf_thres, resources.GetString("BTN_set_od_conf_thres.ToolTip"));
+            this.BTN_set_od_conf_thres.UseVisualStyleBackColor = true;
+            this.BTN_set_od_conf_thres.Click += new System.EventHandler(this.BTN_set_od_conf_thres_Click);
+            // 
+            // textBoxODConfThres
+            // 
+            resources.ApplyResources(this.textBoxODConfThres, "textBoxODConfThres");
+            this.textBoxODConfThres.Name = "textBoxODConfThres";
+            // 
+            // CMB_od_net_type
+            // 
+            this.CMB_od_net_type.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("CMB_od_net_type.AutoCompleteCustomSource"),
+            resources.GetString("CMB_od_net_type.AutoCompleteCustomSource1"),
+            resources.GetString("CMB_od_net_type.AutoCompleteCustomSource2"),
+            resources.GetString("CMB_od_net_type.AutoCompleteCustomSource3")});
+            this.CMB_od_net_type.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CMB_od_net_type.FormattingEnabled = true;
+            this.CMB_od_net_type.Items.AddRange(new object[] {
+            resources.GetString("CMB_od_net_type.Items"),
+            resources.GetString("CMB_od_net_type.Items1"),
+            resources.GetString("CMB_od_net_type.Items2"),
+            resources.GetString("CMB_od_net_type.Items3")});
+            resources.ApplyResources(this.CMB_od_net_type, "CMB_od_net_type");
+            this.CMB_od_net_type.Name = "CMB_od_net_type";
+            // 
+            // BTN_resume_mission_AI
+            // 
+            this.BTN_resume_mission_AI.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_resume_mission_AI.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_resume_mission_AI.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_resume_mission_AI, "BTN_resume_mission_AI");
+            this.BTN_resume_mission_AI.Name = "BTN_resume_mission_AI";
+            this.toolTip1.SetToolTip(this.BTN_resume_mission_AI, resources.GetString("BTN_resume_mission_AI.ToolTip"));
+            this.BTN_resume_mission_AI.UseVisualStyleBackColor = true;
+            // 
+            // BTN_disable_OD
+            // 
+            this.BTN_disable_OD.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_disable_OD.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_disable_OD.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_disable_OD, "BTN_disable_OD");
+            this.BTN_disable_OD.Name = "BTN_disable_OD";
+            this.toolTip1.SetToolTip(this.BTN_disable_OD, resources.GetString("BTN_disable_OD.ToolTip"));
+            this.BTN_disable_OD.UseVisualStyleBackColor = true;
+            this.BTN_disable_OD.Click += new System.EventHandler(this.BTN_disable_object_detection_Click);
+            // 
+            // BTN_enable_OD
+            // 
+            this.BTN_enable_OD.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_enable_OD.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_enable_OD.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_enable_OD, "BTN_enable_OD");
+            this.BTN_enable_OD.Name = "BTN_enable_OD";
+            this.toolTip1.SetToolTip(this.BTN_enable_OD, resources.GetString("BTN_enable_OD.ToolTip"));
+            this.BTN_enable_OD.UseVisualStyleBackColor = true;
+            this.BTN_enable_OD.Click += new System.EventHandler(this.BTN_enable_object_detection_Click);
+            // 
+            // camGainLevelGroupBox
+            // 
+            this.camGainLevelGroupBox.Controls.Add(this.btn_reset_gain_level);
+            this.camGainLevelGroupBox.Controls.Add(this.btn_level_dec);
+            this.camGainLevelGroupBox.Controls.Add(this.btn_gain_dec);
+            this.camGainLevelGroupBox.Controls.Add(this.btn_level_inc);
+            this.camGainLevelGroupBox.Controls.Add(this.btn_gain_inc);
+            resources.ApplyResources(this.camGainLevelGroupBox, "camGainLevelGroupBox");
+            this.camGainLevelGroupBox.Name = "camGainLevelGroupBox";
+            this.camGainLevelGroupBox.TabStop = false;
+            // 
+            // btn_reset_gain_level
+            // 
+            this.btn_reset_gain_level.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_reset_gain_level.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_reset_gain_level.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_reset_gain_level, "btn_reset_gain_level");
+            this.btn_reset_gain_level.Name = "btn_reset_gain_level";
+            this.toolTip1.SetToolTip(this.btn_reset_gain_level, resources.GetString("btn_reset_gain_level.ToolTip"));
+            this.btn_reset_gain_level.UseVisualStyleBackColor = true;
+            this.btn_reset_gain_level.Click += new System.EventHandler(this.btn_reset_gain_level_Click);
+            // 
+            // btn_level_dec
+            // 
+            this.btn_level_dec.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_level_dec.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_level_dec.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_level_dec, "btn_level_dec");
+            this.btn_level_dec.Name = "btn_level_dec";
+            this.toolTip1.SetToolTip(this.btn_level_dec, resources.GetString("btn_level_dec.ToolTip"));
+            this.btn_level_dec.UseVisualStyleBackColor = true;
+            this.btn_level_dec.Click += new System.EventHandler(this.btn_level_dec_Click);
+            // 
+            // btn_gain_dec
+            // 
+            this.btn_gain_dec.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_gain_dec.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_gain_dec.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_gain_dec, "btn_gain_dec");
+            this.btn_gain_dec.Name = "btn_gain_dec";
+            this.toolTip1.SetToolTip(this.btn_gain_dec, resources.GetString("btn_gain_dec.ToolTip"));
+            this.btn_gain_dec.UseVisualStyleBackColor = true;
+            this.btn_gain_dec.Click += new System.EventHandler(this.btn_gain_dec_Click);
+            // 
+            // btn_level_inc
+            // 
+            this.btn_level_inc.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_level_inc.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_level_inc.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_level_inc, "btn_level_inc");
+            this.btn_level_inc.Name = "btn_level_inc";
+            this.toolTip1.SetToolTip(this.btn_level_inc, resources.GetString("btn_level_inc.ToolTip"));
+            this.btn_level_inc.UseVisualStyleBackColor = true;
+            this.btn_level_inc.Click += new System.EventHandler(this.btn_level_inc_Click);
+            // 
+            // btn_gain_inc
+            // 
+            this.btn_gain_inc.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_gain_inc.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_gain_inc.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_gain_inc, "btn_gain_inc");
+            this.btn_gain_inc.Name = "btn_gain_inc";
+            this.toolTip1.SetToolTip(this.btn_gain_inc, resources.GetString("btn_gain_inc.ToolTip"));
+            this.btn_gain_inc.UseVisualStyleBackColor = true;
+            this.btn_gain_inc.Click += new System.EventHandler(this.btn_gain_inc_Click);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.BUT_ir_sharpnessmode);
+            this.groupBox1.Controls.Add(this.BUT_day_sharpnessmode);
+            this.groupBox1.Controls.Add(this.CMB_sharpnessmode);
+            resources.ApplyResources(this.groupBox1, "groupBox1");
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.TabStop = false;
+            // 
+            // BUT_ir_sharpnessmode
+            // 
+            this.BUT_ir_sharpnessmode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_ir_sharpnessmode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_ir_sharpnessmode.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BUT_ir_sharpnessmode, "BUT_ir_sharpnessmode");
+            this.BUT_ir_sharpnessmode.Name = "BUT_ir_sharpnessmode";
+            this.toolTip1.SetToolTip(this.BUT_ir_sharpnessmode, resources.GetString("BUT_ir_sharpnessmode.ToolTip"));
+            this.BUT_ir_sharpnessmode.UseVisualStyleBackColor = true;
+            this.BUT_ir_sharpnessmode.Click += new System.EventHandler(this.BUT_ir_sharpnessmode_Click);
+            // 
+            // BUT_day_sharpnessmode
+            // 
+            this.BUT_day_sharpnessmode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_day_sharpnessmode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_day_sharpnessmode.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BUT_day_sharpnessmode, "BUT_day_sharpnessmode");
+            this.BUT_day_sharpnessmode.Name = "BUT_day_sharpnessmode";
+            this.toolTip1.SetToolTip(this.BUT_day_sharpnessmode, resources.GetString("BUT_day_sharpnessmode.ToolTip"));
+            this.BUT_day_sharpnessmode.UseVisualStyleBackColor = true;
+            this.BUT_day_sharpnessmode.Click += new System.EventHandler(this.BUT_day_sharpnessmode_Click);
+            // 
+            // CMB_sharpnessmode
+            // 
+            this.CMB_sharpnessmode.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("CMB_sharpnessmode.AutoCompleteCustomSource"),
+            resources.GetString("CMB_sharpnessmode.AutoCompleteCustomSource1"),
+            resources.GetString("CMB_sharpnessmode.AutoCompleteCustomSource2")});
+            this.CMB_sharpnessmode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CMB_sharpnessmode.FormattingEnabled = true;
+            this.CMB_sharpnessmode.Items.AddRange(new object[] {
+            resources.GetString("CMB_sharpnessmode.Items"),
+            resources.GetString("CMB_sharpnessmode.Items1"),
+            resources.GetString("CMB_sharpnessmode.Items2")});
+            resources.ApplyResources(this.CMB_sharpnessmode, "CMB_sharpnessmode");
+            this.CMB_sharpnessmode.Name = "CMB_sharpnessmode";
+            // 
+            // groupBox12
+            // 
+            this.groupBox12.Controls.Add(this.CMB_laser_mode);
+            this.groupBox12.Controls.Add(this.BTN_set_laser_mode);
+            this.groupBox12.Controls.Add(this.BTN_laser_off);
+            this.groupBox12.Controls.Add(this.BTN_laser_on);
+            resources.ApplyResources(this.groupBox12, "groupBox12");
+            this.groupBox12.Name = "groupBox12";
+            this.groupBox12.TabStop = false;
+            // 
+            // CMB_laser_mode
+            // 
+            this.CMB_laser_mode.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("CMB_laser_mode.AutoCompleteCustomSource"),
+            resources.GetString("CMB_laser_mode.AutoCompleteCustomSource1"),
+            resources.GetString("CMB_laser_mode.AutoCompleteCustomSource2"),
+            resources.GetString("CMB_laser_mode.AutoCompleteCustomSource3")});
+            this.CMB_laser_mode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CMB_laser_mode.FormattingEnabled = true;
+            this.CMB_laser_mode.Items.AddRange(new object[] {
+            resources.GetString("CMB_laser_mode.Items"),
+            resources.GetString("CMB_laser_mode.Items1"),
+            resources.GetString("CMB_laser_mode.Items2"),
+            resources.GetString("CMB_laser_mode.Items3")});
+            resources.ApplyResources(this.CMB_laser_mode, "CMB_laser_mode");
+            this.CMB_laser_mode.Name = "CMB_laser_mode";
+            // 
+            // BTN_set_laser_mode
+            // 
+            this.BTN_set_laser_mode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_set_laser_mode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_set_laser_mode.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_set_laser_mode, "BTN_set_laser_mode");
+            this.BTN_set_laser_mode.Name = "BTN_set_laser_mode";
+            this.toolTip1.SetToolTip(this.BTN_set_laser_mode, resources.GetString("BTN_set_laser_mode.ToolTip"));
+            this.BTN_set_laser_mode.UseVisualStyleBackColor = true;
+            this.BTN_set_laser_mode.Click += new System.EventHandler(this.BTN_set_laser_mode_Click);
+            // 
+            // BTN_laser_off
+            // 
+            this.BTN_laser_off.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_laser_off.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_laser_off.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_laser_off, "BTN_laser_off");
+            this.BTN_laser_off.Name = "BTN_laser_off";
+            this.toolTip1.SetToolTip(this.BTN_laser_off, resources.GetString("BTN_laser_off.ToolTip"));
+            this.BTN_laser_off.UseVisualStyleBackColor = true;
+            this.BTN_laser_off.Click += new System.EventHandler(this.BTN_laser_off_Click);
+            // 
+            // BTN_laser_on
+            // 
+            this.BTN_laser_on.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_laser_on.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_laser_on.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_laser_on, "BTN_laser_on");
+            this.BTN_laser_on.Name = "BTN_laser_on";
+            this.toolTip1.SetToolTip(this.BTN_laser_on, resources.GetString("BTN_laser_on.ToolTip"));
+            this.BTN_laser_on.UseVisualStyleBackColor = true;
+            this.BTN_laser_on.Click += new System.EventHandler(this.BTN_laser_on_Click);
+            // 
+            // groupBox7
+            // 
+            this.groupBox7.Controls.Add(this.elementHost1);
+            this.groupBox7.Controls.Add(this.VirtJoyBar);
+            this.groupBox7.Controls.Add(this.btn_zoom_out);
+            this.groupBox7.Controls.Add(this.btn_zoom_in);
+            resources.ApplyResources(this.groupBox7, "groupBox7");
+            this.groupBox7.Name = "groupBox7";
+            this.groupBox7.TabStop = false;
+            // 
+            // elementHost1
+            // 
+            this.elementHost1.ForeColor = System.Drawing.SystemColors.ControlText;
+            resources.ApplyResources(this.elementHost1, "elementHost1");
+            this.elementHost1.Name = "elementHost1";
+            this.elementHost1.ChildChanged += new System.EventHandler<System.Windows.Forms.Integration.ChildChangedEventArgs>(this.elementHost1_ChildChanged);
+            this.elementHost1.Child = this.onScreenJoystick1;
+            // 
+            // VirtJoyBar
+            // 
+            resources.ApplyResources(this.VirtJoyBar, "VirtJoyBar");
+            this.VirtJoyBar.LargeChange = 10;
+            this.VirtJoyBar.Maximum = 100;
+            this.VirtJoyBar.Minimum = 10;
+            this.VirtJoyBar.Name = "VirtJoyBar";
+            this.VirtJoyBar.TickFrequency = 10;
+            this.VirtJoyBar.Value = 100;
+            // 
+            // btn_zoom_out
+            // 
+            this.btn_zoom_out.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_zoom_out.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_zoom_out.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_zoom_out, "btn_zoom_out");
+            this.btn_zoom_out.Name = "btn_zoom_out";
+            this.btn_zoom_out.UseVisualStyleBackColor = true;
+            this.btn_zoom_out.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btn_zoom_out_MouseDown);
+            this.btn_zoom_out.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btn_zoom_out_MouseUp);
+            // 
+            // btn_zoom_in
+            // 
+            this.btn_zoom_in.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_zoom_in.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_zoom_in.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_zoom_in, "btn_zoom_in");
+            this.btn_zoom_in.Name = "btn_zoom_in";
+            this.btn_zoom_in.UseVisualStyleBackColor = true;
+            this.btn_zoom_in.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btn_zoom_in_MouseDown);
+            this.btn_zoom_in.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btn_zoom_in_MouseUp);
+            // 
+            // groupBox10
+            // 
+            this.groupBox10.Controls.Add(this.btn_black_white_pallete);
+            this.groupBox10.Controls.Add(this.btn_color_pallete);
+            this.groupBox10.Controls.Add(this.btn_polarity_black_hot);
+            this.groupBox10.Controls.Add(this.btn_polarity_white_hot);
+            this.groupBox10.Controls.Add(this.btn_nuc);
+            resources.ApplyResources(this.groupBox10, "groupBox10");
+            this.groupBox10.Name = "groupBox10";
+            this.groupBox10.TabStop = false;
+            // 
+            // btn_black_white_pallete
+            // 
+            this.btn_black_white_pallete.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_black_white_pallete.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_black_white_pallete.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_black_white_pallete, "btn_black_white_pallete");
+            this.btn_black_white_pallete.Name = "btn_black_white_pallete";
+            this.toolTip1.SetToolTip(this.btn_black_white_pallete, resources.GetString("btn_black_white_pallete.ToolTip"));
+            this.btn_black_white_pallete.UseVisualStyleBackColor = true;
+            this.btn_black_white_pallete.Click += new System.EventHandler(this.btn_black_white_pallete_Click);
+            // 
+            // btn_color_pallete
+            // 
+            this.btn_color_pallete.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_color_pallete.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_color_pallete.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_color_pallete, "btn_color_pallete");
+            this.btn_color_pallete.Name = "btn_color_pallete";
+            this.toolTip1.SetToolTip(this.btn_color_pallete, resources.GetString("btn_color_pallete.ToolTip"));
+            this.btn_color_pallete.UseVisualStyleBackColor = true;
+            this.btn_color_pallete.Click += new System.EventHandler(this.btn_color_pallete_Click);
+            // 
+            // btn_polarity_black_hot
+            // 
+            this.btn_polarity_black_hot.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_polarity_black_hot.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_polarity_black_hot.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_polarity_black_hot, "btn_polarity_black_hot");
+            this.btn_polarity_black_hot.Name = "btn_polarity_black_hot";
+            this.toolTip1.SetToolTip(this.btn_polarity_black_hot, resources.GetString("btn_polarity_black_hot.ToolTip"));
+            this.btn_polarity_black_hot.UseVisualStyleBackColor = true;
+            this.btn_polarity_black_hot.Click += new System.EventHandler(this.btn_polarity_black_hot_Click);
+            // 
+            // btn_polarity_white_hot
+            // 
+            this.btn_polarity_white_hot.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_polarity_white_hot.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_polarity_white_hot.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_polarity_white_hot, "btn_polarity_white_hot");
+            this.btn_polarity_white_hot.Name = "btn_polarity_white_hot";
+            this.toolTip1.SetToolTip(this.btn_polarity_white_hot, resources.GetString("btn_polarity_white_hot.ToolTip"));
+            this.btn_polarity_white_hot.UseVisualStyleBackColor = true;
+            this.btn_polarity_white_hot.Click += new System.EventHandler(this.btn_polarity_white_hot_Click);
+            // 
+            // btn_nuc
+            // 
+            this.btn_nuc.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_nuc.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_nuc.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_nuc, "btn_nuc");
+            this.btn_nuc.Name = "btn_nuc";
+            this.toolTip1.SetToolTip(this.btn_nuc, resources.GetString("btn_nuc.ToolTip"));
+            this.btn_nuc.UseVisualStyleBackColor = true;
+            this.btn_nuc.Click += new System.EventHandler(this.btn_nuc_Click);
+            // 
+            // groupBox9
+            // 
+            this.groupBox9.Controls.Add(this.btn_disaable_geo_avg);
+            this.groupBox9.Controls.Add(this.btn_enable_geo_avg);
+            this.groupBox9.Controls.Add(this.BUT_RetractRelease);
+            this.groupBox9.Controls.Add(this.btn_disable_roll_derot);
+            this.groupBox9.Controls.Add(this.btn_enable_roll_derot);
+            this.groupBox9.Controls.Add(this.btn__ir);
+            this.groupBox9.Controls.Add(this.btn_retracting);
+            this.groupBox9.Controls.Add(this.btn_day_ir);
+            resources.ApplyResources(this.groupBox9, "groupBox9");
+            this.groupBox9.Name = "groupBox9";
+            this.groupBox9.TabStop = false;
+            // 
+            // btn_disaable_geo_avg
+            // 
+            this.btn_disaable_geo_avg.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_disaable_geo_avg.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_disaable_geo_avg.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_disaable_geo_avg, "btn_disaable_geo_avg");
+            this.btn_disaable_geo_avg.Name = "btn_disaable_geo_avg";
+            this.toolTip1.SetToolTip(this.btn_disaable_geo_avg, resources.GetString("btn_disaable_geo_avg.ToolTip"));
+            this.btn_disaable_geo_avg.UseVisualStyleBackColor = true;
+            this.btn_disaable_geo_avg.Click += new System.EventHandler(this.btn_disaable_geo_avg_Click);
+            // 
+            // btn_enable_geo_avg
+            // 
+            this.btn_enable_geo_avg.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_enable_geo_avg.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_enable_geo_avg.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_enable_geo_avg, "btn_enable_geo_avg");
+            this.btn_enable_geo_avg.Name = "btn_enable_geo_avg";
+            this.toolTip1.SetToolTip(this.btn_enable_geo_avg, resources.GetString("btn_enable_geo_avg.ToolTip"));
+            this.btn_enable_geo_avg.UseVisualStyleBackColor = true;
+            this.btn_enable_geo_avg.Click += new System.EventHandler(this.btn_enable_geo_avg_Click);
+            // 
+            // BUT_RetractRelease
+            // 
+            this.BUT_RetractRelease.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_RetractRelease.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_RetractRelease.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BUT_RetractRelease, "BUT_RetractRelease");
+            this.BUT_RetractRelease.Name = "BUT_RetractRelease";
+            this.toolTip1.SetToolTip(this.BUT_RetractRelease, resources.GetString("BUT_RetractRelease.ToolTip"));
+            this.BUT_RetractRelease.UseVisualStyleBackColor = true;
+            this.BUT_RetractRelease.Click += new System.EventHandler(this.BUT_RetractRelease_Click);
+            // 
+            // btn_disable_roll_derot
+            // 
+            this.btn_disable_roll_derot.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_disable_roll_derot.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_disable_roll_derot.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_disable_roll_derot, "btn_disable_roll_derot");
+            this.btn_disable_roll_derot.Name = "btn_disable_roll_derot";
+            this.toolTip1.SetToolTip(this.btn_disable_roll_derot, resources.GetString("btn_disable_roll_derot.ToolTip"));
+            this.btn_disable_roll_derot.UseVisualStyleBackColor = true;
+            this.btn_disable_roll_derot.Click += new System.EventHandler(this.btn_disable_roll_derot_Click);
+            // 
+            // btn_enable_roll_derot
+            // 
+            this.btn_enable_roll_derot.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_enable_roll_derot.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_enable_roll_derot.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_enable_roll_derot, "btn_enable_roll_derot");
+            this.btn_enable_roll_derot.Name = "btn_enable_roll_derot";
+            this.toolTip1.SetToolTip(this.btn_enable_roll_derot, resources.GetString("btn_enable_roll_derot.ToolTip"));
+            this.btn_enable_roll_derot.UseVisualStyleBackColor = true;
+            this.btn_enable_roll_derot.Click += new System.EventHandler(this.btn_enable_roll_derot_Click);
+            // 
+            // btn__ir
+            // 
+            this.btn__ir.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn__ir.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn__ir.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn__ir, "btn__ir");
+            this.btn__ir.Name = "btn__ir";
+            this.toolTip1.SetToolTip(this.btn__ir, resources.GetString("btn__ir.ToolTip"));
+            this.btn__ir.UseVisualStyleBackColor = true;
+            this.btn__ir.Click += new System.EventHandler(this.btn_ir_Click);
+            // 
+            // btn_retracting
+            // 
+            this.btn_retracting.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_retracting.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_retracting.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_retracting, "btn_retracting");
+            this.btn_retracting.Name = "btn_retracting";
+            this.toolTip1.SetToolTip(this.btn_retracting, resources.GetString("btn_retracting.ToolTip"));
+            this.btn_retracting.UseVisualStyleBackColor = true;
+            this.btn_retracting.Click += new System.EventHandler(this.btn_retracting_Click);
+            // 
+            // btn_day_ir
+            // 
+            this.btn_day_ir.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_day_ir.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_day_ir.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_day_ir, "btn_day_ir");
+            this.btn_day_ir.Name = "btn_day_ir";
+            this.toolTip1.SetToolTip(this.btn_day_ir, resources.GetString("btn_day_ir.ToolTip"));
+            this.btn_day_ir.UseVisualStyleBackColor = true;
+            this.btn_day_ir.Click += new System.EventHandler(this.btn_day_Click);
+            // 
+            // flightModesGroupBox
+            // 
+            this.flightModesGroupBox.Controls.Add(this.BTN_fly_above_off);
+            this.flightModesGroupBox.Controls.Add(this.BTN_fly_above_on);
+            this.flightModesGroupBox.Controls.Add(this.btn_follow_target_off);
+            this.flightModesGroupBox.Controls.Add(this.btn_single_yaw_off);
+            this.flightModesGroupBox.Controls.Add(this.btn_follow_target_on);
+            this.flightModesGroupBox.Controls.Add(this.btn_single_yaw_on);
+            resources.ApplyResources(this.flightModesGroupBox, "flightModesGroupBox");
+            this.flightModesGroupBox.Name = "flightModesGroupBox";
+            this.flightModesGroupBox.TabStop = false;
+            // 
+            // BTN_fly_above_off
+            // 
+            this.BTN_fly_above_off.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_fly_above_off.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_fly_above_off.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_fly_above_off, "BTN_fly_above_off");
+            this.BTN_fly_above_off.Name = "BTN_fly_above_off";
+            this.toolTip1.SetToolTip(this.BTN_fly_above_off, resources.GetString("BTN_fly_above_off.ToolTip"));
+            this.BTN_fly_above_off.UseVisualStyleBackColor = true;
+            this.BTN_fly_above_off.Click += new System.EventHandler(this.BTN_fly_above_off_Click);
+            // 
+            // BTN_fly_above_on
+            // 
+            this.BTN_fly_above_on.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_fly_above_on.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_fly_above_on.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_fly_above_on, "BTN_fly_above_on");
+            this.BTN_fly_above_on.Name = "BTN_fly_above_on";
+            this.toolTip1.SetToolTip(this.BTN_fly_above_on, resources.GetString("BTN_fly_above_on.ToolTip"));
+            this.BTN_fly_above_on.UseVisualStyleBackColor = true;
+            this.BTN_fly_above_on.Click += new System.EventHandler(this.BTN_fly_above_on_Click);
+            // 
+            // btn_follow_target_off
+            // 
+            this.btn_follow_target_off.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_follow_target_off.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_follow_target_off.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_follow_target_off, "btn_follow_target_off");
+            this.btn_follow_target_off.Name = "btn_follow_target_off";
+            this.toolTip1.SetToolTip(this.btn_follow_target_off, resources.GetString("btn_follow_target_off.ToolTip"));
+            this.btn_follow_target_off.UseVisualStyleBackColor = true;
+            this.btn_follow_target_off.Click += new System.EventHandler(this.btn_follow_target_off_Click);
+            // 
+            // btn_single_yaw_off
+            // 
+            this.btn_single_yaw_off.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_single_yaw_off.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_single_yaw_off.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_single_yaw_off, "btn_single_yaw_off");
+            this.btn_single_yaw_off.Name = "btn_single_yaw_off";
+            this.toolTip1.SetToolTip(this.btn_single_yaw_off, resources.GetString("btn_single_yaw_off.ToolTip"));
+            this.btn_single_yaw_off.UseVisualStyleBackColor = true;
+            this.btn_single_yaw_off.Click += new System.EventHandler(this.btn_single_yaw_off_Click);
+            // 
+            // btn_follow_target_on
+            // 
+            this.btn_follow_target_on.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_follow_target_on.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_follow_target_on.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_follow_target_on, "btn_follow_target_on");
+            this.btn_follow_target_on.Name = "btn_follow_target_on";
+            this.toolTip1.SetToolTip(this.btn_follow_target_on, resources.GetString("btn_follow_target_on.ToolTip"));
+            this.btn_follow_target_on.UseVisualStyleBackColor = true;
+            this.btn_follow_target_on.Click += new System.EventHandler(this.btn_follow_target_on_Click);
+            // 
+            // btn_single_yaw_on
+            // 
+            this.btn_single_yaw_on.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_single_yaw_on.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_single_yaw_on.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_single_yaw_on, "btn_single_yaw_on");
+            this.btn_single_yaw_on.Name = "btn_single_yaw_on";
+            this.toolTip1.SetToolTip(this.btn_single_yaw_on, resources.GetString("btn_single_yaw_on.ToolTip"));
+            this.btn_single_yaw_on.UseVisualStyleBackColor = true;
+            this.btn_single_yaw_on.Click += new System.EventHandler(this.btn_single_yaw_on_Click);
+            // 
+            // groupBox11
+            // 
+            this.groupBox11.Controls.Add(this.checkBoxManualDayColorTemp);
+            this.groupBox11.Controls.Add(this.BTN_set_color_temp);
+            this.groupBox11.Controls.Add(this.labelDayColorTemp);
+            this.groupBox11.Controls.Add(this.textBoxDayColorTemp);
+            resources.ApplyResources(this.groupBox11, "groupBox11");
+            this.groupBox11.Name = "groupBox11";
+            this.groupBox11.TabStop = false;
+            // 
+            // checkBoxManualDayColorTemp
+            // 
+            resources.ApplyResources(this.checkBoxManualDayColorTemp, "checkBoxManualDayColorTemp");
+            this.checkBoxManualDayColorTemp.Name = "checkBoxManualDayColorTemp";
+            this.checkBoxManualDayColorTemp.UseVisualStyleBackColor = true;
+            this.checkBoxManualDayColorTemp.CheckedChanged += new System.EventHandler(this.checkBoxManualDayColorTemp_CheckedChanged);
+            // 
+            // BTN_set_color_temp
+            // 
+            this.BTN_set_color_temp.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BTN_set_color_temp.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BTN_set_color_temp.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BTN_set_color_temp, "BTN_set_color_temp");
+            this.BTN_set_color_temp.Name = "BTN_set_color_temp";
+            this.toolTip1.SetToolTip(this.BTN_set_color_temp, resources.GetString("BTN_set_color_temp.ToolTip"));
+            this.BTN_set_color_temp.UseVisualStyleBackColor = true;
+            this.BTN_set_color_temp.Click += new System.EventHandler(this.BTN_set_color_temp_Click);
+            // 
+            // labelDayColorTemp
+            // 
+            resources.ApplyResources(this.labelDayColorTemp, "labelDayColorTemp");
+            this.labelDayColorTemp.Name = "labelDayColorTemp";
+            // 
+            // textBoxDayColorTemp
+            // 
+            resources.ApplyResources(this.textBoxDayColorTemp, "textBoxDayColorTemp");
+            this.textBoxDayColorTemp.Name = "textBoxDayColorTemp";
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.btn_2d_scan);
+            this.groupBox3.Controls.Add(this.but_nadir_scan);
+            this.groupBox3.Controls.Add(this.but_nadir);
+            this.groupBox3.Controls.Add(this.but_epr);
+            this.groupBox3.Controls.Add(this.but_pilot);
+            this.groupBox3.Controls.Add(this.but_stow);
+            this.groupBox3.Controls.Add(this.but_hold);
+            this.groupBox3.Controls.Add(this.but_observation);
+            this.groupBox3.Controls.Add(this.but_grr);
+            this.groupBox3.Controls.Add(this.groupBox5);
+            this.groupBox3.Controls.Add(this.groupBox4);
+            resources.ApplyResources(this.groupBox3, "groupBox3");
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.TabStop = false;
+            // 
+            // btn_2d_scan
+            // 
+            this.btn_2d_scan.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_2d_scan.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_2d_scan.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_2d_scan, "btn_2d_scan");
+            this.btn_2d_scan.Name = "btn_2d_scan";
+            this.btn_2d_scan.UseVisualStyleBackColor = true;
+            this.btn_2d_scan.Click += new System.EventHandler(this.btn_2d_scan_Click);
+            // 
+            // but_nadir_scan
+            // 
+            this.but_nadir_scan.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_nadir_scan.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_nadir_scan.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_nadir_scan, "but_nadir_scan");
+            this.but_nadir_scan.Name = "but_nadir_scan";
+            this.but_nadir_scan.UseVisualStyleBackColor = true;
+            this.but_nadir_scan.Click += new System.EventHandler(this.but_nadir_scan_Click);
+            // 
+            // but_nadir
+            // 
+            this.but_nadir.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_nadir.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_nadir.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_nadir, "but_nadir");
+            this.but_nadir.Name = "but_nadir";
+            this.but_nadir.UseVisualStyleBackColor = true;
+            this.but_nadir.Click += new System.EventHandler(this.but_nadir_Click);
+            // 
+            // but_epr
+            // 
+            this.but_epr.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_epr.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_epr.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_epr, "but_epr");
+            this.but_epr.Name = "but_epr";
+            this.but_epr.UseVisualStyleBackColor = true;
+            this.but_epr.Click += new System.EventHandler(this.but_epr_Click);
+            // 
+            // but_pilot
+            // 
+            this.but_pilot.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_pilot.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_pilot.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_pilot, "but_pilot");
+            this.but_pilot.Name = "but_pilot";
+            this.but_pilot.UseVisualStyleBackColor = true;
+            this.but_pilot.Click += new System.EventHandler(this.but_pilot_Click);
+            // 
+            // but_stow
+            // 
+            this.but_stow.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_stow.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_stow.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_stow, "but_stow");
+            this.but_stow.Name = "but_stow";
+            this.but_stow.UseVisualStyleBackColor = true;
+            this.but_stow.Click += new System.EventHandler(this.but_stow_Click);
+            // 
+            // but_hold
+            // 
+            this.but_hold.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_hold.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_hold.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_hold, "but_hold");
+            this.but_hold.Name = "but_hold";
+            this.but_hold.UseVisualStyleBackColor = true;
+            this.but_hold.Click += new System.EventHandler(this.but_hold_Click);
+            // 
+            // but_observation
+            // 
+            this.but_observation.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_observation.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_observation.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_observation, "but_observation");
+            this.but_observation.Name = "but_observation";
+            this.but_observation.UseVisualStyleBackColor = true;
+            this.but_observation.Click += new System.EventHandler(this.but_observation_Click);
+            // 
+            // but_grr
+            // 
+            this.but_grr.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_grr.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_grr.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_grr, "but_grr");
+            this.but_grr.Name = "but_grr";
+            this.but_grr.UseVisualStyleBackColor = true;
+            this.but_grr.Click += new System.EventHandler(this.but_grr_Click);
+            // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this.btn_global_position);
+            this.groupBox5.Controls.Add(this.label7);
+            this.groupBox5.Controls.Add(this.textBoxGlobalPosAzimuth);
+            this.groupBox5.Controls.Add(this.label8);
+            this.groupBox5.Controls.Add(this.textBoxGlobalPosElevation);
+            resources.ApplyResources(this.groupBox5, "groupBox5");
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.TabStop = false;
+            // 
+            // btn_global_position
+            // 
+            this.btn_global_position.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_global_position.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_global_position.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_global_position, "btn_global_position");
+            this.btn_global_position.Name = "btn_global_position";
+            this.btn_global_position.UseVisualStyleBackColor = true;
+            this.btn_global_position.Click += new System.EventHandler(this.btn_global_position_Click);
+            // 
+            // label7
+            // 
+            resources.ApplyResources(this.label7, "label7");
+            this.label7.Name = "label7";
+            // 
+            // textBoxGlobalPosAzimuth
+            // 
+            resources.ApplyResources(this.textBoxGlobalPosAzimuth, "textBoxGlobalPosAzimuth");
+            this.textBoxGlobalPosAzimuth.Name = "textBoxGlobalPosAzimuth";
+            // 
+            // label8
+            // 
+            resources.ApplyResources(this.label8, "label8");
+            this.label8.Name = "label8";
+            // 
+            // textBoxGlobalPosElevation
+            // 
+            resources.ApplyResources(this.textBoxGlobalPosElevation, "textBoxGlobalPosElevation");
+            this.textBoxGlobalPosElevation.Name = "textBoxGlobalPosElevation";
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.comboBoxPositionCommand);
+            this.groupBox4.Controls.Add(this.btn_local_position);
+            this.groupBox4.Controls.Add(this.label14);
+            this.groupBox4.Controls.Add(this.textBoxLocalPosRoll);
+            this.groupBox4.Controls.Add(this.label11);
+            this.groupBox4.Controls.Add(this.textBoxLocalPosPitch);
+            resources.ApplyResources(this.groupBox4, "groupBox4");
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.TabStop = false;
+            // 
+            // comboBoxPositionCommand
+            // 
+            this.comboBoxPositionCommand.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("comboBoxPositionCommand.AutoCompleteCustomSource"),
+            resources.GetString("comboBoxPositionCommand.AutoCompleteCustomSource1"),
+            resources.GetString("comboBoxPositionCommand.AutoCompleteCustomSource2"),
+            resources.GetString("comboBoxPositionCommand.AutoCompleteCustomSource3")});
+            this.comboBoxPositionCommand.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxPositionCommand.FormattingEnabled = true;
+            this.comboBoxPositionCommand.Items.AddRange(new object[] {
+            resources.GetString("comboBoxPositionCommand.Items"),
+            resources.GetString("comboBoxPositionCommand.Items1")});
+            resources.ApplyResources(this.comboBoxPositionCommand, "comboBoxPositionCommand");
+            this.comboBoxPositionCommand.Name = "comboBoxPositionCommand";
+            this.comboBoxPositionCommand.SelectedIndexChanged += new System.EventHandler(this.comboBoxPositionCommand_SelectedIndexChanged);
+            // 
+            // btn_local_position
+            // 
+            this.btn_local_position.ColorMouseDown = System.Drawing.Color.Empty;
+            this.btn_local_position.ColorMouseOver = System.Drawing.Color.Empty;
+            this.btn_local_position.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.btn_local_position, "btn_local_position");
+            this.btn_local_position.Name = "btn_local_position";
+            this.btn_local_position.UseVisualStyleBackColor = true;
+            this.btn_local_position.Click += new System.EventHandler(this.btn_local_position_Click);
+            // 
+            // label14
+            // 
+            resources.ApplyResources(this.label14, "label14");
+            this.label14.Name = "label14";
+            // 
+            // textBoxLocalPosRoll
+            // 
+            resources.ApplyResources(this.textBoxLocalPosRoll, "textBoxLocalPosRoll");
+            this.textBoxLocalPosRoll.Name = "textBoxLocalPosRoll";
+            // 
+            // label11
+            // 
+            resources.ApplyResources(this.label11, "label11");
+            this.label11.Name = "label11";
+            // 
+            // textBoxLocalPosPitch
+            // 
+            resources.ApplyResources(this.textBoxLocalPosPitch, "textBoxLocalPosPitch");
+            this.textBoxLocalPosPitch.Name = "textBoxLocalPosPitch";
+            // 
+            // tabChannelActions
+            // 
+            resources.ApplyResources(this.tabChannelActions, "tabChannelActions");
+            this.tabChannelActions.Controls.Add(this.groupBox22);
+            this.tabChannelActions.Controls.Add(this.groupBox19);
+            this.tabChannelActions.Controls.Add(this.groupBoxChannel1Actions);
+            this.tabChannelActions.Controls.Add(this.groupBoxChannel0Actions);
+            this.tabChannelActions.Name = "tabChannelActions";
+            this.tabChannelActions.UseVisualStyleBackColor = true;
+            // 
+            // groupBox22
+            // 
+            this.groupBox22.Controls.Add(this.groupBox23);
+            resources.ApplyResources(this.groupBox22, "groupBox22");
+            this.groupBox22.Name = "groupBox22";
+            this.groupBox22.TabStop = false;
+            // 
+            // groupBox23
+            // 
+            this.groupBox23.Controls.Add(this.checkBoxDisplaySecondaryHUD);
+            this.groupBox23.Controls.Add(this.radioButtonChannel1OnMainHUD);
+            this.groupBox23.Controls.Add(this.radioButtonChannel0OnMainHUD);
+            resources.ApplyResources(this.groupBox23, "groupBox23");
+            this.groupBox23.Name = "groupBox23";
+            this.groupBox23.TabStop = false;
+            // 
+            // checkBoxDisplaySecondaryHUD
+            // 
+            resources.ApplyResources(this.checkBoxDisplaySecondaryHUD, "checkBoxDisplaySecondaryHUD");
+            this.checkBoxDisplaySecondaryHUD.Checked = true;
+            this.checkBoxDisplaySecondaryHUD.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxDisplaySecondaryHUD.Name = "checkBoxDisplaySecondaryHUD";
+            this.checkBoxDisplaySecondaryHUD.UseVisualStyleBackColor = true;
+            this.checkBoxDisplaySecondaryHUD.CheckedChanged += new System.EventHandler(this.checkBoxDisplaySecondaryHUD_CheckedChanged);
+            // 
+            // radioButtonChannel1OnMainHUD
+            // 
+            resources.ApplyResources(this.radioButtonChannel1OnMainHUD, "radioButtonChannel1OnMainHUD");
+            this.radioButtonChannel1OnMainHUD.Name = "radioButtonChannel1OnMainHUD";
+            this.radioButtonChannel1OnMainHUD.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonChannel0OnMainHUD
+            // 
+            resources.ApplyResources(this.radioButtonChannel0OnMainHUD, "radioButtonChannel0OnMainHUD");
+            this.radioButtonChannel0OnMainHUD.Checked = true;
+            this.radioButtonChannel0OnMainHUD.Name = "radioButtonChannel0OnMainHUD";
+            this.radioButtonChannel0OnMainHUD.TabStop = true;
+            this.radioButtonChannel0OnMainHUD.UseVisualStyleBackColor = true;
+            this.radioButtonChannel0OnMainHUD.CheckedChanged += new System.EventHandler(this.radioButtonChannel0OnMainHUD_CheckedChanged);
+            // 
+            // groupBox19
+            // 
+            this.groupBox19.Controls.Add(this.groupBox21);
+            this.groupBox19.Controls.Add(this.groupBox20);
+            this.groupBox19.Controls.Add(this.groupBoxSideBySideControl);
+            resources.ApplyResources(this.groupBox19, "groupBox19");
+            this.groupBox19.Name = "groupBox19";
+            this.groupBox19.TabStop = false;
+            // 
+            // groupBox21
+            // 
+            this.groupBox21.Controls.Add(this.buttonSetStreamModes);
+            this.groupBox21.Controls.Add(this.comboBoxStreamModes);
+            resources.ApplyResources(this.groupBox21, "groupBox21");
+            this.groupBox21.Name = "groupBox21";
+            this.groupBox21.TabStop = false;
+            // 
+            // buttonSetStreamModes
+            // 
+            this.buttonSetStreamModes.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonSetStreamModes.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonSetStreamModes.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonSetStreamModes, "buttonSetStreamModes");
+            this.buttonSetStreamModes.Name = "buttonSetStreamModes";
+            this.buttonSetStreamModes.UseVisualStyleBackColor = true;
+            this.buttonSetStreamModes.Click += new System.EventHandler(this.buttonSetStreamModes_Click);
+            // 
+            // comboBoxStreamModes
+            // 
+            this.comboBoxStreamModes.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("comboBoxStreamModes.AutoCompleteCustomSource"),
+            resources.GetString("comboBoxStreamModes.AutoCompleteCustomSource1"),
+            resources.GetString("comboBoxStreamModes.AutoCompleteCustomSource2"),
+            resources.GetString("comboBoxStreamModes.AutoCompleteCustomSource3")});
+            this.comboBoxStreamModes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxStreamModes.FormattingEnabled = true;
+            this.comboBoxStreamModes.Items.AddRange(new object[] {
+            resources.GetString("comboBoxStreamModes.Items"),
+            resources.GetString("comboBoxStreamModes.Items1"),
+            resources.GetString("comboBoxStreamModes.Items2"),
+            resources.GetString("comboBoxStreamModes.Items3"),
+            resources.GetString("comboBoxStreamModes.Items4"),
+            resources.GetString("comboBoxStreamModes.Items5"),
+            resources.GetString("comboBoxStreamModes.Items6"),
+            resources.GetString("comboBoxStreamModes.Items7"),
+            resources.GetString("comboBoxStreamModes.Items8"),
+            resources.GetString("comboBoxStreamModes.Items9"),
+            resources.GetString("comboBoxStreamModes.Items10")});
+            resources.ApplyResources(this.comboBoxStreamModes, "comboBoxStreamModes");
+            this.comboBoxStreamModes.Name = "comboBoxStreamModes";
+            // 
+            // groupBox20
+            // 
+            this.groupBox20.Controls.Add(this.buttonSetPIPMode);
+            this.groupBox20.Controls.Add(this.comboBoxPIPMode);
+            resources.ApplyResources(this.groupBox20, "groupBox20");
+            this.groupBox20.Name = "groupBox20";
+            this.groupBox20.TabStop = false;
+            // 
+            // buttonSetPIPMode
+            // 
+            this.buttonSetPIPMode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonSetPIPMode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonSetPIPMode.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonSetPIPMode, "buttonSetPIPMode");
+            this.buttonSetPIPMode.Name = "buttonSetPIPMode";
+            this.buttonSetPIPMode.UseVisualStyleBackColor = true;
+            this.buttonSetPIPMode.Click += new System.EventHandler(this.buttonSetPIPMode_Click);
+            // 
+            // comboBoxPIPMode
+            // 
+            this.comboBoxPIPMode.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("comboBoxPIPMode.AutoCompleteCustomSource"),
+            resources.GetString("comboBoxPIPMode.AutoCompleteCustomSource1")});
+            this.comboBoxPIPMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxPIPMode.FormattingEnabled = true;
+            this.comboBoxPIPMode.Items.AddRange(new object[] {
+            resources.GetString("comboBoxPIPMode.Items"),
+            resources.GetString("comboBoxPIPMode.Items1")});
+            resources.ApplyResources(this.comboBoxPIPMode, "comboBoxPIPMode");
+            this.comboBoxPIPMode.Name = "comboBoxPIPMode";
+            // 
+            // groupBoxSideBySideControl
+            // 
+            this.groupBoxSideBySideControl.Controls.Add(this.buttonSetSBSMode);
+            this.groupBoxSideBySideControl.Controls.Add(this.comboBoxSBSMode);
+            resources.ApplyResources(this.groupBoxSideBySideControl, "groupBoxSideBySideControl");
+            this.groupBoxSideBySideControl.Name = "groupBoxSideBySideControl";
+            this.groupBoxSideBySideControl.TabStop = false;
+            // 
+            // buttonSetSBSMode
+            // 
+            this.buttonSetSBSMode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonSetSBSMode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonSetSBSMode.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonSetSBSMode, "buttonSetSBSMode");
+            this.buttonSetSBSMode.Name = "buttonSetSBSMode";
+            this.buttonSetSBSMode.UseVisualStyleBackColor = true;
+            this.buttonSetSBSMode.Click += new System.EventHandler(this.buttonSetSBSMode_Click);
+            // 
+            // comboBoxSBSMode
+            // 
+            this.comboBoxSBSMode.AutoCompleteCustomSource.AddRange(new string[] {
+            resources.GetString("comboBoxSBSMode.AutoCompleteCustomSource"),
+            resources.GetString("comboBoxSBSMode.AutoCompleteCustomSource1")});
+            this.comboBoxSBSMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxSBSMode.FormattingEnabled = true;
+            this.comboBoxSBSMode.Items.AddRange(new object[] {
+            resources.GetString("comboBoxSBSMode.Items"),
+            resources.GetString("comboBoxSBSMode.Items1")});
+            resources.ApplyResources(this.comboBoxSBSMode, "comboBoxSBSMode");
+            this.comboBoxSBSMode.Name = "comboBoxSBSMode";
+            // 
+            // groupBoxChannel1Actions
+            // 
+            this.groupBoxChannel1Actions.Controls.Add(this.groupBox25);
+            this.groupBoxChannel1Actions.Controls.Add(this.groupBox15);
+            this.groupBoxChannel1Actions.Controls.Add(this.groupBox17);
+            this.groupBoxChannel1Actions.Controls.Add(this.groupBox18);
+            resources.ApplyResources(this.groupBoxChannel1Actions, "groupBoxChannel1Actions");
+            this.groupBoxChannel1Actions.Name = "groupBoxChannel1Actions";
+            this.groupBoxChannel1Actions.TabStop = false;
+            // 
+            // groupBox25
+            // 
+            this.groupBox25.Controls.Add(this.labelSnapshotStatusChannel1);
+            this.groupBox25.Controls.Add(this.textBoxSnapshotsIntervalChannel1);
+            this.groupBox25.Controls.Add(this.checkBoxInfiniteSnapshotsChannel1);
+            this.groupBox25.Controls.Add(this.buttonStartSnapshotIntervalChannel1);
+            this.groupBox25.Controls.Add(this.buttonStopSnashotIntervalChannel1);
+            this.groupBox25.Controls.Add(this.labelSnapshotsCountChannel1);
+            this.groupBox25.Controls.Add(this.textBoxSnapshotsCountChannel1);
+            this.groupBox25.Controls.Add(this.label27);
+            resources.ApplyResources(this.groupBox25, "groupBox25");
+            this.groupBox25.Name = "groupBox25";
+            this.groupBox25.TabStop = false;
+            // 
+            // labelSnapshotStatusChannel1
+            // 
+            resources.ApplyResources(this.labelSnapshotStatusChannel1, "labelSnapshotStatusChannel1");
+            this.labelSnapshotStatusChannel1.Name = "labelSnapshotStatusChannel1";
+            // 
+            // textBoxSnapshotsIntervalChannel1
+            // 
+            resources.ApplyResources(this.textBoxSnapshotsIntervalChannel1, "textBoxSnapshotsIntervalChannel1");
+            this.textBoxSnapshotsIntervalChannel1.Name = "textBoxSnapshotsIntervalChannel1";
+            // 
+            // checkBoxInfiniteSnapshotsChannel1
+            // 
+            resources.ApplyResources(this.checkBoxInfiniteSnapshotsChannel1, "checkBoxInfiniteSnapshotsChannel1");
+            this.checkBoxInfiniteSnapshotsChannel1.Name = "checkBoxInfiniteSnapshotsChannel1";
+            this.checkBoxInfiniteSnapshotsChannel1.UseVisualStyleBackColor = true;
+            this.checkBoxInfiniteSnapshotsChannel1.CheckedChanged += new System.EventHandler(this.checkBoxInfiniteSnapshots_CheckedChanged);
+            // 
+            // buttonStartSnapshotIntervalChannel1
+            // 
+            this.buttonStartSnapshotIntervalChannel1.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonStartSnapshotIntervalChannel1.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonStartSnapshotIntervalChannel1.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonStartSnapshotIntervalChannel1, "buttonStartSnapshotIntervalChannel1");
+            this.buttonStartSnapshotIntervalChannel1.Name = "buttonStartSnapshotIntervalChannel1";
+            this.toolTip1.SetToolTip(this.buttonStartSnapshotIntervalChannel1, resources.GetString("buttonStartSnapshotIntervalChannel1.ToolTip"));
+            this.buttonStartSnapshotIntervalChannel1.UseVisualStyleBackColor = true;
+            this.buttonStartSnapshotIntervalChannel1.Click += new System.EventHandler(this.BTN_start_snapshots_Click);
+            // 
+            // buttonStopSnashotIntervalChannel1
+            // 
+            this.buttonStopSnashotIntervalChannel1.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonStopSnashotIntervalChannel1.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonStopSnashotIntervalChannel1.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonStopSnashotIntervalChannel1, "buttonStopSnashotIntervalChannel1");
+            this.buttonStopSnashotIntervalChannel1.Name = "buttonStopSnashotIntervalChannel1";
+            this.toolTip1.SetToolTip(this.buttonStopSnashotIntervalChannel1, resources.GetString("buttonStopSnashotIntervalChannel1.ToolTip"));
+            this.buttonStopSnashotIntervalChannel1.UseVisualStyleBackColor = true;
+            this.buttonStopSnashotIntervalChannel1.Click += new System.EventHandler(this.BTN_stop_snapshots_Click);
+            // 
+            // labelSnapshotsCountChannel1
+            // 
+            resources.ApplyResources(this.labelSnapshotsCountChannel1, "labelSnapshotsCountChannel1");
+            this.labelSnapshotsCountChannel1.Name = "labelSnapshotsCountChannel1";
+            // 
+            // textBoxSnapshotsCountChannel1
+            // 
+            resources.ApplyResources(this.textBoxSnapshotsCountChannel1, "textBoxSnapshotsCountChannel1");
+            this.textBoxSnapshotsCountChannel1.Name = "textBoxSnapshotsCountChannel1";
+            // 
+            // label27
+            // 
+            resources.ApplyResources(this.label27, "label27");
+            this.label27.Name = "label27";
+            // 
+            // groupBox15
+            // 
+            this.groupBox15.Controls.Add(this.buttonStartChannel1Video);
+            resources.ApplyResources(this.groupBox15, "groupBox15");
+            this.groupBox15.Name = "groupBox15";
+            this.groupBox15.TabStop = false;
+            // 
+            // buttonStartChannel1Video
+            // 
+            this.buttonStartChannel1Video.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonStartChannel1Video.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonStartChannel1Video.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonStartChannel1Video, "buttonStartChannel1Video");
+            this.buttonStartChannel1Video.Name = "buttonStartChannel1Video";
+            this.toolTip1.SetToolTip(this.buttonStartChannel1Video, resources.GetString("buttonStartChannel1Video.ToolTip"));
+            this.buttonStartChannel1Video.UseVisualStyleBackColor = true;
+            this.buttonStartChannel1Video.Click += new System.EventHandler(this.startTRIPVideoToolStripMenuItem_Click);
+            // 
+            // groupBox17
+            // 
+            this.groupBox17.Controls.Add(this.buttonChannel1StartLocalRecord);
+            resources.ApplyResources(this.groupBox17, "groupBox17");
+            this.groupBox17.Name = "groupBox17";
+            this.groupBox17.TabStop = false;
+            // 
+            // buttonChannel1StartLocalRecord
+            // 
+            this.buttonChannel1StartLocalRecord.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel1StartLocalRecord.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel1StartLocalRecord.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel1StartLocalRecord, "buttonChannel1StartLocalRecord");
+            this.buttonChannel1StartLocalRecord.Name = "buttonChannel1StartLocalRecord";
+            this.toolTip1.SetToolTip(this.buttonChannel1StartLocalRecord, resources.GetString("buttonChannel1StartLocalRecord.ToolTip"));
+            this.buttonChannel1StartLocalRecord.UseVisualStyleBackColor = true;
+            this.buttonChannel1StartLocalRecord.Click += new System.EventHandler(this.BUT_record_Click);
+            // 
+            // groupBox18
+            // 
+            this.groupBox18.Controls.Add(this.buttonChannel1RecordOff);
+            this.groupBox18.Controls.Add(this.buttonChannel1RecordOn);
+            this.groupBox18.Controls.Add(this.buttonChannel1ImageCapture);
+            resources.ApplyResources(this.groupBox18, "groupBox18");
+            this.groupBox18.Name = "groupBox18";
+            this.groupBox18.TabStop = false;
+            // 
+            // buttonChannel1RecordOff
+            // 
+            this.buttonChannel1RecordOff.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel1RecordOff.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel1RecordOff.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel1RecordOff, "buttonChannel1RecordOff");
+            this.buttonChannel1RecordOff.Name = "buttonChannel1RecordOff";
+            this.toolTip1.SetToolTip(this.buttonChannel1RecordOff, resources.GetString("buttonChannel1RecordOff.ToolTip"));
+            this.buttonChannel1RecordOff.UseVisualStyleBackColor = true;
+            this.buttonChannel1RecordOff.Click += new System.EventHandler(this.btn_trip_rec_off_Click);
+            // 
+            // buttonChannel1RecordOn
+            // 
+            this.buttonChannel1RecordOn.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel1RecordOn.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel1RecordOn.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel1RecordOn, "buttonChannel1RecordOn");
+            this.buttonChannel1RecordOn.Name = "buttonChannel1RecordOn";
+            this.toolTip1.SetToolTip(this.buttonChannel1RecordOn, resources.GetString("buttonChannel1RecordOn.ToolTip"));
+            this.buttonChannel1RecordOn.UseVisualStyleBackColor = true;
+            this.buttonChannel1RecordOn.Click += new System.EventHandler(this.btn_trip_rec_Click);
+            // 
+            // buttonChannel1ImageCapture
+            // 
+            this.buttonChannel1ImageCapture.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel1ImageCapture.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel1ImageCapture.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel1ImageCapture, "buttonChannel1ImageCapture");
+            this.buttonChannel1ImageCapture.Name = "buttonChannel1ImageCapture";
+            this.toolTip1.SetToolTip(this.buttonChannel1ImageCapture, resources.GetString("buttonChannel1ImageCapture.ToolTip"));
+            this.buttonChannel1ImageCapture.UseVisualStyleBackColor = true;
+            this.buttonChannel1ImageCapture.Click += new System.EventHandler(this.btn_image_capture_Click);
+            // 
+            // groupBoxChannel0Actions
+            // 
+            this.groupBoxChannel0Actions.Controls.Add(this.groupBox24);
+            this.groupBoxChannel0Actions.Controls.Add(this.groupBox14);
+            this.groupBoxChannel0Actions.Controls.Add(this.groupBox6);
+            this.groupBoxChannel0Actions.Controls.Add(this.groupBox16);
+            resources.ApplyResources(this.groupBoxChannel0Actions, "groupBoxChannel0Actions");
+            this.groupBoxChannel0Actions.Name = "groupBoxChannel0Actions";
+            this.groupBoxChannel0Actions.TabStop = false;
+            // 
+            // groupBox24
+            // 
+            this.groupBox24.Controls.Add(this.labelSnapshotStatusChannel0);
+            this.groupBox24.Controls.Add(this.textBoxSnapshotsIntervalChannel0);
+            this.groupBox24.Controls.Add(this.checkBoxInfiniteSnapshotsChannel0);
+            this.groupBox24.Controls.Add(this.buttonStartSnapshotIntervalChannel0);
+            this.groupBox24.Controls.Add(this.buttonStopSnashotIntervalChannel0);
+            this.groupBox24.Controls.Add(this.labelSnapshotsCountChannel0);
+            this.groupBox24.Controls.Add(this.textBoxSnapshotsCountChannel0);
+            this.groupBox24.Controls.Add(this.label24);
+            resources.ApplyResources(this.groupBox24, "groupBox24");
+            this.groupBox24.Name = "groupBox24";
+            this.groupBox24.TabStop = false;
+            // 
+            // labelSnapshotStatusChannel0
+            // 
+            resources.ApplyResources(this.labelSnapshotStatusChannel0, "labelSnapshotStatusChannel0");
+            this.labelSnapshotStatusChannel0.Name = "labelSnapshotStatusChannel0";
+            // 
+            // textBoxSnapshotsIntervalChannel0
+            // 
+            resources.ApplyResources(this.textBoxSnapshotsIntervalChannel0, "textBoxSnapshotsIntervalChannel0");
+            this.textBoxSnapshotsIntervalChannel0.Name = "textBoxSnapshotsIntervalChannel0";
+            // 
+            // checkBoxInfiniteSnapshotsChannel0
+            // 
+            resources.ApplyResources(this.checkBoxInfiniteSnapshotsChannel0, "checkBoxInfiniteSnapshotsChannel0");
+            this.checkBoxInfiniteSnapshotsChannel0.Name = "checkBoxInfiniteSnapshotsChannel0";
+            this.checkBoxInfiniteSnapshotsChannel0.UseVisualStyleBackColor = true;
+            this.checkBoxInfiniteSnapshotsChannel0.CheckedChanged += new System.EventHandler(this.checkBoxInfiniteSnapshots_CheckedChanged);
+            // 
+            // buttonStartSnapshotIntervalChannel0
+            // 
+            this.buttonStartSnapshotIntervalChannel0.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonStartSnapshotIntervalChannel0.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonStartSnapshotIntervalChannel0.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonStartSnapshotIntervalChannel0, "buttonStartSnapshotIntervalChannel0");
+            this.buttonStartSnapshotIntervalChannel0.Name = "buttonStartSnapshotIntervalChannel0";
+            this.toolTip1.SetToolTip(this.buttonStartSnapshotIntervalChannel0, resources.GetString("buttonStartSnapshotIntervalChannel0.ToolTip"));
+            this.buttonStartSnapshotIntervalChannel0.UseVisualStyleBackColor = true;
+            this.buttonStartSnapshotIntervalChannel0.Click += new System.EventHandler(this.BTN_start_snapshots_Click);
+            // 
+            // buttonStopSnashotIntervalChannel0
+            // 
+            this.buttonStopSnashotIntervalChannel0.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonStopSnashotIntervalChannel0.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonStopSnashotIntervalChannel0.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonStopSnashotIntervalChannel0, "buttonStopSnashotIntervalChannel0");
+            this.buttonStopSnashotIntervalChannel0.Name = "buttonStopSnashotIntervalChannel0";
+            this.toolTip1.SetToolTip(this.buttonStopSnashotIntervalChannel0, resources.GetString("buttonStopSnashotIntervalChannel0.ToolTip"));
+            this.buttonStopSnashotIntervalChannel0.UseVisualStyleBackColor = true;
+            this.buttonStopSnashotIntervalChannel0.Click += new System.EventHandler(this.BTN_stop_snapshots_Click);
+            // 
+            // labelSnapshotsCountChannel0
+            // 
+            resources.ApplyResources(this.labelSnapshotsCountChannel0, "labelSnapshotsCountChannel0");
+            this.labelSnapshotsCountChannel0.Name = "labelSnapshotsCountChannel0";
+            // 
+            // textBoxSnapshotsCountChannel0
+            // 
+            resources.ApplyResources(this.textBoxSnapshotsCountChannel0, "textBoxSnapshotsCountChannel0");
+            this.textBoxSnapshotsCountChannel0.Name = "textBoxSnapshotsCountChannel0";
+            // 
+            // label24
+            // 
+            resources.ApplyResources(this.label24, "label24");
+            this.label24.Name = "label24";
+            // 
+            // groupBox14
+            // 
+            this.groupBox14.Controls.Add(this.groupBox8);
+            this.groupBox14.Controls.Add(this.buttonStartChannel0Video);
+            resources.ApplyResources(this.groupBox14, "groupBox14");
+            this.groupBox14.Name = "groupBox14";
+            this.groupBox14.TabStop = false;
+            // 
+            // groupBox8
+            // 
+            this.groupBox8.Controls.Add(this.groupBox26);
+            resources.ApplyResources(this.groupBox8, "groupBox8");
+            this.groupBox8.Name = "groupBox8";
+            this.groupBox8.TabStop = false;
+            // 
+            // groupBox26
+            // 
+            this.groupBox26.Controls.Add(this.radioButton1);
+            this.groupBox26.Controls.Add(this.radioButton2);
+            resources.ApplyResources(this.groupBox26, "groupBox26");
+            this.groupBox26.Name = "groupBox26";
+            this.groupBox26.TabStop = false;
+            // 
+            // radioButton1
+            // 
+            resources.ApplyResources(this.radioButton1, "radioButton1");
+            this.radioButton1.Name = "radioButton1";
+            this.radioButton1.UseVisualStyleBackColor = true;
+            // 
+            // radioButton2
+            // 
+            resources.ApplyResources(this.radioButton2, "radioButton2");
+            this.radioButton2.Checked = true;
+            this.radioButton2.Name = "radioButton2";
+            this.radioButton2.TabStop = true;
+            this.radioButton2.UseVisualStyleBackColor = true;
+            // 
+            // buttonStartChannel0Video
+            // 
+            this.buttonStartChannel0Video.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonStartChannel0Video.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonStartChannel0Video.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonStartChannel0Video, "buttonStartChannel0Video");
+            this.buttonStartChannel0Video.Name = "buttonStartChannel0Video";
+            this.toolTip1.SetToolTip(this.buttonStartChannel0Video, resources.GetString("buttonStartChannel0Video.ToolTip"));
+            this.buttonStartChannel0Video.UseVisualStyleBackColor = true;
+            this.buttonStartChannel0Video.Click += new System.EventHandler(this.startTRIPVideoToolStripMenuItem_Click);
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.buttonChannel0StartLocalRecord);
+            resources.ApplyResources(this.groupBox6, "groupBox6");
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.TabStop = false;
+            // 
+            // buttonChannel0StartLocalRecord
+            // 
+            this.buttonChannel0StartLocalRecord.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel0StartLocalRecord.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel0StartLocalRecord.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel0StartLocalRecord, "buttonChannel0StartLocalRecord");
+            this.buttonChannel0StartLocalRecord.Name = "buttonChannel0StartLocalRecord";
+            this.toolTip1.SetToolTip(this.buttonChannel0StartLocalRecord, resources.GetString("buttonChannel0StartLocalRecord.ToolTip"));
+            this.buttonChannel0StartLocalRecord.UseVisualStyleBackColor = true;
+            this.buttonChannel0StartLocalRecord.Click += new System.EventHandler(this.BUT_record_Click);
+            // 
+            // groupBox16
+            // 
+            this.groupBox16.Controls.Add(this.buttonChannel0RecordOff);
+            this.groupBox16.Controls.Add(this.buttonChannel0RecordOn);
+            this.groupBox16.Controls.Add(this.buttonChannel0ImageCapture);
+            resources.ApplyResources(this.groupBox16, "groupBox16");
+            this.groupBox16.Name = "groupBox16";
+            this.groupBox16.TabStop = false;
+            // 
+            // buttonChannel0RecordOff
+            // 
+            this.buttonChannel0RecordOff.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel0RecordOff.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel0RecordOff.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel0RecordOff, "buttonChannel0RecordOff");
+            this.buttonChannel0RecordOff.Name = "buttonChannel0RecordOff";
+            this.toolTip1.SetToolTip(this.buttonChannel0RecordOff, resources.GetString("buttonChannel0RecordOff.ToolTip"));
+            this.buttonChannel0RecordOff.UseVisualStyleBackColor = true;
+            this.buttonChannel0RecordOff.Click += new System.EventHandler(this.btn_trip_rec_off_Click);
+            // 
+            // buttonChannel0RecordOn
+            // 
+            this.buttonChannel0RecordOn.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel0RecordOn.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel0RecordOn.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel0RecordOn, "buttonChannel0RecordOn");
+            this.buttonChannel0RecordOn.Name = "buttonChannel0RecordOn";
+            this.toolTip1.SetToolTip(this.buttonChannel0RecordOn, resources.GetString("buttonChannel0RecordOn.ToolTip"));
+            this.buttonChannel0RecordOn.UseVisualStyleBackColor = true;
+            this.buttonChannel0RecordOn.Click += new System.EventHandler(this.btn_trip_rec_Click);
+            // 
+            // buttonChannel0ImageCapture
+            // 
+            this.buttonChannel0ImageCapture.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonChannel0ImageCapture.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonChannel0ImageCapture.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonChannel0ImageCapture, "buttonChannel0ImageCapture");
+            this.buttonChannel0ImageCapture.Name = "buttonChannel0ImageCapture";
+            this.toolTip1.SetToolTip(this.buttonChannel0ImageCapture, resources.GetString("buttonChannel0ImageCapture.ToolTip"));
+            this.buttonChannel0ImageCapture.UseVisualStyleBackColor = true;
+            this.buttonChannel0ImageCapture.Click += new System.EventHandler(this.btn_image_capture_Click);
+            // 
             // tabPagemessages
             // 
             this.tabPagemessages.Controls.Add(this.txt_messagebox);
@@ -1062,11 +2787,6 @@ namespace MissionPlanner.GCSViews
             resources.ApplyResources(this.tabPagePreFlight, "tabPagePreFlight");
             this.tabPagePreFlight.Name = "tabPagePreFlight";
             this.tabPagePreFlight.UseVisualStyleBackColor = true;
-            // 
-            // checkListControl1
-            // 
-            resources.ApplyResources(this.checkListControl1, "checkListControl1");
-            this.checkListControl1.Name = "checkListControl1";
             // 
             // tabGauges
             // 
@@ -1697,114 +3417,6 @@ namespace MissionPlanner.GCSViews
             this.flowLayoutPanelServos.Controls.Add(this.relayOptions6);
             this.flowLayoutPanelServos.Name = "flowLayoutPanelServos";
             // 
-            // servoOptions1
-            // 
-            resources.ApplyResources(this.servoOptions1, "servoOptions1");
-            this.servoOptions1.Name = "servoOptions1";
-            this.servoOptions1.thisservo = 5;
-            // 
-            // servoOptions2
-            // 
-            resources.ApplyResources(this.servoOptions2, "servoOptions2");
-            this.servoOptions2.Name = "servoOptions2";
-            this.servoOptions2.thisservo = 6;
-            // 
-            // servoOptions3
-            // 
-            resources.ApplyResources(this.servoOptions3, "servoOptions3");
-            this.servoOptions3.Name = "servoOptions3";
-            this.servoOptions3.thisservo = 7;
-            // 
-            // servoOptions4
-            // 
-            resources.ApplyResources(this.servoOptions4, "servoOptions4");
-            this.servoOptions4.Name = "servoOptions4";
-            this.servoOptions4.thisservo = 8;
-            // 
-            // servoOptions5
-            // 
-            resources.ApplyResources(this.servoOptions5, "servoOptions5");
-            this.servoOptions5.Name = "servoOptions5";
-            this.servoOptions5.thisservo = 9;
-            // 
-            // servoOptions6
-            // 
-            resources.ApplyResources(this.servoOptions6, "servoOptions6");
-            this.servoOptions6.Name = "servoOptions6";
-            this.servoOptions6.thisservo = 10;
-            // 
-            // servoOptions7
-            // 
-            resources.ApplyResources(this.servoOptions7, "servoOptions7");
-            this.servoOptions7.Name = "servoOptions7";
-            this.servoOptions7.thisservo = 11;
-            // 
-            // servoOptions8
-            // 
-            resources.ApplyResources(this.servoOptions8, "servoOptions8");
-            this.servoOptions8.Name = "servoOptions8";
-            this.servoOptions8.thisservo = 12;
-            // 
-            // servoOptions9
-            // 
-            resources.ApplyResources(this.servoOptions9, "servoOptions9");
-            this.servoOptions9.Name = "servoOptions9";
-            this.servoOptions9.thisservo = 13;
-            // 
-            // servoOptions10
-            // 
-            resources.ApplyResources(this.servoOptions10, "servoOptions10");
-            this.servoOptions10.Name = "servoOptions10";
-            this.servoOptions10.thisservo = 14;
-            // 
-            // servoOptions11
-            // 
-            resources.ApplyResources(this.servoOptions11, "servoOptions11");
-            this.servoOptions11.Name = "servoOptions11";
-            this.servoOptions11.thisservo = 15;
-            // 
-            // servoOptions12
-            // 
-            resources.ApplyResources(this.servoOptions12, "servoOptions12");
-            this.servoOptions12.Name = "servoOptions12";
-            this.servoOptions12.thisservo = 16;
-            // 
-            // relayOptions1
-            // 
-            resources.ApplyResources(this.relayOptions1, "relayOptions1");
-            this.relayOptions1.Name = "relayOptions1";
-            this.relayOptions1.thisrelay = 0;
-            // 
-            // relayOptions2
-            // 
-            resources.ApplyResources(this.relayOptions2, "relayOptions2");
-            this.relayOptions2.Name = "relayOptions2";
-            this.relayOptions2.thisrelay = 1;
-            // 
-            // relayOptions3
-            // 
-            resources.ApplyResources(this.relayOptions3, "relayOptions3");
-            this.relayOptions3.Name = "relayOptions3";
-            this.relayOptions3.thisrelay = 2;
-            // 
-            // relayOptions4
-            // 
-            resources.ApplyResources(this.relayOptions4, "relayOptions4");
-            this.relayOptions4.Name = "relayOptions4";
-            this.relayOptions4.thisrelay = 3;
-            // 
-            // relayOptions5
-            // 
-            resources.ApplyResources(this.relayOptions5, "relayOptions5");
-            this.relayOptions5.Name = "relayOptions5";
-            this.relayOptions5.thisrelay = 4;
-            // 
-            // relayOptions6
-            // 
-            resources.ApplyResources(this.relayOptions6, "relayOptions6");
-            this.relayOptions6.Name = "relayOptions6";
-            this.relayOptions6.thisrelay = 5;
-            // 
             // tabScripts
             // 
             this.tabScripts.Controls.Add(this.checkBoxRedirectOutput);
@@ -2246,10 +3858,13 @@ namespace MissionPlanner.GCSViews
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.zg1);
+            this.splitContainer1.Panel1Collapsed = true;
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.ContextMenuStrip = this.contextMenuStripMap;
+            this.splitContainer1.Panel2.Controls.Add(this.hud2);
+            this.splitContainer1.Panel2.Controls.Add(this.but_disableCamjoystick);
             this.splitContainer1.Panel2.Controls.Add(this.but_disablejoystick);
             this.splitContainer1.Panel2.Controls.Add(this.distanceBar1);
             this.splitContainer1.Panel2.Controls.Add(this.windDir1);
@@ -2409,6 +4024,84 @@ namespace MissionPlanner.GCSViews
             resources.ApplyResources(this.altitudeAngelSettingsToolStripMenuItem, "altitudeAngelSettingsToolStripMenuItem");
             this.altitudeAngelSettingsToolStripMenuItem.Click += new System.EventHandler(this.altitudeAngelSettingsToolStripMenuItem_Click);
             // 
+            // hud2
+            // 
+            this.hud2.airspeed = 0F;
+            this.hud2.alt = 0F;
+            this.hud2.altunit = "";
+            resources.ApplyResources(this.hud2, "hud2");
+            this.hud2.AOA = 0F;
+            this.hud2.BackColor = System.Drawing.Color.Black;
+            this.hud2.batterycellcount = 0;
+            this.hud2.batterylevel = 0F;
+            this.hud2.batteryremaining = 0F;
+            this.hud2.bgimage = null;
+            this.hud2.connected = false;
+            this.hud2.critAOA = 25F;
+            this.hud2.criticalvoltagealert = false;
+            this.hud2.critSSA = 30F;
+            this.hud2.current = 0F;
+            this.hud2.datetime = new System.DateTime(((long)(0)));
+            this.hud2.displayAOASSA = false;
+            this.hud2.displayCellVoltage = false;
+            this.hud2.displayicons = false;
+            this.hud2.disttowp = 0F;
+            this.hud2.distunit = "";
+            this.hud2.ekfstatus = 0F;
+            this.hud2.failsafe = false;
+            this.hud2.gpsfix = 0F;
+            this.hud2.gpsfix2 = 0F;
+            this.hud2.gpshdop = 0F;
+            this.hud2.gpshdop2 = 0F;
+            this.hud2.groundalt = 0F;
+            this.hud2.groundcourse = 0F;
+            this.hud2.groundspeed = 0F;
+            this.hud2.heading = 0F;
+            this.hud2.hudcolor = System.Drawing.Color.LightGray;
+            this.hud2.hudon = false;
+            this.hud2.linkqualitygcs = 0F;
+            this.hud2.lowairspeed = false;
+            this.hud2.lowgroundspeed = false;
+            this.hud2.lowvoltagealert = false;
+            this.hud2.message = "";
+            this.hud2.messageSeverity = MAVLink.MAV_SEVERITY.EMERGENCY;
+            this.hud2.mode = "Manual";
+            this.hud2.Name = "hud2";
+            this.hud2.navpitch = 0F;
+            this.hud2.navroll = 0F;
+            this.hud2.pitch = 0F;
+            this.hud2.roll = 0F;
+            this.hud2.Russian = false;
+            this.hud2.SixteenXNine = true;
+            this.hud2.skyColor1 = System.Drawing.Color.Blue;
+            this.hud2.skyColor2 = System.Drawing.Color.LightBlue;
+            this.hud2.speedunit = "";
+            this.hud2.SSA = 0F;
+            this.hud2.status = false;
+            this.hud2.targetalt = 0F;
+            this.hud2.targetheading = 0F;
+            this.hud2.targetspeed = 0F;
+            this.hud2.ThirtyTwoXNine = false;
+            this.hud2.turnrate = 0F;
+            this.hud2.verticalspeed = 0F;
+            this.hud2.vibex = 0F;
+            this.hud2.vibey = 0F;
+            this.hud2.vibez = 0F;
+            this.hud2.VSync = false;
+            this.hud2.wpno = 0;
+            this.hud2.xtrack_error = 0F;
+            this.hud2.Click += new System.EventHandler(this.hud2_Click);
+            // 
+            // but_disableCamjoystick
+            // 
+            this.but_disableCamjoystick.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_disableCamjoystick.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_disableCamjoystick.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_disableCamjoystick, "but_disableCamjoystick");
+            this.but_disableCamjoystick.Name = "but_disableCamjoystick";
+            this.but_disableCamjoystick.UseVisualStyleBackColor = true;
+            this.but_disableCamjoystick.Click += new System.EventHandler(this.but_disableCamjoystick_Click);
+            // 
             // but_disablejoystick
             // 
             this.but_disablejoystick.ColorMouseDown = System.Drawing.Color.Empty;
@@ -2419,20 +4112,12 @@ namespace MissionPlanner.GCSViews
             this.but_disablejoystick.UseVisualStyleBackColor = true;
             this.but_disablejoystick.Click += new System.EventHandler(this.but_disablejoystick_Click);
             // 
-            // distanceBar1
-            // 
-            resources.ApplyResources(this.distanceBar1, "distanceBar1");
-            this.distanceBar1.BackColor = System.Drawing.Color.Transparent;
-            this.distanceBar1.Name = "distanceBar1";
-            this.distanceBar1.totaldist = 100F;
-            this.distanceBar1.traveleddist = 0F;
-            // 
             // windDir1
             // 
             this.windDir1.BackColor = System.Drawing.Color.Transparent;
             this.windDir1.DataBindings.Add(new System.Windows.Forms.Binding("Direction", this.bindingSource1, "wind_dir", true, System.Windows.Forms.DataSourceUpdateMode.Never));
             this.windDir1.DataBindings.Add(new System.Windows.Forms.Binding("Speed", this.bindingSource1, "wind_vel", true, System.Windows.Forms.DataSourceUpdateMode.Never));
-            this.windDir1.Direction = 360D;
+            this.windDir1.Direction = 540D;
             resources.ApplyResources(this.windDir1, "windDir1");
             this.windDir1.Name = "windDir1";
             this.windDir1.Speed = 0D;
@@ -2633,11 +4318,239 @@ namespace MissionPlanner.GCSViews
             // 
             this.bindingSourceStatusTab.DataSource = typeof(MissionPlanner.CurrentState);
             // 
-            // multiLineToolStripMenuItem
+            // vJoystickTimer
             // 
-            this.multiLineToolStripMenuItem.Name = "multiLineToolStripMenuItem";
-            resources.ApplyResources(this.multiLineToolStripMenuItem, "multiLineToolStripMenuItem");
-            this.multiLineToolStripMenuItem.Click += new System.EventHandler(this.multiLineToolStripMenuItem_Click);
+            this.vJoystickTimer.Interval = 80;
+            this.vJoystickTimer.Tick += new System.EventHandler(this.vJoystickTimer_Tick);
+            // 
+            // contextMenuStripHud2
+            // 
+            this.contextMenuStripHud2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.HideHud2ToolStripMenuItem,
+            this.SwapWithMainHudToolStripMenuItem});
+            this.contextMenuStripHud2.Name = "contextMenuStrip2";
+            resources.ApplyResources(this.contextMenuStripHud2, "contextMenuStripHud2");
+            // 
+            // HideHud2ToolStripMenuItem
+            // 
+            this.HideHud2ToolStripMenuItem.Name = "HideHud2ToolStripMenuItem";
+            resources.ApplyResources(this.HideHud2ToolStripMenuItem, "HideHud2ToolStripMenuItem");
+            // 
+            // SwapWithMainHudToolStripMenuItem
+            // 
+            this.SwapWithMainHudToolStripMenuItem.Name = "SwapWithMainHudToolStripMenuItem";
+            resources.ApplyResources(this.SwapWithMainHudToolStripMenuItem, "SwapWithMainHudToolStripMenuItem");
+            // 
+            // odOverlayTimer
+            // 
+            this.odOverlayTimer.Interval = 3000;
+            this.odOverlayTimer.Tick += new System.EventHandler(this.odOverlayTimer_Tick);
+            // 
+            // modifyandSetLoiterRad
+            // 
+            resources.ApplyResources(this.modifyandSetLoiterRad, "modifyandSetLoiterRad");
+            this.modifyandSetLoiterRad.ButtonText = "Set Loiter Rad";
+            this.modifyandSetLoiterRad.DecimalPlaces = 0;
+            this.modifyandSetLoiterRad.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.modifyandSetLoiterRad.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.modifyandSetLoiterRad.Minimum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            -2147483648});
+            this.modifyandSetLoiterRad.Name = "modifyandSetLoiterRad";
+            this.modifyandSetLoiterRad.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.modifyandSetLoiterRad.Click += new System.EventHandler(this.modifyandSetLoiterRad_Click);
+            // 
+            // modifyandSetAlt
+            // 
+            resources.ApplyResources(this.modifyandSetAlt, "modifyandSetAlt");
+            this.modifyandSetAlt.ButtonText = "Change Alt";
+            this.modifyandSetAlt.DecimalPlaces = 1;
+            this.modifyandSetAlt.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.modifyandSetAlt.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.modifyandSetAlt.Minimum = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
+            this.modifyandSetAlt.Name = "modifyandSetAlt";
+            this.modifyandSetAlt.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.modifyandSetAlt.Click += new System.EventHandler(this.modifyandSetAlt_Click);
+            // 
+            // modifyandSetSpeed
+            // 
+            resources.ApplyResources(this.modifyandSetSpeed, "modifyandSetSpeed");
+            this.modifyandSetSpeed.ButtonText = "Change Speed";
+            this.modifyandSetSpeed.DecimalPlaces = 1;
+            this.modifyandSetSpeed.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.modifyandSetSpeed.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.modifyandSetSpeed.Minimum = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
+            this.modifyandSetSpeed.Name = "modifyandSetSpeed";
+            this.modifyandSetSpeed.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.modifyandSetSpeed.Click += new System.EventHandler(this.modifyandSetSpeed_Click);
+            this.modifyandSetSpeed.ParentChanged += new System.EventHandler(this.modifyandSetSpeed_ParentChanged);
+            // 
+            // checkListControl1
+            // 
+            resources.ApplyResources(this.checkListControl1, "checkListControl1");
+            this.checkListControl1.Name = "checkListControl1";
+            // 
+            // servoOptions1
+            // 
+            resources.ApplyResources(this.servoOptions1, "servoOptions1");
+            this.servoOptions1.Name = "servoOptions1";
+            this.servoOptions1.thisservo = 5;
+            // 
+            // servoOptions2
+            // 
+            resources.ApplyResources(this.servoOptions2, "servoOptions2");
+            this.servoOptions2.Name = "servoOptions2";
+            this.servoOptions2.thisservo = 6;
+            // 
+            // servoOptions3
+            // 
+            resources.ApplyResources(this.servoOptions3, "servoOptions3");
+            this.servoOptions3.Name = "servoOptions3";
+            this.servoOptions3.thisservo = 7;
+            // 
+            // servoOptions4
+            // 
+            resources.ApplyResources(this.servoOptions4, "servoOptions4");
+            this.servoOptions4.Name = "servoOptions4";
+            this.servoOptions4.thisservo = 8;
+            // 
+            // servoOptions5
+            // 
+            resources.ApplyResources(this.servoOptions5, "servoOptions5");
+            this.servoOptions5.Name = "servoOptions5";
+            this.servoOptions5.thisservo = 9;
+            // 
+            // servoOptions6
+            // 
+            resources.ApplyResources(this.servoOptions6, "servoOptions6");
+            this.servoOptions6.Name = "servoOptions6";
+            this.servoOptions6.thisservo = 10;
+            // 
+            // servoOptions7
+            // 
+            resources.ApplyResources(this.servoOptions7, "servoOptions7");
+            this.servoOptions7.Name = "servoOptions7";
+            this.servoOptions7.thisservo = 11;
+            // 
+            // servoOptions8
+            // 
+            resources.ApplyResources(this.servoOptions8, "servoOptions8");
+            this.servoOptions8.Name = "servoOptions8";
+            this.servoOptions8.thisservo = 12;
+            // 
+            // servoOptions9
+            // 
+            resources.ApplyResources(this.servoOptions9, "servoOptions9");
+            this.servoOptions9.Name = "servoOptions9";
+            this.servoOptions9.thisservo = 13;
+            // 
+            // servoOptions10
+            // 
+            resources.ApplyResources(this.servoOptions10, "servoOptions10");
+            this.servoOptions10.Name = "servoOptions10";
+            this.servoOptions10.thisservo = 14;
+            // 
+            // servoOptions11
+            // 
+            resources.ApplyResources(this.servoOptions11, "servoOptions11");
+            this.servoOptions11.Name = "servoOptions11";
+            this.servoOptions11.thisservo = 15;
+            // 
+            // servoOptions12
+            // 
+            resources.ApplyResources(this.servoOptions12, "servoOptions12");
+            this.servoOptions12.Name = "servoOptions12";
+            this.servoOptions12.thisservo = 16;
+            // 
+            // relayOptions1
+            // 
+            resources.ApplyResources(this.relayOptions1, "relayOptions1");
+            this.relayOptions1.Name = "relayOptions1";
+            this.relayOptions1.thisrelay = 0;
+            // 
+            // relayOptions2
+            // 
+            resources.ApplyResources(this.relayOptions2, "relayOptions2");
+            this.relayOptions2.Name = "relayOptions2";
+            this.relayOptions2.thisrelay = 1;
+            // 
+            // relayOptions3
+            // 
+            resources.ApplyResources(this.relayOptions3, "relayOptions3");
+            this.relayOptions3.Name = "relayOptions3";
+            this.relayOptions3.thisrelay = 2;
+            // 
+            // relayOptions4
+            // 
+            resources.ApplyResources(this.relayOptions4, "relayOptions4");
+            this.relayOptions4.Name = "relayOptions4";
+            this.relayOptions4.thisrelay = 3;
+            // 
+            // relayOptions5
+            // 
+            resources.ApplyResources(this.relayOptions5, "relayOptions5");
+            this.relayOptions5.Name = "relayOptions5";
+            this.relayOptions5.thisrelay = 4;
+            // 
+            // relayOptions6
+            // 
+            resources.ApplyResources(this.relayOptions6, "relayOptions6");
+            this.relayOptions6.Name = "relayOptions6";
+            this.relayOptions6.thisrelay = 5;
+            // 
+            // distanceBar1
+            // 
+            resources.ApplyResources(this.distanceBar1, "distanceBar1");
+            this.distanceBar1.BackColor = System.Drawing.Color.Transparent;
+            this.distanceBar1.Name = "distanceBar1";
+            this.distanceBar1.totaldist = 100F;
+            this.distanceBar1.traveleddist = 0F;
             // 
             // FlightData
             // 
@@ -2667,6 +4580,56 @@ namespace MissionPlanner.GCSViews
             this.tabActions.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
+            this.tabCameraActions.ResumeLayout(false);
+            this.groupBox27.ResumeLayout(false);
+            this.groupBoxVMDControl.ResumeLayout(false);
+            this.groupBoxOrthoPhoto.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOrthoPhoto)).EndInit();
+            this.groupBox13.ResumeLayout(false);
+            this.groupBox13.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBoxObjectDetectionControl.ResumeLayout(false);
+            this.groupBoxObjectDetectionControl.PerformLayout();
+            this.camGainLevelGroupBox.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox12.ResumeLayout(false);
+            this.groupBox7.ResumeLayout(false);
+            this.groupBox7.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.VirtJoyBar)).EndInit();
+            this.groupBox10.ResumeLayout(false);
+            this.groupBox9.ResumeLayout(false);
+            this.flightModesGroupBox.ResumeLayout(false);
+            this.groupBox11.ResumeLayout(false);
+            this.groupBox11.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
+            this.tabChannelActions.ResumeLayout(false);
+            this.groupBox22.ResumeLayout(false);
+            this.groupBox23.ResumeLayout(false);
+            this.groupBox23.PerformLayout();
+            this.groupBox19.ResumeLayout(false);
+            this.groupBox21.ResumeLayout(false);
+            this.groupBox20.ResumeLayout(false);
+            this.groupBoxSideBySideControl.ResumeLayout(false);
+            this.groupBoxChannel1Actions.ResumeLayout(false);
+            this.groupBox25.ResumeLayout(false);
+            this.groupBox25.PerformLayout();
+            this.groupBox15.ResumeLayout(false);
+            this.groupBox17.ResumeLayout(false);
+            this.groupBox18.ResumeLayout(false);
+            this.groupBoxChannel0Actions.ResumeLayout(false);
+            this.groupBox24.ResumeLayout(false);
+            this.groupBox24.PerformLayout();
+            this.groupBox14.ResumeLayout(false);
+            this.groupBox8.ResumeLayout(false);
+            this.groupBox26.ResumeLayout(false);
+            this.groupBox26.PerformLayout();
+            this.groupBox6.ResumeLayout(false);
+            this.groupBox16.ResumeLayout(false);
             this.tabPagemessages.ResumeLayout(false);
             this.tabPagemessages.PerformLayout();
             this.tabActionsSimple.ResumeLayout(false);
@@ -2713,6 +4676,7 @@ namespace MissionPlanner.GCSViews
             this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.Zoomlevel)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceStatusTab)).EndInit();
+            this.contextMenuStripHud2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -2925,5 +4889,179 @@ namespace MissionPlanner.GCSViews
         private System.Windows.Forms.TextBox NIC_tb;
         private ToolStripMenuItem showIconsToolStripMenuItem;
         private ToolStripMenuItem multiLineToolStripMenuItem;
+        private TabPage tabCameraActions;
+        private GroupBox groupBoxVMDControl;
+        private Controls.MyButton btn_VMD_off;
+        private Controls.MyButton btn_VMD_on;
+        private GroupBox groupBoxOrthoPhoto;
+        private PictureBox pictureBoxOrthoPhoto;
+        private GroupBox groupBox13;
+        private Controls.MyButton BTN_set_reference_point;
+        private Label label17;
+        private TextBox textBoxReferencePointElevation;
+        private Label label16;
+        private TextBox textBoxReferencePointLon;
+        private Label label15;
+        private TextBox textBoxReferencePointLat;
+        private ComboBox comboBoxHUDClickCommand;
+        private GroupBox groupBox2;
+        private Label label9;
+        private TextBox textBoxCameraFov;
+        private Controls.MyButton btn_set_fov;
+        private GroupBox groupBoxObjectDetectionControl;
+        private Label label13;
+        private Controls.MyButton BTN_set_od_fire_thres;
+        private TextBox textBoxODFireThres;
+        private Label label12;
+        private Controls.MyButton BTN_set_od_detector_type;
+        private Controls.MyButton BTN_set_od_conf_thres;
+        private TextBox textBoxODConfThres;
+        private ComboBox CMB_od_net_type;
+        private Controls.MyButton BTN_resume_mission_AI;
+        private Controls.MyButton BTN_disable_OD;
+        private Controls.MyButton BTN_enable_OD;
+        private GroupBox camGainLevelGroupBox;
+        private Controls.MyButton btn_reset_gain_level;
+        private Controls.MyButton btn_level_dec;
+        private Controls.MyButton btn_gain_dec;
+        private Controls.MyButton btn_level_inc;
+        private Controls.MyButton btn_gain_inc;
+        private GroupBox groupBox1;
+        private Controls.MyButton BUT_ir_sharpnessmode;
+        private Controls.MyButton BUT_day_sharpnessmode;
+        private ComboBox CMB_sharpnessmode;
+        private GroupBox groupBox12;
+        private ComboBox CMB_laser_mode;
+        private Controls.MyButton BTN_set_laser_mode;
+        private Controls.MyButton BTN_laser_off;
+        private Controls.MyButton BTN_laser_on;
+        private GroupBox groupBox7;
+        private TrackBar VirtJoyBar;
+        private Controls.MyButton btn_zoom_out;
+        private Controls.MyButton btn_zoom_in;
+        private GroupBox groupBox10;
+        private Controls.MyButton btn_black_white_pallete;
+        private Controls.MyButton btn_color_pallete;
+        private Controls.MyButton btn_polarity_black_hot;
+        private Controls.MyButton btn_polarity_white_hot;
+        private Controls.MyButton btn_nuc;
+        private GroupBox groupBox9;
+        private Controls.MyButton btn_disaable_geo_avg;
+        private Controls.MyButton btn_enable_geo_avg;
+        private Controls.MyButton BUT_RetractRelease;
+        private Controls.MyButton btn_disable_roll_derot;
+        private Controls.MyButton btn_enable_roll_derot;
+        private Controls.MyButton btn__ir;
+        private Controls.MyButton btn_retracting;
+        private Controls.MyButton btn_day_ir;
+        private GroupBox flightModesGroupBox;
+        private Controls.MyButton BTN_fly_above_off;
+        private Controls.MyButton BTN_fly_above_on;
+        private Controls.MyButton btn_follow_target_off;
+        private Controls.MyButton btn_single_yaw_off;
+        private Controls.MyButton btn_follow_target_on;
+        private Controls.MyButton btn_single_yaw_on;
+        private GroupBox groupBox11;
+        private CheckBox checkBoxManualDayColorTemp;
+        private Controls.MyButton BTN_set_color_temp;
+        private Label labelDayColorTemp;
+        private TextBox textBoxDayColorTemp;
+        private GroupBox groupBox3;
+        private Controls.MyButton btn_2d_scan;
+        private Controls.MyButton but_nadir_scan;
+        private Controls.MyButton but_nadir;
+        private Controls.MyButton but_epr;
+        private Controls.MyButton but_pilot;
+        private Controls.MyButton but_stow;
+        private Controls.MyButton but_hold;
+        private Controls.MyButton but_observation;
+        private Controls.MyButton but_grr;
+        private GroupBox groupBox5;
+        private Controls.MyButton btn_global_position;
+        private Label label7;
+        private TextBox textBoxGlobalPosAzimuth;
+        private Label label8;
+        private TextBox textBoxGlobalPosElevation;
+        private GroupBox groupBox4;
+        private ComboBox comboBoxPositionCommand;
+        private Controls.MyButton btn_local_position;
+        private Label label14;
+        private TextBox textBoxLocalPosRoll;
+        private Label label11;
+        private TextBox textBoxLocalPosPitch;
+        private TabPage tabChannelActions;
+        private GroupBox groupBox22;
+        private GroupBox groupBox23;
+        private CheckBox checkBoxDisplaySecondaryHUD;
+        private RadioButton radioButtonChannel1OnMainHUD;
+        private RadioButton radioButtonChannel0OnMainHUD;
+        private GroupBox groupBox19;
+        private GroupBox groupBox21;
+        private Controls.MyButton buttonSetStreamModes;
+        private ComboBox comboBoxStreamModes;
+        private GroupBox groupBox20;
+        private Controls.MyButton buttonSetPIPMode;
+        private ComboBox comboBoxPIPMode;
+        private GroupBox groupBoxSideBySideControl;
+        private Controls.MyButton buttonSetSBSMode;
+        private ComboBox comboBoxSBSMode;
+        private GroupBox groupBoxChannel1Actions;
+        private GroupBox groupBox25;
+        private Label labelSnapshotStatusChannel1;
+        private TextBox textBoxSnapshotsIntervalChannel1;
+        private CheckBox checkBoxInfiniteSnapshotsChannel1;
+        private Controls.MyButton buttonStartSnapshotIntervalChannel1;
+        private Controls.MyButton buttonStopSnashotIntervalChannel1;
+        private Label labelSnapshotsCountChannel1;
+        private TextBox textBoxSnapshotsCountChannel1;
+        private Label label27;
+        private GroupBox groupBox15;
+        private Controls.MyButton buttonStartChannel1Video;
+        private GroupBox groupBox17;
+        private Controls.MyButton buttonChannel1StartLocalRecord;
+        private GroupBox groupBox18;
+        private Controls.MyButton buttonChannel1RecordOff;
+        private Controls.MyButton buttonChannel1RecordOn;
+        private Controls.MyButton buttonChannel1ImageCapture;
+        private GroupBox groupBoxChannel0Actions;
+        private GroupBox groupBox24;
+        private Label labelSnapshotStatusChannel0;
+        private TextBox textBoxSnapshotsIntervalChannel0;
+        private CheckBox checkBoxInfiniteSnapshotsChannel0;
+        private Controls.MyButton buttonStartSnapshotIntervalChannel0;
+        private Controls.MyButton buttonStopSnashotIntervalChannel0;
+        private Label labelSnapshotsCountChannel0;
+        private TextBox textBoxSnapshotsCountChannel0;
+        private Label label24;
+        private GroupBox groupBox14;
+        private GroupBox groupBox8;
+        private GroupBox groupBox26;
+        private RadioButton radioButton1;
+        private RadioButton radioButton2;
+        private Controls.MyButton buttonStartChannel0Video;
+        private GroupBox groupBox6;
+        private Controls.MyButton buttonChannel0StartLocalRecord;
+        private GroupBox groupBox16;
+        private Controls.MyButton buttonChannel0RecordOff;
+        private Controls.MyButton buttonChannel0RecordOn;
+        private Controls.MyButton buttonChannel0ImageCapture;
+        private System.Windows.Forms.Integration.ElementHost elementHost1;
+        private WpfCustomControls.OnScreenJoystick onScreenJoystick1;
+        private Controls.MyButton buttonFullScreenSecondaryHud;
+        private Controls.MyButton BUT_hudfullscreen;
+        private Controls.MyButton BUT_camjoystick;
+        private Controls.MyButton but_disableCamjoystick;
+        private Controls.HUD hud2;
+        private Timer vJoystickTimer;
+        public ContextMenuStrip contextMenuStripHud2;
+        private ToolStripMenuItem HideHud2ToolStripMenuItem;
+        private ToolStripMenuItem SwapWithMainHudToolStripMenuItem;
+        private Controls.MyButton buttonSetOGLRImageSize;
+        private Label label10;
+        private TextBox textBoxOGLRImageSize;
+        private Timer odOverlayTimer;
+        private GroupBox groupBox27;
+        private Controls.MyButton btn_multi_gcs_off;
+        private Controls.MyButton btn_multi_gcs_on;
     }
 }

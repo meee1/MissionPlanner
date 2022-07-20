@@ -163,7 +163,37 @@ namespace MissionPlanner.Controls
 
         [Browsable(false)] public bool npotSupported { get; private set; }
 
-        public bool SixteenXNine = false;
+        /* NextVision SixteenXNine and ThirtyTwoXNine */
+        private bool _sixteenNine = true;
+        private bool _thirtyTwoNine = false;
+
+        public bool SixteenXNine
+        {
+            set
+            {
+                _sixteenNine = value;
+                if (_sixteenNine)
+                    _thirtyTwoNine = !value;
+            }
+            get
+            {
+                return _sixteenNine;
+            }
+        }
+        public bool ThirtyTwoXNine
+        {
+            set
+            {
+                _thirtyTwoNine = value;
+                if (_thirtyTwoNine)
+                    _sixteenNine = !value;
+            }
+            get
+            {
+                return _thirtyTwoNine;
+            }
+        }
+        /* NextVision */
 
         [System.ComponentModel.Browsable(true), DefaultValue(true)]
         public bool displayheading { get; set; }
@@ -3472,6 +3502,17 @@ namespace MissionPlanner.Controls
                     return;
                 }
             }
+            /* NextVision */
+            else if (ThirtyTwoXNine)
+            {
+                int ht = (int)(this.Width / (1.777f * 2f));
+                if (ht >= this.Height + 5 || ht <= this.Height - 5)
+                {
+                    this.Height = ht;
+                    return;
+                }
+            }
+            /* NextVision */
             else
             {
                 // 4x3

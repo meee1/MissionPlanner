@@ -74,7 +74,7 @@ namespace MissionPlanner.Swarm.Sequence
                     {
                         var MAV = drone.MavState;
 
-                        MAV.parent.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, 10, MAV.sysid, MAV.compid);
+                        //MAV.parent.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, 10, MAV.sysid, MAV.compid);
                         MAV.cs.rateposition = 10;
 
                     }

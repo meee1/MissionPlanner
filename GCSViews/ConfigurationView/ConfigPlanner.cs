@@ -12,6 +12,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using WebCamService;
+/* NextVision imports */
+using MissionPlanner.CamJoystick;
 
 namespace MissionPlanner.GCSViews.ConfigurationView
 {
@@ -30,6 +32,125 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
             txt_log_dir.TextChanged += OnLogDirTextChanged;
 
+            /************ NextVision initializations************/
+            if (Settings.Instance["auto_attach_joystick"] != null)
+            {
+                if (Settings.Instance["auto_attach_joystick"].Equals("true"))
+                    autoAttachJoyOnConnectCheckbox.Checked = true;
+                else
+                    autoAttachJoyOnConnectCheckbox.Checked = false;
+            }
+            if (Settings.Instance["auto_attach_cam_joystick"] != null)
+            {
+                if (Settings.Instance["auto_attach_cam_joystick"].Equals("true"))
+                    autoAttachCamJoyOnConnectCheckbox.Checked = true;
+                else
+                    autoAttachCamJoyOnConnectCheckbox.Checked = false;
+            }
+            if (Settings.Instance["auto_start_video_on_connect"] != null)
+            {
+                if (Settings.Instance["auto_start_video_on_connect"].Equals("true"))
+                    autoStartVideoOnConnectCheckbox.Checked = true;
+                else
+                    autoStartVideoOnConnectCheckbox.Checked = false;
+            }
+            if (Settings.Instance["enable_ajc"] != null)
+            {
+                if (Settings.Instance["enable_ajc"].Equals("true"))
+                    enableAdaptiveJitterCancelCheckbox.Checked = true;
+                else
+                    enableAdaptiveJitterCancelCheckbox.Checked = false;
+            }
+            if (Settings.Instance["auto_connect"] != null)
+            {
+                if (Settings.Instance["auto_connect"].Equals("true"))
+                    autoConnectOnStartUpCheckbox.Checked = true;
+                else
+                    autoConnectOnStartUpCheckbox.Checked = false;
+            }
+            if (Settings.Instance["hud_full_screen"] != null)
+            {
+                if (Settings.Instance["hud_full_screen"].Equals("true"))
+                    fullScreenHUDCheckbox.Checked = true;
+                else
+                    fullScreenHUDCheckbox.Checked = false;
+            }
+            if (Settings.Instance["hud_full_screen_2"] != null)
+            {
+                if (Settings.Instance["hud_full_screen_2"].Equals("true"))
+                    fullScreenHUD2Checkbox.Checked = true;
+                else
+                    fullScreenHUD2Checkbox.Checked = false;
+            }
+            if (Settings.Instance["enable_gndcrs_target"] != null)
+            {
+                if (Settings.Instance["enable_gndcrs_target"].Equals("true"))
+                    checkBoxGroundCrossTarget.Checked = true;
+                else
+                    checkBoxGroundCrossTarget.Checked = false;
+            }
+            if (Settings.Instance["enable_RVT_display"] != null)
+            {
+                if (Settings.Instance["enable_RVT_display"].Equals("true"))
+                    checkBoxRVTDisplay.Checked = true;
+                else
+                    checkBoxRVTDisplay.Checked = false;
+            }
+            if (Settings.Instance["CHK_hudshow"] != null)
+            {
+                if (Settings.Instance["CHK_hudshow"].Equals("true"))
+                    CHK_hudshow.Checked = true;
+                else
+                    CHK_hudshow.Checked = false;
+            }
+            if (Settings.Instance["enable_auto_flight_modes"] != null)
+            {
+                if (Settings.Instance["enable_auto_flight_modes"].Equals("true"))
+                    checkBoxEnableAutoFlightModes.Checked = true;
+                else
+                    checkBoxEnableAutoFlightModes.Checked = false;
+            }
+            if (Settings.Instance["enable_object_detection_control"] != null)
+            {
+                if (Settings.Instance["enable_object_detection_control"].Equals("true"))
+                    checkBoxEnableObjectDetectionControl.Checked = true;
+                else
+                    checkBoxEnableObjectDetectionControl.Checked = false;
+            }
+            if (!string.IsNullOrEmpty(Settings.Instance["orthophoto_path"]) && Directory.Exists(Settings.Instance["orthophoto_path"]))
+            {
+                textBoxOrthoPhotoPath.Text = Settings.Instance["orthophoto_path"];
+            }
+            if (Settings.Instance["oglr_enable"] != null)
+            {
+                if (Settings.Instance["oglr_enable"].Equals("true"))
+                {
+                    if (ValidateOrthophotoPath(textBoxOrthoPhotoPath.Text) /*&& FlightData.LoadOrthoPhoto(textBoxOrthoPhotoPath.Text)*/)
+                    {
+                        FlightData.orthophotoGrpBox.Visible = true;
+                        checkBoxEnableOGLR.Checked = true;
+                    }
+                    else
+                    {
+                        checkBoxEnableOGLR.Checked = false;
+                        Settings.Instance["oglr_enable"] = "false";
+                        FlightData.orthophotoGrpBox.Visible = false;
+                    }
+                }
+                else
+                {
+                    checkBoxEnableOGLR.Checked = false;
+                    FlightData.orthophotoGrpBox.Visible = false;
+                }
+            }
+            if (Settings.Instance.ContainsKey("enable_OD_map_display") && Settings.Instance["enable_OD_map_display"] != null)
+            {
+                if (Settings.Instance["enable_OD_map_display"].Equals("true"))
+                    checkBoxDisplayODOnMap.Checked = true;
+                else
+                    checkBoxDisplayODOnMap.Checked = false;
+            }
+            /******************** NextVision *****************/
         }
 
 
@@ -144,8 +265,8 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             // setup other config state
             SetCheckboxFromConfig("CHK_resetapmonconnect", CHK_resetapmonconnect);
 
-            CMB_rateattitude.Text = MainV2.comPort.MAV.cs.rateattitude.ToString();
-            CMB_rateposition.Text = MainV2.comPort.MAV.cs.rateposition.ToString();
+            //CMB_rateattitude.Text = MainV2.comPort.MAV.cs.rateattitude.ToString();
+            //CMB_rateposition.Text = MainV2.comPort.MAV.cs.rateposition.ToString();
             CMB_raterc.Text = MainV2.comPort.MAV.cs.raterc.ToString();
             CMB_ratestatus.Text = MainV2.comPort.MAV.cs.ratestatus.ToString();
             CMB_ratesensors.Text = MainV2.comPort.MAV.cs.ratesensors.ToString();
@@ -324,8 +445,12 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void CHK_hudshow_CheckedChanged(object sender, EventArgs e)
         {
+            /* NextVision normalize all data saving */
             FlightData.myhud.hudon = CHK_hudshow.Checked;
-            Settings.Instance["CHK_hudshow"] = CHK_hudshow.Checked.ToString();
+            if (CHK_hudshow.Checked == true)
+                Settings.Instance["CHK_hudshow"] = "true";
+            else
+                Settings.Instance["CHK_hudshow"] = "false";
         }
 
         private void CHK_enablespeech_CheckedChanged(object sender, EventArgs e)
@@ -991,6 +1116,245 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         private void chk_slowMachine_CheckedChanged(object sender, EventArgs e)
         {
             Settings.Instance["SlowMachine"] = chk_slowMachine.Checked.ToString();
+        }
+
+        /****************************************************************************************************************************
+        *                                               NextVision Addition functions
+        ****************************************************************************************************************************/
+        /****************************************************************************************************************************
+        *                                                      autoAttachJoyOnConnectCheckbox_CheckedChanged()
+        * Description :   auto attach joystick checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void autoAttachJoyOnConnectCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (autoAttachJoyOnConnectCheckbox.Checked)
+                Settings.Instance["auto_attach_joystick"] = "true";
+            else
+                Settings.Instance["auto_attach_joystick"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      autoAttachCamJoyOnConnectCheckbox_CheckedChanged()
+        * Description :   auto attach camera joystick checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void autoAttachCamJoyOnConnectCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (autoAttachCamJoyOnConnectCheckbox.Checked)
+                Settings.Instance["auto_attach_cam_joystick"] = "true";
+            else
+                Settings.Instance["auto_attach_cam_joystick"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      autoStartVideoOnConnectCheckbox_CheckedChanged()
+        * Description :   auto start video checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void autoStartVideoOnConnectCheckbox_CheckedChanged(object sender, EventArgs e)
+        {            
+            if (autoStartVideoOnConnectCheckbox.Checked)
+                Settings.Instance["auto_start_video_on_connect"] = "true";
+            else
+                Settings.Instance["auto_start_video_on_connect"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      enableAdaptiveJitterCancelCheckbox_CheckedChanged()
+        * Description :   enable AJC checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void enableAdaptiveJitterCancelCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (enableAdaptiveJitterCancelCheckbox.Checked)
+                Settings.Instance["enable_ajc"] = "true";
+            else
+                Settings.Instance["enable_ajc"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      autoConnectOnStartUpCheckbox_CheckedChanged()
+        * Description :   auto connect on startup checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void autoConnectOnStartUpCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (autoConnectOnStartUpCheckbox.Checked)
+                Settings.Instance["auto_connect"] = "true";
+            else
+                Settings.Instance["auto_connect"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      fullScreenHUDCheckbox_CheckedChanged()
+        * Description :   full screen hud checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void fullScreenHUDCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (fullScreenHUDCheckbox.Checked)
+                Settings.Instance["hud_full_screen"] = "true";
+            else
+                Settings.Instance["hud_full_screen"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxGroundCrossTarget_CheckedChanged()
+        * Description :   display ground cross target checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxGroundCrossTarget_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxGroundCrossTarget.Checked)
+                Settings.Instance["enable_gndcrs_target"] = "true";
+            else
+                Settings.Instance["enable_gndcrs_target"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxRVTDisplay_CheckedChanged()
+        * Description :   display RVT on the map checkbox checked event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxRVTDisplay_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxRVTDisplay.Checked)
+                Settings.Instance["enable_RVT_display"] = "true";
+            else
+                Settings.Instance["enable_RVT_display"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      BUT_CamJoystick_Click()
+        * Description :   camera joystick setup button click event handler
+        *
+        ****************************************************************************************************************************/
+        private void BUT_CamJoystick_Click(object sender, EventArgs e)
+        {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            Form camjoy = new CamJoystickSetup();
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            ThemeManager.ApplyThemeTo(camjoy);
+            camjoy.Show();
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxEnableAutoFlightModes_CheckedChanged()
+        * Description :   enable auto flight modes checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxEnableAutoFlightModes_CheckedChanged(object sender, EventArgs e)
+        {
+            FlightData.flightModesGrpBox.Visible = checkBoxEnableAutoFlightModes.Checked;
+            if (checkBoxEnableAutoFlightModes.Checked)
+                Settings.Instance["enable_auto_flight_modes"] = "true";
+            else
+                Settings.Instance["enable_auto_flight_modes"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxEnableObjectDetectionControl_CheckedChanged()
+        * Description :   enable object detection control checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxEnableObjectDetectionControl_CheckedChanged(object sender, EventArgs e)
+        {
+            FlightData.objectDetectionControlGrpBox.Visible = checkBoxEnableObjectDetectionControl.Checked;
+            if (checkBoxEnableObjectDetectionControl.Checked)
+                Settings.Instance["enable_object_detection_control"] = "true";
+            else
+                Settings.Instance["enable_object_detection_control"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      fullScreenHUD2Checkbox_CheckedChanged()
+        * Description :   enable full screen the secondary HUD checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void fullScreenHUD2Checkbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (fullScreenHUD2Checkbox.Checked)
+                Settings.Instance["hud_full_screen_2"] = "true";
+            else
+                Settings.Instance["hud_full_screen_2"] = "false";
+        }
+
+        /****************************************************************************************************************************
+        *                                                      buttonOrthoPhotoPath_Click()
+        * Description :   browse orthophoto path button click event handler
+        *
+        ****************************************************************************************************************************/
+        private void buttonOrthoPhotoPath_Click(object sender, EventArgs e)
+        {
+            var ofd = new FolderBrowserDialog();
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                textBoxOrthoPhotoPath.Text = ofd.SelectedPath;
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxEnableOGLR_CheckedChanged()
+        * Description :   enable OGLR checkbox checked changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void checkBoxEnableOGLR_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxEnableOGLR.Checked)
+            {
+                if (ValidateOrthophotoPath(textBoxOrthoPhotoPath.Text) && FlightData.LoadOrthoPhoto(textBoxOrthoPhotoPath.Text))
+                {
+                    FlightData.orthophotoGrpBox.Visible = true;
+                    Settings.Instance["oglr_enable"] = "true";
+                }
+                else
+                {
+                    checkBoxEnableOGLR.Checked = false;
+                    FlightData.orthophotoGrpBox.Visible = false;
+                    Settings.Instance["oglr_enable"] = "false";
+                    CustomMessageBox.Show("Invalid Orthophoto Path\nPlease Select a Valid Orthophoto Directory That Contains The ortho.tif And tile.txt Files");
+                }
+            }
+            else
+            {
+                FlightData.orthophotoGrpBox.Visible = false;
+                Settings.Instance["oglr_enable"] = "false";
+            }
+        }
+
+        /****************************************************************************************************************************
+        *                                                      checkBoxEnableOGLR_CheckedChanged()
+        * Description :   orthophoto path text changed changed event handler
+        *
+        ****************************************************************************************************************************/
+        private void textBoxOrthoPhotoPath_TextChanged(object sender, EventArgs e)
+        {
+            string path = textBoxOrthoPhotoPath.Text;
+            if (!string.IsNullOrEmpty(path) && System.IO.Directory.Exists(path))
+                Settings.Instance["orthophoto_path"] = path;
+        }
+
+        /****************************************************************************************************************************
+        *                                                      ValidateOrthophotoPath()
+        * Description :   validates the orthophoto path exists and that the ortophoto files exists
+        *
+        ****************************************************************************************************************************/
+        private bool ValidateOrthophotoPath(string path)
+        {
+            if (!string.IsNullOrEmpty(path) && System.IO.Directory.Exists(path))
+                if (System.IO.File.Exists(path + "\\ortho.tif") && System.IO.File.Exists(path + "\\tile.txt"))
+                    return true;
+
+            return false;
+        }
+
+        private void checkBoxDisplayODOnMap_CheckedChanged(object sender, EventArgs e)
+        {           
+            if (checkBoxDisplayODOnMap.Checked)
+                Settings.Instance["enable_OD_map_display"] = "true";
+            else
+                Settings.Instance["enable_OD_map_display"] = "false";
         }
     }
 }

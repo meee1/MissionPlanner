@@ -407,6 +407,21 @@ namespace MissionPlanner
 
         public static ISpeech Speech;
 
+        /***** NextVision Variables *****/
+        /* RX only legal actions */
+        private static byte[] RxOnlyLegalActions = { (byte)MAVLink.MAV_CMD.DO_SET_ROI_LOCATION, (byte)MAVLink.MAV_CMD.DO_SET_ROI_NONE,
+                                                     (byte)MAVLink.MAV_CMD.DO_MOUNT_CONTROL,(byte)MAVLink.MAV_CMD.DO_DIGICAM_CONTROL,
+                                                     (byte)MAVLink.MAV_CMD.DO_MOUNT_CONFIGURE};
+        /* RX only mode boolean */
+        public bool RxOnlyMode = false;
+
+        private mavlink_command_long_t globalReq;
+
+        private bool doCommandResult = false;
+
+        private bool gotAck = false;
+        /********************************/
+
         ~MAVLinkInterface()
         {
             this.Dispose();
@@ -1311,8 +1326,18 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
 
                 if (BaseStream.IsOpen)
                 {
-                    BaseStream.Write(packet, 0, i);
+                    /* NextVision */
+                    int msgid = packet[5], actionid_idx = 34;
+                    if (packet[0] == MAVLINK_STX)
+                    {
+                        msgid = packet[9] << 16 | packet[8] << 8 | packet[7];
+                        actionid_idx += 4;
+                    }
+                    if (!RxOnlyMode || msgid == (int)MAVLink.MAVLINK_MSG_ID.COMMAND_LONG && RxOnlyLegalActions.Contains(packet[actionid_idx]))
+                        BaseStream.Write(packet, 0, i);
+
                     _bytesSentSubj.OnNext(i);
+                    /* NextVision */
                 }
 
                 try
@@ -1613,6 +1638,10 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
         /// </summary>
         public void getParamList()
         {
+            /* NextVision */
+            if (RxOnlyMode)
+                return;
+
             log.InfoFormat("getParamList {0} {1}", sysidcurrent, compidcurrent);
 
             frmProgressReporter = CreateIProgressReporterDialogue(Strings.GettingParams + " " + sysidcurrent);
@@ -1687,7 +1716,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
             doCommand((byte) sysid, (byte) compid, MAV_CMD.DO_SEND_BANNER, 0, 0, 0, 0, 0, 0, 0,
                 false);
 
-            try
+            /*try
             {
                 if ((MAVlist[sysid,compid].cs.capabilities & (int) MAV_PROTOCOL_CAPABILITY.FTP) > 0)
                 {
@@ -1754,7 +1783,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
             catch (Exception e)
             {
                 log.Error(e);
-            }
+            }*/
 
             UnSubscribeToPacketType(sub2);
             return await getParamListAsync(sysid, compid);
@@ -3283,6 +3312,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
                             loc.id == (ushort) MAV_CMD.DO_DIGICAM_CONFIGURE)
                         {
                             loc.lat = wp.x;
+                            loc.lng = wp.y;
                         }
 
                         log.InfoFormat("getWPint {0} {1} {2} {3} {4} opt {5}", loc.id, loc.p1, loc.alt, loc.lat,
@@ -4710,7 +4740,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
                 }
 
                 // check message length size vs table (mavlink1 explicit size check | mavlink2 allow all, undersize 0 trimmed, and oversize unknown extension)
-                if (!message.ismavlink2 && message.payloadlength != msginfo.minlength)
+                if (!message.ismavlink2 && message.payloadlength != msginfo.minlength/* preventing from mav v2 ext to be thrown */&& message.msgid != (byte)MAVLink.MAVLINK_MSG_ID.V2_EXTENSION)
                 {
                     if (msginfo.length == 0) // pass for unknown packets
                     {
@@ -4825,41 +4855,67 @@ Mission Planner waits for 2 valid heartbeat packets before connecting");
                      message.header == MAVLINK_STX) &&
                     buffer.Length >= message.payloadlength)
                 {
-                    packetSeemValid = true;
-                    // check if we lost pacakets based on seqno
-                    int expectedPacketSeqNo = ((MAVlist[sysid, compid].recvpacketcount + 1) % 0x100);
-
+                    /* NextVision */
+                    bool do_check = true;
+                    ushort action_id = 0;
+                    if (message.msgid == (byte)MAVLink.MAVLINK_MSG_ID.COMMAND_ACK)
                     {
-                        // the second part is to work around a 3dr radio bug sending dup seqno's
-                        if (packetSeqNo != expectedPacketSeqNo && packetSeqNo != MAVlist[sysid, compid].recvpacketcount)
+                        if (message.header == MAVLINK_STX)
                         {
-                            MAVlist[sysid, compid].synclost++; // actual sync loss's
-                            int numLost = 0;
-
-                            if (packetSeqNo < ((MAVlist[sysid, compid].recvpacketcount + 1)))
-                            // recvpacketcount = 255 then   10 < 256 = true if was % 0x100 this would fail
-                            {
-                                numLost = 0x100 - expectedPacketSeqNo + packetSeqNo;
-                            }
-                            else
-                            {
-                                numLost = packetSeqNo - expectedPacketSeqNo;
-                            }
-
-                            MAVlist[sysid, compid].packetslost += numLost;
-                            WhenPacketLost.OnNext(numLost);
-
-                            if (!logreadmode)
-                                log.InfoFormat("mav {2}-{4} seqno {0} exp {3} pkts lost {1}", packetSeqNo, numLost,
-                                    sysid,
-                                    expectedPacketSeqNo, compid);
+                            action_id = BitConverter.ToUInt16(buffer, 10);
                         }
+                        else
+                        {
+                            action_id = BitConverter.ToUInt16(buffer, 6);
+                        }
+                    }
 
-                        MAVlist[sysid, compid].packetsnotlost++;
+                    if (action_id == (ushort)MAVLink.MAV_CMD.DO_SET_ROI_LOCATION
+                        || action_id == (ushort)MAVLink.MAV_CMD.DO_SET_ROI
+                        || action_id == (ushort)MAVLink.MAV_CMD.DO_SET_ROI_NONE
+                        || action_id == (ushort)MAVLink.MAV_CMD.DO_DIGICAM_CONTROL
+                        || action_id == (ushort)MAVLink.MAV_CMD.DO_MOUNT_CONTROL
+                        || action_id == (ushort)MAVLink.MAV_CMD.DO_MOUNT_CONFIGURE)
+                        do_check = false;
 
-                        //Console.WriteLine("{0} {1}", sysid, packetSeqNo);
+                    if (do_check)/* NextVision */
+                    {
+                        packetSeemValid = true;
+                        // check if we lost pacakets based on seqno
+                        int expectedPacketSeqNo = ((MAVlist[sysid, compid].recvpacketcount + 1) % 0x100);
 
-                        MAVlist[sysid, compid].recvpacketcount = packetSeqNo;
+                        {
+                            // the second part is to work around a 3dr radio bug sending dup seqno's
+                            if (packetSeqNo != expectedPacketSeqNo && packetSeqNo != MAVlist[sysid, compid].recvpacketcount)
+                            {
+                                MAVlist[sysid, compid].synclost++; // actual sync loss's
+                                int numLost = 0;
+
+                                if (packetSeqNo < ((MAVlist[sysid, compid].recvpacketcount + 1)))
+                                // recvpacketcount = 255 then   10 < 256 = true if was % 0x100 this would fail
+                                {
+                                    numLost = 0x100 - expectedPacketSeqNo + packetSeqNo;
+                                }
+                                else
+                                {
+                                    numLost = packetSeqNo - expectedPacketSeqNo;
+                                }
+
+                                MAVlist[sysid, compid].packetslost += numLost;
+                                WhenPacketLost.OnNext(numLost);
+
+                                if (!logreadmode)
+                                    log.InfoFormat("mav {2}-{4} seqno {0} exp {3} pkts lost {1}", packetSeqNo, numLost,
+                                        sysid,
+                                        expectedPacketSeqNo, compid);
+                            }
+
+                            MAVlist[sysid, compid].packetsnotlost++;
+
+                            //Console.WriteLine("{0} {1}", sysid, packetSeqNo);
+
+                            MAVlist[sysid, compid].recvpacketcount = packetSeqNo;
+                        }
                     }
                     WhenPacketReceived.OnNext(1);
 

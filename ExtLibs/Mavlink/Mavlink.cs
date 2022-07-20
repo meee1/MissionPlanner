@@ -217,7 +217,11 @@ public partial class MAVLink
         new message_info(245, "EXTENDED_SYS_STATE", 130, 2, 2, typeof( mavlink_extended_sys_state_t )),
         new message_info(246, "ADSB_VEHICLE", 184, 38, 38, typeof( mavlink_adsb_vehicle_t )),
         new message_info(247, "COLLISION", 81, 19, 19, typeof( mavlink_collision_t )),
-        new message_info(248, "V2_EXTENSION", 8, 254, 254, typeof( mavlink_v2_extension_t )),
+        //new message_info(248, "V2_EXTENSION", 8, 254, 254, typeof( mavlink_v2_extension_t )),
+        //new message_info(248, "V2_EXTENSION", 8, 254, 254, typeof( mavlink_v2_extension_t )),
+        /* changed to los v2 ext */
+        new message_info(248, "V2_EXTENSION", 8, 18, 18, typeof( mavlink_v2_extension_los_t )),
+        /* ---------------------- */
         new message_info(249, "MEMORY_VECT", 204, 36, 36, typeof( mavlink_memory_vect_t )),
         new message_info(250, "DEBUG_VECT", 49, 30, 30, typeof( mavlink_debug_vect_t )),
         new message_info(251, "NAMED_VALUE_FLOAT", 170, 18, 18, typeof( mavlink_named_value_float_t )),
@@ -22748,5 +22752,187 @@ public partial class MAVLink
         //[FieldOffset(8)]
         public  byte mavlink_version;
     };
+
+    /****************************************************************************************************************************        
+    *                                              NextVision Extension reports         
+    ****************************************************************************************************************************/
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_system_t
+    * Description :   Mavlink extension system report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 61)]
+    public struct mavlink_v2_extension_system_t
+    {
+        public ushort type;
+        public float roll;
+        public float pitch;
+        public float FOV;
+        public byte tracker_status;
+        public byte rec_status;
+        public byte active_sensor;
+        public byte IR_sens_polarity;
+        public byte sys_mode;
+        public byte laser_status;
+        public ushort tracker_roi_x;
+        public ushort tracker_roi_y;
+        public float single_yaw_cmd;
+        public byte snapshot_status;
+        public float cpu_temprature;
+        public float camera_ver;
+        public int trip_ver;
+        public ushort BIT_report;
+        public byte status_flags;
+        public byte camera_type;
+        public float roll_rate;
+        public float pitch_rate;
+        public float cam_temp;
+        public float roll_derot_angle;
+        public byte network_type;
+    };
+
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_gnd_crs_t
+    * Description :   Mavlink extension groung cross report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 18)]
+    public struct mavlink_v2_extension_gnd_crs_t
+    {
+        public ushort type;
+        public float gnd_crs_lat;
+        public float gnd_crs_lon;
+        public float gnd_crs_alt;
+        public float slant_range;
+    };
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_los_t
+    * Description :   Mavlink extension line of sight report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 54)]
+    public struct mavlink_v2_extension_los_t
+    {
+        public ushort type;
+        public float los_312_x;
+        public float los_312_y;
+        public float los_312_z;
+        public float UL_los_corner_lat;
+        public float UL_los_corner_lon;
+        public float UR_los_corner_lat;
+        public float UR_los_corner_lon;
+        public float LR_los_corner_lat;
+        public float LR_los_corner_lon;
+        public float LL_los_corner_lat;
+        public float LL_los_corner_lon;
+        public float los_elevation;
+        public float los_azimuth;
+    };
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_rvt_location_t
+    * Description :   Mavlink extension RVT report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 10)]
+    public struct mavlink_v2_extension_rvt_location_t
+    {
+        public ushort type;
+        public float rvt_lat;
+        public float rvt_lon;
+    };
+
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_sd_card_t
+    * Description :   Mavlink extension SD Card report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 9)]
+    public struct mavlink_v2_extension_sd_card_t
+    {
+        public byte detected;
+        public float total_capacity;
+        public float available_capacity;
+    };
+
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_snapshot_t
+    * Description :   Mavlink extension snapshot report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 48)]
+    public struct mavlink_v2_extension_snapshot_t
+    {
+        public byte[] filename;
+    };
+
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_video_t
+    * Description :   Mavlink extension video report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
+    public struct mavlink_v2_extension_video_t
+    {
+        public ushort stream_bitrate;
+        public ushort record_bitrate;
+    };
+
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_oglr_t
+    * Description :   Mavlink extension object geolocation refinement report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 53)]
+    public struct mavlink_v2_extension_oglr_t
+    {
+        public UInt32 time_since_boot;
+        public UInt64 utc_timestamp;
+        public UInt32 pts_timestamp;
+        public ushort refinedRectX;
+        public ushort refinedRectY;
+        public ushort refinedRectWidth;
+        public ushort refinedRectHeight;
+        public ushort targetRefinedX;
+        public ushort targetRefinedY;
+        public byte valid;
+        public double latitude;
+        public double longitude;
+        public float asl;
+        public float agl;
+    };
+
+    /* Object Detection report structs */
+    /****************************************************************************************************************************
+    *                                                      detection_object_t
+    * Description :   Mavlink extension detection object struct
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 32)]
+    public struct detection_object_t
+    {
+        public ushort classId;
+        public ushort uniqueIdentifier;
+        public float x;
+        public float y;
+        public float width;
+        public float height;
+        public float lat;
+        public float lon;
+        public float alt;
+    }
+
+    /****************************************************************************************************************************
+    *                                                      mavlink_v2_extension_object_detection_t
+    * Description :   Mavlink extension object detection report
+    *
+    ****************************************************************************************************************************/
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 236)]
+    public struct mavlink_v2_extension_object_detection_t
+    {
+        public uint timeSinceBoot;
+        public ulong utcTimeStmap;
+        public detection_object_t[] detections;
+    }
+    /* Object Detection report structs */
 
 }

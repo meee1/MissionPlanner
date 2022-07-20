@@ -50,6 +50,8 @@ using Placemark = SharpKml.Dom.Placemark;
 using Point = System.Drawing.Point;
 using Resources = MissionPlanner.Properties.Resources;
 using Newtonsoft.Json;
+/* NextVision using */
+using MissionPlanner.NvExt;
 
 namespace MissionPlanner.GCSViews
 {
@@ -1169,7 +1171,16 @@ namespace MissionPlanner.GCSViews
                     }
                 }
 
-                cell.Value = TXT_DefaultAlt.Text;
+                /* NextVision - when command is DO_SET_ROI and point is in the ocean, set the ground alt to 0 */
+                //cell.Value = _flightPlanner.TXT_DefaultAlt.Text;
+                if ((Commands.Rows[selectedrow].Cells[0].Value.Equals("DO_SET_ROI")) &&
+                    (srtm.getAltitude(currentMarker.Position.Lat, currentMarker.Position.Lng).currenttype == srtm.tiletype.ocean))
+                {
+                    cell.Value = 0;
+                }
+                else
+                    cell.Value = TXT_DefaultAlt.Text;
+                /**********************************************************************************************/
 
                 float ans;
                 if (float.TryParse(cell.Value.ToString(), out ans))
@@ -6198,6 +6209,20 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             updateUndoBuffer(false);
             setfromMap(MouseDownEnd.Lat, MouseDownEnd.Lng, (int) float.Parse(TXT_DefaultAlt.Text));
 
+            /* NextVision -  */
+            float gndAlt = (float)srtm.getAltitude(MouseDownEnd.Lat, MouseDownEnd.Lng).alt;
+            if (gndAlt != 0)
+                setfromMap(MouseDownEnd.Lat, MouseDownEnd.Lng, (int)gndAlt);
+            else
+            {
+                if (srtm.getAltitude(currentMarker.Position.Lat, currentMarker.Position.Lng).currenttype == srtm.tiletype.invalid)
+                    CustomMessageBox.Show("Warning!\nElevation data at selected ROI point is unknown,\nPlease try again when elevation data is avalible\n or update the elevation data manualy (not recommanded)");
+                int alt = srtm.getAltitude(currentMarker.Position.Lat, currentMarker.Position.Lng).currenttype == srtm.tiletype.ocean ? 0 : (int)float.Parse(TXT_DefaultAlt.Text);
+                setfromMap(MouseDownEnd.Lat, MouseDownEnd.Lng, alt);
+            }
+            //setfromMap(MouseDownEnd.Lat, MouseDownEnd.Lng, (int)float.Parse(TXT_DefaultAlt.Text));
+            /****************/
+
             writeKML();
         }
 
@@ -7261,8 +7286,24 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                         }
                         else
                         {
-                            callMeDrag(CurentRectMarker.InnerMarker.Tag.ToString(), currentMarker.Position.Lat,
+                            /* NextVision */
+                            if (selectedrow < Commands.Rows.Count && selectedrow >= 0 && Commands.Rows[selectedrow].Cells[0].Value.Equals("DO_SET_ROI"))
+                            {
+                                float gndAlt = (float)srtm.getAltitude(currentMarker.Position.Lat, currentMarker.Position.Lng).alt;
+                                if (gndAlt == 0)
+                                {
+                                    if (srtm.getAltitude(currentMarker.Position.Lat, currentMarker.Position.Lng).currenttype == srtm.tiletype.invalid)
+                                        CustomMessageBox.Show("Warning!\nElevation data at selected ROI point is unknown,\nPlease try again when elevation data is avalible\n or update the elevation data manualy (not recommanded)");
+
+                                }
+                                callMeDrag(CurentRectMarker.InnerMarker.Tag.ToString(), currentMarker.Position.Lat,
+                                    currentMarker.Position.Lng, (int)gndAlt);
+                            }
+                            else
+                            {
+                                callMeDrag(CurentRectMarker.InnerMarker.Tag.ToString(), currentMarker.Position.Lat,
                                 currentMarker.Position.Lng, -2);
+                            }
                         }
 
                         CurentRectMarker = null;
@@ -7839,6 +7880,123 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             MainMap.Position = MainV2.comPort.MAV.cs.HomeLocation;
             if (MainMap.Zoom < 17)
                 MainMap.Zoom = 17;
+        }
+
+        /****************************************************************************************************************************
+        *                                               NextVision Addition functions
+        ****************************************************************************************************************************/
+        /****************************************************************************************************************************
+        *                                                      createMappingPlanToolStripMenuItem_Click()
+        * Description : create mapping plan toolstrip click event handler
+        *
+        ****************************************************************************************************************************/
+        private void createMappingPlanToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string RadiusIn = "60";
+            if (DialogResult.Cancel == InputBox.Show("Radius", "Mapping Area Radius", ref RadiusIn))
+                return;
+
+            string HeightIn = "100";
+            if (DialogResult.Cancel == InputBox.Show("Height", "Mapping Height", ref HeightIn))
+                return;
+
+            string Directionin = "1";
+            if (DialogResult.Cancel == InputBox.Show("Points", "Direction of mapping circles (-1 or 1)", ref Directionin))
+                return;
+
+            string startanglein = "0";
+            if (DialogResult.Cancel == InputBox.Show("angle", "Angle of first point of each circle (whole degrees)", ref startanglein))
+                return;
+
+            int Height = 1;
+            int AreaRadius = 0;
+            int Direction = 1;
+            int startangle = 0;
+
+            if (!int.TryParse(RadiusIn, out AreaRadius))
+            {
+                CustomMessageBox.Show("Bad Radius");
+                return;
+            }
+
+            AreaRadius = (int)(AreaRadius / CurrentState.multiplierdist);
+
+            if (!int.TryParse(HeightIn, out Height) || Height <= 0)
+            {
+                CustomMessageBox.Show("Bad Height value");
+                return;
+            }
+
+            int NumCircles = (int)Math.Ceiling((AreaRadius + Height) / (0.6*Height));
+
+            if (!int.TryParse(Directionin, out Direction))
+            {
+                CustomMessageBox.Show("Bad Direction value");
+                return;
+            }
+
+            if (!int.TryParse(startanglein, out startangle))
+            {
+                CustomMessageBox.Show("Bad start angle value");
+                return;
+            }
+
+            quickadd = true;
+            int Radius = 60;
+
+            for(int i = 0; i < NumCircles; i++)
+            {                
+                int NumOfPicturesTemp = (int)(Math.PI * ((double)Radius - (double)Height) / ((double)Height * 0.4 * Math.Sqrt(2d/3d)));
+                int Points = Math.Max(NumOfPicturesTemp, 36);
+                double a = startangle;
+                double step = 360.0f / Points;
+                if (Direction == -1)
+                {
+                    a += 360;
+                    step *= -1;
+                }
+                updateUndoBuffer(false);
+
+                for (; a <= (startangle + 360) && a >= 0; a += step)
+                {
+                    /* add the waypoints */
+                    selectedrow = Commands.Rows.Add();
+
+                    Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.WAYPOINT.ToString();
+
+                    ChangeColumnHeader(MAVLink.MAV_CMD.WAYPOINT.ToString());
+
+                    float d = Radius;
+                    float R = 6371000;
+
+                    var lat2 = Math.Asin(Math.Sin(MouseDownEnd.Lat * MathHelper.deg2rad) * Math.Cos(d / R) +
+                                         Math.Cos(MouseDownEnd.Lat * MathHelper.deg2rad) * Math.Sin(d / R) *
+                                         Math.Cos(a * MathHelper.deg2rad));
+                    var lon2 = MouseDownEnd.Lng * MathHelper.deg2rad +
+                               Math.Atan2(
+                                   Math.Sin(a * MathHelper.deg2rad) * Math.Sin(d / R) *
+                                   Math.Cos(MouseDownEnd.Lat * MathHelper.deg2rad),
+                                   Math.Cos(d / R) - Math.Sin(MouseDownEnd.Lat * MathHelper.deg2rad) * Math.Sin(lat2));
+
+                    PointLatLng pll = new PointLatLng(lat2 * MathHelper.rad2deg, lon2 * MathHelper.rad2deg);
+
+                    setfromMap(pll.Lat, pll.Lng, Height);
+
+                    /* add the snapshots */
+                    selectedrow = Commands.Rows.Add();
+
+                    Commands.Rows[selectedrow].Cells[Command.Index].Value = MAVLink.MAV_CMD.DO_DIGICAM_CONTROL.ToString();
+
+                    ChangeColumnHeader(MAVLink.MAV_CMD.DO_DIGICAM_CONTROL.ToString());
+
+                    Commands.Rows[selectedrow].Cells[1].Value = (float)(NvMavExtCmds.Cmd.TakeSnapShot);
+                }
+
+                Radius += 60;
+            }            
+
+            quickadd = false;
+            writeKML();
         }
     }
 }

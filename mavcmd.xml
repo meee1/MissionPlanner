@@ -256,22 +256,22 @@
       <Z></Z>
     </DO_DIGICAM_CONFIGURE>
     <DO_DIGICAM_CONTROL>
-      <P1>On/Off</P1>
-      <P2>Zoom Position</P2>
-      <P3>Zoom Step</P3>
-      <P4>Focus Lock</P4>
-      <X>Shutter Cmd</X>
-      <Y>CommandID</Y>
-      <Z></Z>
+      <P1>OS_Cmd</P1>
+      <P2>OS_Param_1</P2>
+      <P3>OS_Param_2</P3>
+      <P4>OS_Param_3</P4>
+      <X>OS_Param_4</X>
+      <Y>OS_Param_5</Y>
+      <Z>OS_Param_6</Z>
     </DO_DIGICAM_CONTROL>
     <DO_MOUNT_CONTROL>
-      <P1>Pitch</P1>
-      <P2>Roll</P2>
-      <P3>Yaw</P3>
+      <P1></P1>
+      <P2></P2>
+      <P3></P3>
       <P4></P4>
       <X></X>
       <Y></Y>
-      <Z></Z>
+      <Z>Mount Mode</Z>
     </DO_MOUNT_CONTROL>
     <DO_SPRAYER>
       <P1>Sprayer Enable</P1>
@@ -557,13 +557,13 @@
       <Z></Z>
     </DO_DIGICAM_CONFIGURE>
     <DO_DIGICAM_CONTROL>
-      <P1>On/Off</P1>
-      <P2>Zoom Position</P2>
-      <P3>Zoom Step</P3>
-      <P4>Focus Lock</P4>
-      <X>Shutter Cmd</X>
-      <Y>CommandID</Y>
-      <Z></Z>
+      <P1>OS_Cmd</P1>
+      <P2>OS_Param_1</P2>
+      <P3>OS_Param_2</P3>
+      <P4>OS_Param_3</P4>
+      <X>OS_Param_4</X>
+      <Y>OS_Param_5</Y>
+      <Z>OS_Param_6</Z>
     </DO_DIGICAM_CONTROL>
     <DO_MOUNT_CONFIGURE>
       <P1></P1>
@@ -794,13 +794,13 @@
       <Z></Z>
     </DO_DIGICAM_CONFIGURE>
     <DO_DIGICAM_CONTROL>
-      <P1></P1>
-      <P2></P2>
-      <P3></P3>
-      <P4></P4>
-      <X></X>
-      <Y></Y>
-      <Z></Z>
+      <P1>OS_Cmd</P1>
+      <P2>OS_Param_1</P2>
+      <P3>OS_Param_2</P3>
+      <P4>OS_Param_3</P4>
+      <X>OS_Param_4</X>
+      <Y>OS_Param_5</Y>
+      <Z>OS_Param_6</Z>
     </DO_DIGICAM_CONTROL>
     <DO_MOUNT_CONFIGURE>
       <P1></P1>

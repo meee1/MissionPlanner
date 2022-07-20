@@ -124,7 +124,7 @@ namespace MissionPlanner.Swarm
             threadrun = true;
 
             // make sure leader is high freq updates
-            SwarmInterface.Leader.parent.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, 10, SwarmInterface.Leader.sysid, SwarmInterface.Leader.compid);
+            //SwarmInterface.Leader.parent.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, 10, SwarmInterface.Leader.sysid, SwarmInterface.Leader.compid);
             SwarmInterface.Leader.cs.rateposition = 10;
             SwarmInterface.Leader.cs.rateattitude = 10;
 

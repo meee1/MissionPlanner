@@ -204,7 +204,7 @@ namespace MissionPlanner.Swarm.WaypointLeader
                     {
                         var MAV = drone.MavState;
 
-                        MAV.parent.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, 5, MAV.sysid, MAV.compid);
+                        //MAV.parent.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, 5, MAV.sysid, MAV.compid);
                         MAV.cs.rateposition = 5;
 
                         drone.takeoffdone = false;

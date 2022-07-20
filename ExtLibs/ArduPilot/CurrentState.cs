@@ -177,9 +177,11 @@ namespace MissionPlanner
             // set default telemrates
             rateattitudebackup = 4;
             ratepositionbackup = 2;
-            ratestatusbackup = 2;
-            ratesensorsbackup = 2;
-            ratercbackup = 2;
+            /* NextVision */
+            ratestatusbackup = 1;
+            ratesensorsbackup = 1;
+            ratercbackup = 1;
+            /* NextVision */
             //Init dictionary for storing names for customfields
             custom_field_names = new Dictionary<string, string>();
         }
@@ -1901,6 +1903,16 @@ namespace MissionPlanner
         [DisplayText("Callsign/Flight ID")]
         public byte[] xpdr_flight_id { get; set; }
 
+        /* NextVision */
+        [DisplayText("Camera Temp")]
+        public float cam_temp { get; set; }
+
+        [DisplayText("Ground Cross Lat")]
+        public float gnd_crs_lat { get; set; }
+
+        [DisplayText("Ground Cross Lon")]
+        public float gnd_crs_lon { get; set; }
+        /* NextVision */
 
         public object Clone()
         {
@@ -3757,12 +3769,12 @@ namespace MissionPlanner
                         {
                             mavinterface.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTENDED_STATUS, MAV.cs.ratestatus,
                                 MAV.sysid, MAV.compid); // mode
-                            mavinterface.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, MAV.cs.rateposition,
+                            /*mavinterface.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, MAV.cs.rateposition,
                                 MAV.sysid, MAV.compid); // request gps
                             mavinterface.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTRA1, MAV.cs.rateattitude,
                                 MAV.sysid, MAV.compid); // request attitude
                             mavinterface.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTRA2, MAV.cs.rateattitude,
-                                MAV.sysid, MAV.compid); // request vfr
+                                MAV.sysid, MAV.compid);*/ // request vfr
                             mavinterface.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTRA3, MAV.cs.ratesensors,
                                 MAV.sysid,
                                 MAV.compid); // request extra stuff - tridge

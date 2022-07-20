@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Config>
+  <guid>b9a05bef-8808-44ac-9403-81f0c7d769a8</guid>
+  <terminaltheming>True</terminaltheming>
+  <plane_guid>f55ff5df-c370-4adf-a93d-6fb082690eb4</plane_guid>
+  <copter_guid>7c6a0501-386e-4e09-ba67-5b4ce5423090</copter_guid>
+  <rover_guid>6f99646b-eb8d-479d-8f5f-4952915c2c8a</rover_guid>
+  <groundColorToolStripMenuItem>False</groundColorToolStripMenuItem>
+  <Tuning_Graph_Selected>roll|pitch|nav_roll|nav_pitch|</Tuning_Graph_Selected>
+  <MapType>GoogleSatelliteMap</MapType>
+  <comport>UDP</comport>
+  <_BAUD>115200</_BAUD>
+  <APMFirmware>ArduCopter2</APMFirmware>
+  <menu_autohide>false</menu_autohide>
+  <kindexdate>13/05/2020</kindexdate>
+  <AutoConnect>[
+  {
+    "Label": "Mavlink default port",
+    "Enabled": true,
+    "Port": 14550,
+    "Protocol": 1,
+    "Format": 0,
+    "Direction": 0,
+    "ConfigString": ""
+  },
+  {
+    "Label": "Mavlink alt port",
+    "Enabled": true,
+    "Port": 14551,
+    "Protocol": 1,
+    "Format": 0,
+    "Direction": 0,
+    "ConfigString": ""
+  },
+  {
+    "Label": "Video udp 5000 h264",
+    "Enabled": true,
+    "Port": 5000,
+    "Protocol": 1,
+    "Format": 1,
+    "Direction": 0,
+    "ConfigString": "udpsrc port=5000 buffer-size=90000 ! application/x-rtp ! rtph264depay ! avdec_h264 ! queue leaky=2 ! videoconvert ! video/x-raw,format=BGRA ! appsink name=outsink sync=false"
+  },
+  {
+    "Label": "Video udp 5100 h264",
+    "Enabled": true,
+    "Port": 5100,
+    "Protocol": 1,
+    "Format": 1,
+    "Direction": 0,
+    "ConfigString": "udpsrc port=5100 buffer-size=90000 ! application/x-rtp ! rtph264depay ! avdec_h264 ! queue leaky=2 ! videoconvert ! video/x-raw,format=BGRA ! appsink name=outsink sync=false"
+  },
+  {
+    "Label": "Video udp 5600 h264",
+    "Enabled": true,
+    "Port": 5600,
+    "Protocol": 1,
+    "Format": 1,
+    "Direction": 0,
+    "ConfigString": "udpsrc port=5600 buffer-size=90000 ! application/x-rtp ! rtph264depay ! avdec_h264 ! queue leaky=2 ! videoconvert ! video/x-raw,format=BGRA ! appsink name=outsink sync=false"
+  },
+  {
+    "Label": "Video udp 5601 h265",
+    "Enabled": true,
+    "Port": 5601,
+    "Protocol": 1,
+    "Format": 1,
+    "Direction": 0,
+    "ConfigString": "udpsrc port=5601 buffer-size=90000 ! application/x-rtp ! rtph265depay ! avdec_h265 ! queue leaky=2 ! videoconvert ! video/x-raw,format=BGRA ! appsink name=outsink sync=false"
+  },
+  {
+    "Label": "SkyViper",
+    "Enabled": false,
+    "Port": 554,
+    "Protocol": 0,
+    "Format": 1,
+    "Direction": 1,
+    "ConfigString": "rtspsrc location=rtsp://192.168.99.1/media/stream2 debug=false buffer-mode=1 latency=100 ntp-time-source=3 ! application/x-rtp ! rtph264depay ! queue ! avdec_h264 ! queue leaky=2 ! videoconvert ! video/x-raw,format=BGRA ! appsink name=outsink sync=false"
+  },
+  {
+    "Label": "HereLink",
+    "Enabled": false,
+    "Port": 8554,
+    "Protocol": 0,
+    "Format": 1,
+    "Direction": 1,
+    "ConfigString": "rtspsrc location=rtsp://192.168.43.1:8554/fpv_stream latency=41 udp-reconnect=1 timeout=0 do-retransmission=false ! application/x-rtp ! rtph264depay ! h264parse ! queue ! avdec_h264 ! queue leaky=2 ! videoconvert ! video/x-raw,format=BGRA ! appsink name=outsink sync=false"
+  },
+  {
+    "Label": "Serial",
+    "Enabled": false,
+    "Port": 57600,
+    "Protocol": 2,
+    "Format": 0,
+    "Direction": 1,
+    "ConfigString": ""
+  }
+]</AutoConnect>
+  <kindex>1</kindex>
+  <fw_check>13/05/2020</fw_check>
+  <AACheck2>True</AACheck2>
+  <maplast_lat>32.1273489</maplast_lat>
+  <maplast_lng>77.8149398</maplast_lng>
+  <maplast_zoom>17</maplast_zoom>
+  <displayview>&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;DisplayView xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;displayName&gt;Advanced&lt;/displayName&gt;
+  &lt;displaySimulation&gt;true&lt;/displaySimulation&gt;
+  &lt;displayTerminal&gt;true&lt;/displayTerminal&gt;
+  &lt;displayDonate&gt;true&lt;/displayDonate&gt;
+  &lt;displayHelp&gt;true&lt;/displayHelp&gt;
+  &lt;displayAnenometer&gt;true&lt;/displayAnenometer&gt;
+  &lt;displayQuickTab&gt;true&lt;/displayQuickTab&gt;
+  &lt;displayPreFlightTab&gt;true&lt;/displayPreFlightTab&gt;
+  &lt;displayAdvActionsTab&gt;true&lt;/displayAdvActionsTab&gt;
+  &lt;displaySimpleActionsTab&gt;false&lt;/displaySimpleActionsTab&gt;
+  &lt;displayGaugesTab&gt;true&lt;/displayGaugesTab&gt;
+  &lt;displayStatusTab&gt;true&lt;/displayStatusTab&gt;
+  &lt;displayServoTab&gt;true&lt;/displayServoTab&gt;
+  &lt;displayScriptsTab&gt;true&lt;/displayScriptsTab&gt;
+  &lt;displayTelemetryTab&gt;true&lt;/displayTelemetryTab&gt;
+  &lt;displayDataflashTab&gt;true&lt;/displayDataflashTab&gt;
+  &lt;displayMessagesTab&gt;true&lt;/displayMessagesTab&gt;
+  &lt;displayRallyPointsMenu&gt;true&lt;/displayRallyPointsMenu&gt;
+  &lt;displayGeoFenceMenu&gt;true&lt;/displayGeoFenceMenu&gt;
+  &lt;displaySplineCircleAutoWp&gt;true&lt;/displaySplineCircleAutoWp&gt;
+  &lt;displayTextAutoWp&gt;true&lt;/displayTextAutoWp&gt;
+  &lt;displayCircleSurveyAutoWp&gt;true&lt;/displayCircleSurveyAutoWp&gt;
+  &lt;displayPoiMenu&gt;true&lt;/displayPoiMenu&gt;
+  &lt;displayTrackerHomeMenu&gt;true&lt;/displayTrackerHomeMenu&gt;
+  &lt;displayCheckHeightBox&gt;true&lt;/displayCheckHeightBox&gt;
+  &lt;displayPluginAutoWp&gt;true&lt;/displayPluginAutoWp&gt;
+  &lt;displayInstallFirmware&gt;true&lt;/displayInstallFirmware&gt;
+  &lt;displayWizard&gt;true&lt;/displayWizard&gt;
+  &lt;displayFrameType&gt;true&lt;/displayFrameType&gt;
+  &lt;displayAccelCalibration&gt;true&lt;/displayAccelCalibration&gt;
+  &lt;displayCompassConfiguration&gt;true&lt;/displayCompassConfiguration&gt;
+  &lt;displayRadioCalibration&gt;true&lt;/displayRadioCalibration&gt;
+  &lt;displayEscCalibration&gt;true&lt;/displayEscCalibration&gt;
+  &lt;displayFlightModes&gt;true&lt;/displayFlightModes&gt;
+  &lt;displayFailSafe&gt;true&lt;/displayFailSafe&gt;
+  &lt;displaySikRadio&gt;true&lt;/displaySikRadio&gt;
+  &lt;displayBattMonitor&gt;true&lt;/displayBattMonitor&gt;
+  &lt;displayCAN&gt;true&lt;/displayCAN&gt;
+  &lt;displayCompassMotorCalib&gt;true&lt;/displayCompassMotorCalib&gt;
+  &lt;displayRangeFinder&gt;true&lt;/displayRangeFinder&gt;
+  &lt;displayAirSpeed&gt;true&lt;/displayAirSpeed&gt;
+  &lt;displayPx4Flow&gt;true&lt;/displayPx4Flow&gt;
+  &lt;displayOpticalFlow&gt;true&lt;/displayOpticalFlow&gt;
+  &lt;displayOsd&gt;true&lt;/displayOsd&gt;
+  &lt;displayCameraGimbal&gt;true&lt;/displayCameraGimbal&gt;
+  &lt;displayMotorTest&gt;true&lt;/displayMotorTest&gt;
+  &lt;displayBluetooth&gt;true&lt;/displayBluetooth&gt;
+  &lt;displayParachute&gt;true&lt;/displayParachute&gt;
+  &lt;displayEsp&gt;true&lt;/displayEsp&gt;
+  &lt;displayAntennaTracker&gt;true&lt;/displayAntennaTracker&gt;
+  &lt;displayBasicTuning&gt;true&lt;/displayBasicTuning&gt;
+  &lt;displayExtendedTuning&gt;true&lt;/displayExtendedTuning&gt;
+  &lt;displayStandardParams&gt;true&lt;/displayStandardParams&gt;
+  &lt;displayAdvancedParams&gt;true&lt;/displayAdvancedParams&gt;
+  &lt;displayFullParamList&gt;true&lt;/displayFullParamList&gt;
+  &lt;displayFullParamTree&gt;true&lt;/displayFullParamTree&gt;
+  &lt;displayParamCommitButton&gt;false&lt;/displayParamCommitButton&gt;
+  &lt;displayBaudCMB&gt;true&lt;/displayBaudCMB&gt;
+  &lt;displaySerialPortCMB&gt;true&lt;/displaySerialPortCMB&gt;
+  &lt;standardFlightModesOnly&gt;false&lt;/standardFlightModesOnly&gt;
+  &lt;autoHideMenuForce&gt;false&lt;/autoHideMenuForce&gt;
+  &lt;isAdvancedMode&gt;true&lt;/isAdvancedMode&gt;
+&lt;/DisplayView&gt;</displayview>
+  <CHK_hudshow>false</CHK_hudshow>
+  <auto_start_video_on_connect>true</auto_start_video_on_connect>
+  <enable_auto_flight_modes>false</enable_auto_flight_modes>
+  <enable_object_detection_control>false</enable_object_detection_control>
+  <local_position_pitch>0</local_position_pitch>
+  <local_position_roll>0</local_position_roll>
+  <global_position_elevation>0</global_position_elevation>
+  <global_position_azimuth>0</global_position_azimuth>
+  <MainHeight>1056</MainHeight>
+  <MainWidth>1936</MainWidth>
+  <MainMaximised>Maximized</MainMaximised>
+  <MainLocX>-8</MainLocX>
+  <MainLocY>-8</MainLocY>
+  <FlightSplitter>617</FlightSplitter>
+  <UDP_BAUD>115200</UDP_BAUD>
+  <joystick_name>QUINOX USB GAMEPAD</joystick_name>
+  <cam_joystick_name>QUINOX USB GAMEPAD</cam_joystick_name>
+  <UDP_port>10024</UDP_port>
+  <joystickDZ>0</joystickDZ>
+  <joystickGain>100</joystickGain>
+  <video_ip>225.1.2.3</video_ip>
+  <video_port>11024</video_port>
+  <quickViewRows>3</quickViewRows>
+  <quickViewCols>2</quickViewCols>
+</Config>
