@@ -53,7 +53,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             {
                 CMB_Layout.SelectedIndex = 0;
             }
-
+            
             if (!MainV2.DisplayConfiguration.displayPlannerLayout)
             {
                 label5.Visible = false;
@@ -940,6 +940,8 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void CMB_Layout_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (startup)
+                return;
             if ((DisplayNames)CMB_Layout.SelectedItem == DisplayNames.Advanced)
             {
                 MainV2.DisplayConfiguration = MainV2.DisplayConfiguration.Advanced();

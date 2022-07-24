@@ -203,7 +203,7 @@ namespace MissionPlanner.Utilities
 
             using (TextReader reader = new StringReader(value))
             {
-                if (!value.StartsWith("{"))
+                if (!value.TrimStart().StartsWith("{"))
                 {
                     try
                     {
@@ -215,6 +215,7 @@ namespace MissionPlanner.Utilities
                         return false;
                     }
                 }
+
 
                 try
                 {

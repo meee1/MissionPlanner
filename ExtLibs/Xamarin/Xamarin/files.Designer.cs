@@ -233,7 +233,40 @@ namespace MissionPlanner {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to {
+        ///  &quot;displayGPSOrder&quot;: false,
+        ///  &quot;displayHWIDs&quot;: false,
+        ///  &quot;displayADSB&quot;: false,
+        ///  &quot;displayName&quot;: 1,
+        ///  &quot;displaySimulation&quot;: true,
+        ///  &quot;displayTerminal&quot;: false,
+        ///  &quot;displayDonate&quot;: false,
+        ///  &quot;displayHelp&quot;: false,
+        ///  &quot;displayAnenometer&quot;: true,
+        ///  &quot;displayQuickTab&quot;: true,
+        ///  &quot;displayPreFlightTab&quot;: true,
+        ///  &quot;displayAdvActionsTab&quot;: false,
+        ///  &quot;displaySimpleActionsTab&quot;: false,
+        ///  &quot;displayGaugesTab&quot;: true,
+        ///  &quot;displayStatusTab&quot;: true,
+        ///  &quot;displayServoTab&quot;: false,
+        ///  &quot;displayScriptsTab&quot;: true,
+        ///  &quot;displayTelemetry [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string custom {
+            get {
+                return ResourceManager.GetString("custom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;Config&gt;
+        ///	&lt;quickView3&gt;verticalspeed&lt;/quickView3&gt;
+        ///	&lt;quickView4&gt;battery_voltage&lt;/quickView4&gt;
+        ///	&lt;quickView5&gt;current&lt;/quickView5&gt;
+        ///	&lt;quickView6&gt;battery_remaining&lt;/quickView6&gt;
+        ///&lt;/Config&gt;.
         /// </summary>
         public static string custom_config {
             get {

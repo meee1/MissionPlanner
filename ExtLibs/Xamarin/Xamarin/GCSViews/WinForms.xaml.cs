@@ -270,6 +270,9 @@ namespace Xamarin.GCSViews
                 File.WriteAllText(Settings.GetUserDataDirectory() + Path.DirectorySeparatorChar + "custom.config.xml",
                     files.custom_config);
 
+                File.WriteAllText(Settings.GetUserDataDirectory() + Path.DirectorySeparatorChar + "custom.displayview",
+                    files.custom);
+
                 File.WriteAllText(
                     Settings.GetUserDataDirectory() + Path.DirectorySeparatorChar + "BurntKermit.mpsystheme",
                     files.BurntKermit);
