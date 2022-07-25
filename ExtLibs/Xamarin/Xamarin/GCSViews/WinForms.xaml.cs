@@ -272,6 +272,9 @@ namespace Xamarin.GCSViews
 
                 File.WriteAllText(Settings.GetUserDataDirectory() + Path.DirectorySeparatorChar + "custom.displayview",
                     files.custom);
+                
+                File.WriteAllText(Settings.GetUserDataDirectory() + Path.DirectorySeparatorChar + "eunfz.json",
+                    files.eunfz);
 
                 File.WriteAllText(
                     Settings.GetUserDataDirectory() + Path.DirectorySeparatorChar + "BurntKermit.mpsystheme",

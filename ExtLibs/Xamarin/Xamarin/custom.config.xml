@@ -4,4 +4,6 @@
 	<quickView4>battery_voltage</quickView4>
 	<quickView5>current</quickView5>
 	<quickView6>battery_remaining</quickView6>
+	<eunfzforceshow>true</eunfzforceshow>
+	<eunfzshowask>true</eunfzshowask>
 </Config>

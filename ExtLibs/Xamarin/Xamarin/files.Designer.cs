@@ -237,7 +237,7 @@ namespace MissionPlanner {
         ///  &quot;displayGPSOrder&quot;: false,
         ///  &quot;displayHWIDs&quot;: false,
         ///  &quot;displayADSB&quot;: false,
-        ///  &quot;displayName&quot;: 1,
+        ///  &quot;displayName&quot;: 2,
         ///  &quot;displaySimulation&quot;: true,
         ///  &quot;displayTerminal&quot;: false,
         ///  &quot;displayDonate&quot;: false,
@@ -347,6 +347,32 @@ namespace MissionPlanner {
         public static string ekfGraphs {
             get {
                 return ResourceManager.GetString("ekfGraphs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 
+        ///{
+        ///	&quot;title&quot; : &quot;UASZoneVersion 2022-01-27&quot;,
+        ///	&quot;description&quot; : &quot;&quot;,
+        ///	&quot;features&quot; : [
+        ///		{
+        ///			&quot;identifier&quot; : &quot;1&quot;,
+        ///			&quot;country&quot; : &quot;REU&quot;,
+        ///			&quot;name&quot; : &quot;[FM][D 1]&quot;,
+        ///			&quot;type&quot; : &quot;COMMON&quot;,
+        ///			&quot;restriction&quot; : &quot;PROHIBITED&quot;,
+        ///			&quot;restrictionConditions&quot; : &quot;&quot;,
+        ///			&quot;region&quot; : 931,
+        ///			&quot;reason&quot; : [ &quot;OTHER&quot; ],
+        ///			&quot;otherReasonInfo&quot; : &quot;Zone dangereuse&quot;,
+        ///			&quot;regulationExemption&quot; : &quot;&quot;,
+        ///			&quot;uSpaceClass&quot; : &quot;&quot;,
+        ///			&quot;message&quot; : &quot;Vols interdits sauf lorsque la publication d&apos;information aéronautique l&apos;autorise explicitement  [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string eunfz {
+            get {
+                return ResourceManager.GetString("eunfz", resourceCulture);
             }
         }
         
