@@ -90,7 +90,15 @@ namespace MissionPlanner
         [STAThread]
         public static void Main(string[] args)
         {
-            Start(args);
+            var files = Directory.GetFiles("C:\\testphotos\\Flight 4", "*.jpg");
+
+            files.PrevNowNext().ForEach(f =>
+            {
+                if (f.Item3 == null)
+                    return;
+                ImageMatch.Match(f.Item2, f.Item3);
+            });
+            //Start(args);
         }
 
         public static async void TraceMe(bool start = true)
