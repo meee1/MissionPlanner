@@ -530,6 +530,27 @@ namespace MissionPlanner.GCSViews
             }
 
             hud1.doResize();
+
+            foreach (MainSwitcher.Screen sc in MainV2.View.screens)
+            {
+                if (sc.Name == "FlightPlanner")
+                {
+                    splitContainer1.Panel1.Controls.Add(sc.Control);
+                    ThemeManager.ApplyThemeTo(sc.Control);
+                    ThemeManager.ApplyThemeTo(this);
+
+                    sc.Control.Dock = DockStyle.Fill;
+                    sc.Control.Visible = true;
+                    sc.Control.BringToFront();
+
+                    if (sc.Control is IActivate)
+                    {
+                        ((IActivate)(sc.Control)).Activate();
+                    }
+
+                    break;
+                }
+            }
         }
 
         public void BUT_playlog_Click(object sender, EventArgs e)
@@ -2612,7 +2633,7 @@ namespace MissionPlanner.GCSViews
 
             prop = new Propagation(gMapControl1);
 
-            splitContainer1.Panel1Collapsed = true;
+            //splitContainer1.Panel1Collapsed = true;
 
             try
             {
@@ -4968,7 +4989,7 @@ namespace MissionPlanner.GCSViews
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Messagetabtimer.Stop();
+            Messagetabtimer.Start();
 
             if (tabControlactions.SelectedTab == tabStatus)
             {
@@ -4978,10 +4999,10 @@ namespace MissionPlanner.GCSViews
                 tabStatus.Visible = true;
                 tabControlactions.Visible = true;
             }
-            else if (tabControlactions.SelectedTab == tabPagemessages)
-            {
-                Messagetabtimer.Start();
-            }
+            //else if (tabControlactions.SelectedTab == tabPagemessages)
+           // {
+           //     Messagetabtimer.Start();
+           // }
             else
             {
                 // foreach (Control temp in tabStatus.Controls)
