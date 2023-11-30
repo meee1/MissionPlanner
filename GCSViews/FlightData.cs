@@ -5270,6 +5270,9 @@ namespace MissionPlanner.GCSViews
                         bindingSourceHud.UpdateDataSource(MainV2.comPort.MAV.cs));
                     //Console.WriteLine("DONE ");
 
+                    MainV2.comPort.MAV.cs.UpdateCurrentSettings(
+                        bindingSourceQuickTab.UpdateDataSource(MainV2.comPort.MAV.cs));
+
                     if (tabControlactions.SelectedTab == tabStatus)
                     {
                         MainV2.comPort.MAV.cs.UpdateCurrentSettings(
