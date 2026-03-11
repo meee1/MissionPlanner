@@ -341,7 +341,7 @@ namespace System.Drawing
 
         public void DrawLine(Pen pen, float x1,float y1,float x2,float y2)
         {
-            var p1 = TxPoint(x1,y1), p2 = TxPoint(x2,y2);
+            PointF p1 = TxPoint(x1,y1), p2 = TxPoint(x2,y2);
             DrawLineImpl((int)p1.X,(int)p1.Y,(int)p2.X,(int)p2.Y, pen.Color, pen.Width);
         }
         public void DrawLine(Pen pen, int x1,int y1,int x2,int y2) => DrawLine(pen,(float)x1,(float)y1,(float)x2,(float)y2);
@@ -703,8 +703,8 @@ namespace System.Drawing
         {
             float d1=DistPtLine(p0,p3,p1), d2=DistPtLine(p0,p3,p2);
             if (d1<flatness&&d2<flatness) { out_.Add(p3); return; }
-            var m01=Mid(p0,p1),m12=Mid(p1,p2),m23=Mid(p2,p3);
-            var m012=Mid(m01,m12),m123=Mid(m12,m23),m=Mid(m012,m123);
+            PointF m01=Mid(p0,p1),m12=Mid(p1,p2),m23=Mid(p2,p3);
+            PointF m012=Mid(m01,m12),m123=Mid(m12,m23),m=Mid(m012,m123);
             BezierSubdivide(p0,m01,m012,m,flatness,out_);
             BezierSubdivide(m,m123,m23,p3,flatness,out_);
         }
@@ -718,7 +718,7 @@ namespace System.Drawing
             var out_=new List<PointF>(); out_.Add(pts[0]);
             for (int i=0;i<pts.Length-1;i++)
             {
-                var p0=pts[Math.Max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.Min(pts.Length-1,i+2)];
+                PointF p0=pts[Math.Max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.Min(pts.Length-1,i+2)];
                 var c1=new PointF(p1.X+tension*(p2.X-p0.X)/3f,p1.Y+tension*(p2.Y-p0.Y)/3f);
                 var c2=new PointF(p2.X-tension*(p3.X-p1.X)/3f,p2.Y-tension*(p3.Y-p1.Y)/3f);
                 out_.AddRange(BezierFlatten(p1,c1,c2,p2));
