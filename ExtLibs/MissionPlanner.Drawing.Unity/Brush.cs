@@ -68,7 +68,7 @@ namespace System.Drawing
         {
             float dx = _pt2.X - _pt1.X, dy = _pt2.Y - _pt1.Y;
             float len = MathF.Sqrt(dx*dx+dy*dy);
-            float t   = len < 0.0001f ? 0f : Math.Clamp(((x-_pt1.X)*dx+(y-_pt1.Y)*dy)/(len*len), 0f, 1f);
+            float t   = len < 0.0001f ? 0f : MathCompat.Clamp(((x-_pt1.X)*dx+(y-_pt1.Y)*dy)/(len*len), 0f, 1f);
             return BlendColor(_c1, _c2, t);
         }
         private static Color BlendColor(Color a, Color b, float t)
