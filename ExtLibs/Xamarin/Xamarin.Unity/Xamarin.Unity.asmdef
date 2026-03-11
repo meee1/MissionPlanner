@@ -1,0 +1,21 @@
+{
+    "name": "Xamarin.Unity",
+    "rootNamespace": "Xamarin.Unity",
+    "references": [
+        "Unity.ugui",
+        "MissionPlanner.Drawing.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "MissionPlannerLib.dll",
+        "MissionPlanner.Drawing.Unity.dll",
+        "SkiaSharp.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
