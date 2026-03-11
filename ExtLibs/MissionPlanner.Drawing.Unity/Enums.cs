@@ -43,7 +43,6 @@ namespace System.Drawing
     public enum HotkeyPrefix   { None, Show, Hide }
     public enum FontStyle      { Regular = 0, Bold = 1, Italic = 2, Underline = 4, Strikeout = 8 }
     public enum ImageLayout    { None, Tile, Center, Stretch, Zoom }
-    public enum ImageLockMode  { ReadOnly = 1, WriteOnly = 2, ReadWrite = 3, UserInputBuffer = 4 }
     public enum GraphicsState  { }
 }
 

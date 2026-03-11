@@ -146,7 +146,6 @@ namespace System.Drawing.Drawing2D
             }
             _points.Clear(); _points.AddRange(newPts);
             _types.Clear();  _types.AddRange(newTypes);
-            matrix?.TransformPoints(_points.ToArray().AsSpan() is var sp ? _points.ToArray() : Array.Empty<PointF>());
             if (matrix != null) { var arr = _points.ToArray(); matrix.TransformPoints(arr); _points.Clear(); _points.AddRange(arr); }
         }
 
