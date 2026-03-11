@@ -31,14 +31,7 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Interfaces\Interfaces.csproj" />
-    <!-- Reuse the platform-independent types from the base Drawing project -->
-    <ProjectReference Include="..\MissionPlanner.Drawing\MissionPlanner.Drawing.csproj" />
-  </ItemGroup>
+  <!-- All System.Drawing types are self-contained in this project.
+       No SkiaSharp, no MissionPlanner.Drawing dependency. -->
 
 </Project>
