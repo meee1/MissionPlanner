@@ -9,12 +9,12 @@
 //   FormsAppCompatActivity             UnityMain (MonoBehaviour)
 //   Xamarin.Forms.Application          UnityApp
 //   ContentPage / StackLayout          UnityFormHost   ← this file
-//   SKCanvasView (SkiaSharp)           UnityControlRenderer (per control)
+//   Custom drawn view                  UnityControlRenderer (per control)
 //   Android View system                Unity Canvas / RectTransform
 //
 // Each System.Windows.Forms.Control gets a corresponding UnityControlRenderer
 // that owns a child GameObject with a RawImage component.  Paint events drive
-// SkiaSharp into a per-control Texture2D that is uploaded each frame.
+// System.Drawing into a per-control Texture2D that is uploaded each frame.
 
 using System;
 using System.Collections.Generic;

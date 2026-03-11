@@ -1,13 +1,15 @@
 // UnityBitmap.cs
-// Utility helpers that convert between System.Drawing.Bitmap (SkiaSharp-backed)
-// and Unity Texture2D.
+// Utility helpers that convert between System.Drawing.Bitmap and Unity Texture2D.
+//
+// Uses only System.Drawing.Imaging types (LockBits / BitmapData) to read and
+// write pixel data — no SkiaSharp types are referenced directly.
 //
 // Compiles with or without UnityEngine present.
 
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using SkiaSharp;
+using System.Runtime.InteropServices;
 
 #if UNITY_ENGINE_PRESENT
 using UnityEngine;
@@ -17,7 +19,7 @@ namespace MissionPlanner.Drawing.Unity
 {
     /// <summary>
     /// Converts between <see cref="System.Drawing.Bitmap"/> and Unity
-    /// <c>Texture2D</c>/<c>Sprite</c>.
+    /// <c>Texture2D</c> / <c>Sprite</c>.
     /// </summary>
     public static class UnityBitmapConverter
     {
@@ -28,7 +30,7 @@ namespace MissionPlanner.Drawing.Unity
 #if UNITY_ENGINE_PRESENT
         /// <summary>
         /// Uploads a <see cref="Bitmap"/>'s pixels to a new Unity
-        /// <c>Texture2D</c> using BGRA32 format.
+        /// <c>Texture2D</c> (BGRA32 format).
         /// </summary>
         public static Texture2D ToTexture2D(Bitmap bitmap)
         {
@@ -37,12 +39,9 @@ namespace MissionPlanner.Drawing.Unity
             int w = bitmap.Width;
             int h = bitmap.Height;
 
+            var raw = ReadRawPixels(bitmap);
+
             var tex = new Texture2D(w, h, TextureFormat.BGRA32, false);
-
-            var skBitmap = bitmap.nativeSkBitmap;
-            byte[] raw = new byte[w * h * 4];
-            System.Runtime.InteropServices.Marshal.Copy(skBitmap.GetPixels(), raw, 0, raw.Length);
-
             tex.LoadRawTextureData(raw);
             tex.Apply(false, false);
             return tex;
@@ -67,44 +66,53 @@ namespace MissionPlanner.Drawing.Unity
         /// <summary>
         /// Downloads a Unity <c>Texture2D</c>'s pixels into a new
         /// <see cref="Bitmap"/>.
+        /// The texture must be readable (Read/Write enabled in import settings).
         /// </summary>
         public static Bitmap ToBitmap(Texture2D texture)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
-            // GetRawTextureData works for readable textures.
-            byte[] raw = texture.GetRawTextureData();
-            int w = texture.width;
-            int h = texture.height;
+            // GetRawTextureData returns rows in bottom-up order on most Unity
+            // platforms; flip so WinForms (top-down) reads correctly.
+            byte[] raw     = texture.GetRawTextureData();
+            int    w       = texture.width;
+            int    h       = texture.height;
+            byte[] flipped = FlipVertical(raw, w, h, bytesPerPixel: 4);
 
-            // Unity stores texture rows bottom-up; flip vertically.
-            byte[] flipped = FlipVertical(raw, w, h, 4);
-
-            var info = new SKImageInfo(w, h, SKColorType.Bgra8888, SKAlphaType.Premul);
-            var skBmp = new SKBitmap();
-            unsafe
-            {
-                fixed (byte* p = flipped)
-                {
-                    skBmp.InstallPixels(info, (IntPtr)p);
-                }
-            }
-
-            // Deep-copy so the fixed buffer can be released.
-            var result = new Bitmap(w, h);
-            result.nativeSkBitmap = skBmp.Copy();
-            return result;
+            // Create a Bitmap and write the flipped pixels in via LockBits.
+            var bmp     = new Bitmap(w, h);
+            var rect    = new Rectangle(0, 0, w, h);
+            var bmpData = bmp.LockBits(rect, ImageLockMode.WriteOnly,
+                                       PixelFormat.Format32bppArgb);
+            Marshal.Copy(flipped, 0, bmpData.Scan0, flipped.Length);
+            bmp.UnlockBits(bmpData);
+            return bmp;
         }
 #endif
 
         // ------------------------------------------------------------------ //
-        //  Helpers                                                             //
+        //  Internal helpers                                                    //
         // ------------------------------------------------------------------ //
 
-        private static byte[] FlipVertical(byte[] src, int width, int height, int bpp)
+        /// <summary>
+        /// Reads the raw BGRA32 pixel bytes from a <see cref="Bitmap"/> via
+        /// <c>LockBits</c> — no SkiaSharp types required.
+        /// </summary>
+        internal static byte[] ReadRawPixels(Bitmap bitmap)
         {
-            int stride = width * bpp;
-            byte[] dst = new byte[src.Length];
+            var rect    = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            var bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly,
+                                          PixelFormat.Format32bppArgb);
+            var buf = new byte[bmpData.Stride * bitmap.Height];
+            Marshal.Copy(bmpData.Scan0, buf, 0, buf.Length);
+            bitmap.UnlockBits(bmpData);
+            return buf;
+        }
+
+        private static byte[] FlipVertical(byte[] src, int width, int height, int bytesPerPixel)
+        {
+            int stride = width * bytesPerPixel;
+            var dst    = new byte[src.Length];
             for (int row = 0; row < height; row++)
             {
                 int srcRow = (height - 1 - row) * stride;

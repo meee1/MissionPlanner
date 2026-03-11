@@ -11,8 +11,7 @@
     "overrideReferences": false,
     "precompiledReferences": [
         "MissionPlannerLib.dll",
-        "MissionPlanner.Drawing.Unity.dll",
-        "SkiaSharp.dll"
+        "MissionPlanner.Drawing.Unity.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

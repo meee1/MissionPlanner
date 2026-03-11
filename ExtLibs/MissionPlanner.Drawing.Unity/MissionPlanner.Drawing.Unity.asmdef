@@ -7,8 +7,7 @@
     "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [
-        "MissionPlanner.Drawing.dll",
-        "SkiaSharp.dll"
+        "MissionPlanner.Drawing.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

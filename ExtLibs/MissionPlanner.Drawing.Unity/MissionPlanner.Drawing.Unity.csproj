@@ -31,10 +31,7 @@
     </Reference>
   </ItemGroup>
 
-  <!-- SkiaSharp is used to perform actual 2-D drawing into a byte buffer;
-       the buffer is then uploaded to a Unity Texture2D each frame. -->
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
   </ItemGroup>
 

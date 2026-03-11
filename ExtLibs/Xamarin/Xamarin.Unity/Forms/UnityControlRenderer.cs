@@ -3,13 +3,13 @@
 //
 // Each renderer:
 //   • Creates a child GameObject with a RectTransform sized to the control.
-//   • Owns a UnityGraphicsSurface (SkiaSharp → Texture2D).
+//   • Owns a UnityGraphicsSurface (Bitmap → LockBits → Texture2D).
 //   • Subscribes to Control.Paint / Invalidated events and marks itself dirty.
 //   • Each frame (via Tick → FlushTexture) the dirty surface is uploaded to the GPU.
 //   • Maps Unity pointer events back to WinForms MouseEventArgs.
 //
-// This is analogous to how Xamarin.Android's MySKCanvasView wraps a SkiaSharp
-// SKCanvasView and a Xamarin.Forms.View into an Android native view.
+// This is analogous to how Xamarin.Android's MySKCanvasView wraps a canvas view
+// and a Xamarin.Forms.View into an Android native view.
 
 using System;
 using System.Drawing;
@@ -103,7 +103,7 @@ namespace Xamarin.Unity.Forms
         //  Per-frame                                                           //
         // ------------------------------------------------------------------ //
 
-        /// <summary>Forces a repaint of this control into its SkiaSharp surface.</summary>
+        /// <summary>Forces a repaint of this control into its backing Bitmap.</summary>
         public void Repaint()
         {
             if (_disposed) return;
@@ -138,7 +138,7 @@ namespace Xamarin.Unity.Forms
         }
 
         /// <summary>
-        /// Uploads the latest SkiaSharp surface to the Unity Texture2D.
+        /// Uploads the latest Bitmap pixels to the Unity Texture2D.
         /// Must be called on the Unity main thread.
         /// </summary>
         public void FlushTexture()

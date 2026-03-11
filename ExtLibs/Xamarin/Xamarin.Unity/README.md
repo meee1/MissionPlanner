@@ -14,10 +14,10 @@ MissionPlannerLib (netstandard2.0)
     ↑ shared logic
     │
     ├─ Xamarin.Android  (monoandroid13.0)   ← existing Android build
-    │      Xamarin.Forms + SkiaSharp → Android View system
+    │      Xamarin.Forms + Android View system
     │
     └─ Xamarin.Unity    (netstandard2.0)    ← this project
-           SkiaSharp → Texture2D → Unity Canvas
+           System.Drawing (Bitmap) → Texture2D → Unity Canvas
 ```
 
 ### How WinForms controls are rendered
@@ -26,9 +26,9 @@ MissionPlannerLib (netstandard2.0)
 System.Windows.Forms.Control
         │  OnPaint(PaintEventArgs)
         │       ↓
-        │  System.Drawing.Graphics   (MissionPlanner.Drawing.Unity)
-        │       ↓ SkiaSharp SKCanvas
-        │  byte[] pixel buffer (BGRA32)
+        │  System.Drawing.Graphics   (MissionPlanner.Drawing)
+        │       ↓ paints into System.Drawing.Bitmap pixel memory
+        │  Bitmap.LockBits() → byte[] BGRA32
         │       ↓
         │  UnityEngine.Texture2D.LoadRawTextureData()
         │       ↓
@@ -37,7 +37,7 @@ System.Windows.Forms.Control
 
 Each `Control` in the WinForms tree gets its own `UnityControlRenderer` which
 owns:
-- a `UnityGraphicsSurface` (SkiaSharp surface + Texture2D)
+- a `UnityGraphicsSurface` (Bitmap backing store + Texture2D)
 - a child `GameObject` with a `RectTransform` sized/positioned to match the
   WinForms layout
 - a `RawImage` component that displays the per-control texture
@@ -63,7 +63,6 @@ Copy the following DLLs into your Unity project's `Assets/Plugins/` folder:
 | `MissionPlannerLib.dll` | `bin/Release/netstandard2.0/` |
 | `MissionPlanner.Drawing.dll` | `ExtLibs/MissionPlanner.Drawing/bin/…` |
 | `MissionPlanner.Drawing.Unity.dll` | `ExtLibs/MissionPlanner.Drawing.Unity/bin/…` |
-| `SkiaSharp.dll` | NuGet cache |
 | `System.Windows.Forms.dll` | `ExtLibs/mono/mcs/class/System.Windows.Forms/bin/…` |
 
 ### 2. Copy the Unity scripts
@@ -106,7 +105,7 @@ Android.
 | Feature | Xamarin.Android | Xamarin.Unity |
 |---------|-----------------|---------------|
 | UI renderer | Xamarin.Forms + Android Views | Unity Canvas + RawImage |
-| Drawing | SkiaSharp → Android Bitmap | SkiaSharp → Texture2D |
+| Drawing | System.Drawing → Android Bitmap | System.Drawing → Unity Texture2D |
 | Serial | USB / Bluetooth (Hoho.Android) | TCP bridge / stub |
 | Video | GStreamer Android plugin | Unity VideoPlayer |
 | Permissions | AndroidManifest.xml | Unity Player Settings |
@@ -125,10 +124,10 @@ Xamarin.Unity/
 ├── UnityPlatformServices.cs   Platform path / service registration
 ├── Forms/
 │   ├── UnityFormHost.cs       Owns root Canvas, traverses control tree
-│   ├── UnityControlRenderer.cs Per-control SkiaSharp→Texture2D renderer
+│   ├── UnityControlRenderer.cs Per-control Bitmap→Texture2D renderer
 │   └── ControlExtensions.cs   Reflection helpers for WinForms On* methods
 ├── Rendering/
-│   └── SkiaUnityRenderer.cs   Low-level SkiaSharp→Texture2D pipeline
+│   └── UnityRenderer.cs       Low-level Bitmap/Graphics→Texture2D pipeline
 └── Comms/
     └── UnitySerial.cs         TCP serial shim (SITL / MAVProxy)
 

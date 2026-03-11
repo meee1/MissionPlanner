@@ -1,21 +1,23 @@
 // UnityGraphics.cs
-// A thin bridge between System.Drawing.Graphics (SkiaSharp-backed) and Unity's
-// Texture2D / RenderTexture system.
+// Bridge between System.Drawing.Graphics and Unity's Texture2D system.
 //
-// Usage pattern (mirrors how Xamarin.Android's MySKCanvasView works):
+// Rendering pipeline:
+//   1. UnityGraphicsSurface creates a System.Drawing.Bitmap as the backing store.
+//   2. CreateGraphics() returns Graphics.FromImage(bitmap) — the control paints
+//      into the bitmap's pixel memory via the standard WinForms paint path.
+//   3. FlushToTexture() reads the bitmap pixels via LockBits and uploads them
+//      to a Unity Texture2D.
 //
-//   1. UnityGraphicsSurface is created per control / canvas object.
-//   2. OnPaint / OnDraw raises a PaintEventArgs whose Graphics wraps a SkiaSharp
-//      SKSurface that renders into an internal byte buffer.
-//   3. After each paint cycle, FlushToTexture() uploads the buffer pixels to a
-//      UnityEngine.Texture2D that is assigned to a Unity UI RawImage component.
+// No SkiaSharp types are used directly in this file; they are internal to
+// MissionPlanner.Drawing and hidden behind the System.Drawing API surface.
 //
-// This file compiles both with and without UnityEngine present so that the
-// standard dotnet build pipeline (used for CI / IDE intellisense) succeeds.
+// This file compiles with or without UnityEngine present so CI builds succeed
+// without a Unity installation.
 
 using System;
-using System.Drawing;         // from MissionPlanner.Drawing (SkiaSharp wrapper)
-using SkiaSharp;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 #if UNITY_ENGINE_PRESENT
 using UnityEngine;
@@ -24,17 +26,16 @@ using UnityEngine;
 namespace MissionPlanner.Drawing.Unity
 {
     /// <summary>
-    /// Owns the SkiaSharp surface that WinForms controls paint into, and can
+    /// Owns the <see cref="Bitmap"/> that WinForms controls paint into and can
     /// upload the result to a Unity <c>Texture2D</c> each frame.
     /// </summary>
     public sealed class UnityGraphicsSurface : IDisposable
     {
-        private SKSurface?  _surface;
-        private SKImageInfo _info;
-        private byte[]      _pixelBuffer = Array.Empty<byte>();
-        private bool        _dirty;
+        private Bitmap? _bitmap;
+        private byte[]  _pixelBuffer = Array.Empty<byte>();
+        private bool    _dirty;
+        private bool    _disposed;
 
-        // These are typed as 'object' so the file compiles without UnityEngine.
 #if UNITY_ENGINE_PRESENT
         private Texture2D? _texture;
 #else
@@ -44,66 +45,60 @@ namespace MissionPlanner.Drawing.Unity
         public int Width  { get; private set; }
         public int Height { get; private set; }
 
-        /// <summary>Resize (or initially create) the surface.</summary>
+        /// <summary>Resize (or initially create) the backing bitmap.</summary>
         public void Resize(int width, int height)
         {
-            if (width <= 0)  width  = 1;
+            if (width  <= 0) width  = 1;
             if (height <= 0) height = 1;
 
-            if (Width == width && Height == height && _surface != null)
+            if (Width == width && Height == height && _bitmap != null)
                 return;
 
             Width  = width;
             Height = height;
 
-            _surface?.Dispose();
-
-            // BGRA8888 matches Unity's TextureFormat.BGRA32 / ARGB32.
-            _info        = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
-            _pixelBuffer = new byte[_info.BytesSize];
-            _surface     = SKSurface.Create(_info);
+            _bitmap?.Dispose();
+            _bitmap      = new Bitmap(width, height);
+            _pixelBuffer = new byte[width * height * 4];   // BGRA32
             _dirty       = true;
 
 #if UNITY_ENGINE_PRESENT
             if (_texture != null)
                 UnityEngine.Object.Destroy(_texture);
+            // BGRA32 matches the Bgra8888 pixel format used by MissionPlanner.Drawing.
             _texture = new Texture2D(width, height, TextureFormat.BGRA32, false);
 #endif
         }
 
         /// <summary>
-        /// Returns a <see cref="System.Drawing.Graphics"/> instance that paints
-        /// into the internal SkiaSharp surface.
+        /// Returns a <see cref="Graphics"/> backed by the internal bitmap.
+        /// Drawing into this Graphics updates the bitmap pixel memory directly.
         /// </summary>
         public Graphics CreateGraphics()
         {
-            if (_surface == null)
+            if (_bitmap == null)
                 Resize(1, 1);
 
             _dirty = true;
-            return new Graphics(_surface!);
+            return Graphics.FromImage(_bitmap!);
         }
 
         /// <summary>
-        /// Copies pixels from the SkiaSharp surface into the Unity Texture2D.
-        /// Call this once per frame after all painting is done.
-        ///
+        /// Copies pixels from the bitmap into the Unity Texture2D.
         /// Must be called from the Unity main thread.
         /// </summary>
         public void FlushToTexture()
         {
 #if UNITY_ENGINE_PRESENT
-            if (!_dirty || _surface == null || _texture == null)
+            if (!_dirty || _bitmap == null || _texture == null)
                 return;
 
-            // Read pixels from the SkiaSharp surface into the managed buffer.
-            using var pixmap = _surface.PeekPixels();
-            if (pixmap == null) return;
+            var rect    = new Rectangle(0, 0, Width, Height);
+            var bmpData = _bitmap.LockBits(rect, ImageLockMode.ReadOnly,
+                                           PixelFormat.Format32bppArgb);
+            Marshal.Copy(bmpData.Scan0, _pixelBuffer, 0, _pixelBuffer.Length);
+            _bitmap.UnlockBits(bmpData);
 
-            System.Runtime.InteropServices.Marshal.Copy(
-                pixmap.GetPixels(), _pixelBuffer, 0, _pixelBuffer.Length);
-
-            // Upload to the GPU texture.
             _texture.LoadRawTextureData(_pixelBuffer);
             _texture.Apply(false, false);
 
@@ -112,7 +107,7 @@ namespace MissionPlanner.Drawing.Unity
         }
 
         /// <summary>
-        /// Returns the Unity Texture2D (null when UnityEngine is not present).
+        /// Returns the Unity Texture2D, or <c>null</c> when UnityEngine is not present.
         /// Assign this to a <c>UnityEngine.UI.RawImage.texture</c> field.
         /// </summary>
 #if UNITY_ENGINE_PRESENT
@@ -123,8 +118,12 @@ namespace MissionPlanner.Drawing.Unity
 
         public void Dispose()
         {
-            _surface?.Dispose();
-            _surface = null;
+            if (_disposed) return;
+            _disposed = true;
+
+            _bitmap?.Dispose();
+            _bitmap = null;
+
 #if UNITY_ENGINE_PRESENT
             if (_texture != null)
                 UnityEngine.Object.Destroy(_texture);
@@ -134,24 +133,22 @@ namespace MissionPlanner.Drawing.Unity
     }
 
     /// <summary>
-    /// Static factory used by the Unity form host to obtain a
-    /// <see cref="Graphics"/> for any given control surface.
+    /// Creates a temporary <see cref="Graphics"/> for one-shot painting into a
+    /// fresh <see cref="Bitmap"/> of the requested size.
     /// </summary>
     public static class UnityGraphicsFactory
     {
         /// <summary>
-        /// Creates a <see cref="Graphics"/> that renders into a freshly-allocated
-        /// SkiaSharp surface of the requested size.
-        /// The caller is responsible for disposing the returned object.
+        /// Returns a <see cref="Graphics"/> and its backing <see cref="Bitmap"/>.
+        /// The caller is responsible for disposing both.
         /// </summary>
-        public static Graphics Create(int width, int height)
+        public static (Graphics graphics, Bitmap bitmap) Create(int width, int height)
         {
             if (width  <= 0) width  = 1;
             if (height <= 0) height = 1;
 
-            var info    = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
-            var surface = SKSurface.Create(info);
-            return new Graphics(surface);
+            var bmp = new Bitmap(width, height);
+            return (Graphics.FromImage(bmp), bmp);
         }
     }
 }
