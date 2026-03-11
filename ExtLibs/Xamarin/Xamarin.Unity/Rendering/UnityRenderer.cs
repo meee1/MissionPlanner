@@ -14,12 +14,11 @@
 
 extern alias UnityDrawing;
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using MissionPlanner.Drawing.Unity;
 using Bitmap        = UnityDrawing::System.Drawing.Bitmap;
 using Graphics      = UnityDrawing::System.Drawing.Graphics;
-using Color         = UnityDrawing::System.Drawing.Color;
-using Rectangle     = UnityDrawing::System.Drawing.Rectangle;
 using ImageLockMode = UnityDrawing::System.Drawing.Imaging.ImageLockMode;
 using PixelFormat   = UnityDrawing::System.Drawing.Imaging.PixelFormat;
 
