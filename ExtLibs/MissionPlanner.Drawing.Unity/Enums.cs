@@ -102,7 +102,8 @@ namespace System.Drawing.Imaging
     public enum ImageLockMode   { ReadOnly = 1, WriteOnly = 2, ReadWrite = 3, UserInputBuffer = 4 }
     public enum MetafileFrameUnit { Pixel = 2, Point, Inch, Document, Millimeter, GdiCompatible }
     public enum EmfType         { EmfOnly = 3, EmfPlusDual, EmfPlusOnly }
-    public enum ColorAdjustType { Default, Bitmap, Brush, Pen, Text, Count, Any }
+    public enum ColorAdjustType  { Default, Bitmap, Brush, Pen, Text, Count, Any }
+    public enum ColorMatrixFlag  { Default = 0, SkipGrays = 1, AltGray = 2 }
 }
 
 namespace System.Drawing.Text
