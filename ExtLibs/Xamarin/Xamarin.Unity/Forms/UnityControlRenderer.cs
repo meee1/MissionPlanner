@@ -11,10 +11,13 @@
 // This is analogous to how Xamarin.Android's MySKCanvasView wraps a canvas view
 // and a Xamarin.Forms.View into an Android native view.
 
+extern alias UnityDrawing;
 using System;
-using System.Drawing;
 using System.Windows.Forms;
 using MissionPlanner.Drawing.Unity;
+using Color     = UnityDrawing::System.Drawing.Color;
+using Rectangle = UnityDrawing::System.Drawing.Rectangle;
+using Point     = UnityDrawing::System.Drawing.Point;
 
 #if UNITY_ENGINE_PRESENT
 using UnityEngine;

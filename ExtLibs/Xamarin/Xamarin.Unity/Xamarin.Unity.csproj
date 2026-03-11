@@ -52,7 +52,9 @@
     <!-- Shared cross-platform MissionPlanner logic -->
     <ProjectReference Include="..\..\..\..\MissionPlannerLib.csproj" />
     <!-- Unity-specific System.Drawing implementation -->
-    <ProjectReference Include="..\..\MissionPlanner.Drawing.Unity\MissionPlanner.Drawing.Unity.csproj" />
+    <ProjectReference Include="..\..\MissionPlanner.Drawing.Unity\MissionPlanner.Drawing.Unity.csproj">
+      <Aliases>UnityDrawing,global</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interfaces\Interfaces.csproj" />
     <ProjectReference Include="..\..\Comms\MissionPlanner.Comms.csproj" />
     <ProjectReference Include="..\..\Utilities\MissionPlanner.Utilities.csproj" />
