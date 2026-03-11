@@ -9,8 +9,10 @@
 // Extend this class to add BLE, USB-serial-over-Android-plugin, etc.
 
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Interfaces;
@@ -31,12 +33,19 @@ namespace MissionPlanner.Unity.Comms
         private NetworkStream? _stream;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public string   PortName    { get; set; } = "tcp";
-        public int      BaudRate    { get; set; } = 115200;
-        public int      ReadTimeout { get; set; } = 500;
-        public int      WriteTimeout{ get; set; } = 500;
-        public int      BytesToRead => _stream?.DataAvailable == true ? 1 : 0;
-        public bool     IsOpen      => _client?.Connected ?? false;
+        public string   PortName        { get; set; } = "tcp";
+        public int      BaudRate        { get; set; } = 115200;
+        public int      ReadTimeout     { get; set; } = 500;
+        public int      WriteTimeout    { get; set; } = 500;
+        public int      BytesToRead     => _stream?.DataAvailable == true ? 1 : 0;
+        public int      BytesToWrite    => 0;
+        public bool     IsOpen          => _client?.Connected ?? false;
+        public int      DataBits        { get; set; } = 8;
+        public bool     DtrEnable       { get; set; }
+        public bool     RtsEnable       { get; set; }
+        public int      ReadBufferSize  { get; set; } = 4096;
+        public int      WriteBufferSize { get; set; } = 4096;
+        public Stream   BaseStream      => _stream ?? Stream.Null;
         public int      ReceivedBytesThreshold { get; set; } = 1;
 
         public string Host { get; set; } = "127.0.0.1";
@@ -87,6 +96,45 @@ namespace MissionPlanner.Unity.Comms
         {
             if (_stream == null) throw new InvalidOperationException("Not open");
             _stream.WriteByte(b);
+        }
+
+        public int ReadChar()
+        {
+            if (_stream == null) throw new InvalidOperationException("Not open");
+            return _stream.ReadByte();
+        }
+
+        public string ReadExisting()
+        {
+            if (_stream == null || !_stream.DataAvailable) return string.Empty;
+            var buf = new byte[4096];
+            int n = _stream.Read(buf, 0, buf.Length);
+            return Encoding.ASCII.GetString(buf, 0, n);
+        }
+
+        public string ReadLine()
+        {
+            if (_stream == null) throw new InvalidOperationException("Not open");
+            var sb = new StringBuilder();
+            int b;
+            while ((b = _stream.ReadByte()) != -1)
+            {
+                if (b == '\n') break;
+                if (b != '\r') sb.Append((char)b);
+            }
+            return sb.ToString();
+        }
+
+        public void Write(string text)
+        {
+            if (_stream == null) throw new InvalidOperationException("Not open");
+            var bytes = Encoding.ASCII.GetBytes(text);
+            _stream.Write(bytes, 0, bytes.Length);
+        }
+
+        public void WriteLine(string text)
+        {
+            Write(text + "\n");
         }
 
         public void DiscardInBuffer()
