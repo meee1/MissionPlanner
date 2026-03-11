@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 #if UNITY_ENGINE_PRESENT
