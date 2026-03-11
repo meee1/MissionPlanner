@@ -23,7 +23,7 @@ using UnityEngine;
 using UnityEngine.UI;
 #endif
 
-namespace Xamarin.Unity.Rendering
+namespace MissionPlanner.Unity.Rendering
 {
     /// <summary>
     /// Provides a <see cref="System.Drawing.Graphics"/> each frame and uploads

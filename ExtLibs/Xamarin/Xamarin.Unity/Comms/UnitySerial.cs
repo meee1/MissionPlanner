@@ -19,7 +19,7 @@ using Interfaces;
 using UnityEngine;
 #endif
 
-namespace Xamarin.Unity.Comms
+namespace MissionPlanner.Unity.Comms
 {
     /// <summary>
     /// TCP-based serial shim: connects to a MAVProxy or SITL TCP port.

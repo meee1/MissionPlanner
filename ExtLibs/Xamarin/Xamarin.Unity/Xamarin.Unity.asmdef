@@ -1,6 +1,6 @@
 {
-    "name": "Xamarin.Unity",
-    "rootNamespace": "Xamarin.Unity",
+    "name": "MissionPlanner.Unity",
+    "rootNamespace": "MissionPlanner.Unity",
     "references": [
         "Unity.ugui",
         "MissionPlanner.Drawing.Unity"

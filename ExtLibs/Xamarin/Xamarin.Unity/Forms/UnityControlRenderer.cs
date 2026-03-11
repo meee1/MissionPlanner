@@ -22,7 +22,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 #endif
 
-namespace Xamarin.Unity.Forms
+namespace MissionPlanner.Unity.Forms
 {
     /// <summary>
     /// Bridges a single <see cref="Control"/> to a Unity

@@ -14,7 +14,7 @@ using MissionPlanner.Utilities;
 using UnityEngine;
 #endif
 
-namespace Xamarin.Unity
+namespace MissionPlanner.Unity
 {
     /// <summary>
     /// Bootstraps the MissionPlanner application object inside Unity.

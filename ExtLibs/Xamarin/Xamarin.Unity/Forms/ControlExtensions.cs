@@ -11,7 +11,7 @@ using System;
 using System.Reflection;
 using System.Windows.Forms;
 
-namespace Xamarin.Unity.Forms
+namespace MissionPlanner.Unity.Forms
 {
     internal static class ControlExtensions
     {

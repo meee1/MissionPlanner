@@ -27,7 +27,7 @@ using UnityEngine;
 using UnityEngine.UI;
 #endif
 
-namespace Xamarin.Unity.Forms
+namespace MissionPlanner.Unity.Forms
 {
     /// <summary>
     /// Creates and manages the Unity scene hierarchy that renders a WinForms

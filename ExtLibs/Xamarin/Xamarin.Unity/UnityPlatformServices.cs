@@ -14,7 +14,7 @@ using Interfaces;
 using UnityEngine;
 #endif
 
-namespace Xamarin.Unity
+namespace MissionPlanner.Unity
 {
     public static class UnityPlatformServices
     {

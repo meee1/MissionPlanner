@@ -18,7 +18,7 @@ using MissionPlanner.Utilities;
 using UnityEngine;
 #endif
 
-namespace Xamarin.Unity
+namespace MissionPlanner.Unity
 {
 #if UNITY_ENGINE_PRESENT
     /// <summary>

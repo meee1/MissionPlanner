@@ -21,8 +21,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Xamarin.Unity</RootNamespace>
-    <AssemblyName>Xamarin.Unity</AssemblyName>
+    <RootNamespace>MissionPlanner.Unity</RootNamespace>
+    <AssemblyName>MissionPlanner.Unity</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
@@ -51,8 +51,6 @@
   <ItemGroup>
     <!-- Shared cross-platform MissionPlanner logic -->
     <ProjectReference Include="..\..\..\..\MissionPlannerLib.csproj" />
-    <!-- Platform-neutral Xamarin shared library -->
-    <ProjectReference Include="..\Xamarin\Xamarin.csproj" />
     <!-- Unity-specific System.Drawing implementation -->
     <ProjectReference Include="..\..\MissionPlanner.Drawing.Unity\MissionPlanner.Drawing.Unity.csproj" />
     <ProjectReference Include="..\..\Interfaces\Interfaces.csproj" />
