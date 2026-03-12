@@ -2,12 +2,14 @@
 // Application-level initialisation – equivalent to the Xamarin.Forms App class.
 //
 // Responsible for:
-//   • registering platform services (serial, settings, …)
-//   • creating the top-level MissionPlanner.MainV2 form
-//   • handing the form tree to the UnityFormHost
+//   • applying platform defaults (locale, logging)
+//
+// Note: form-tree creation and lifecycle are managed by UnityMain → UnityFormHost.
+// The cross-platform MainV2 lives in Xamarin/Linked/MainV2.cs which is compiled
+// into Xamarin.csproj, not MissionPlannerLib, so it is not directly reachable
+// here.  UnityMain.Boot() owns the bootstrap sequence.
 
 using System;
-using MissionPlanner;
 using MissionPlanner.Utilities;
 
 #if UNITY_ENGINE_PRESENT
@@ -17,29 +19,12 @@ using UnityEngine;
 namespace MissionPlanner.Unity
 {
     /// <summary>
-    /// Bootstraps the MissionPlanner application object inside Unity.
+    /// Applies process-wide defaults before the MissionPlanner form tree is created.
+    /// Call <see cref="ApplyPlatformDefaults"/> once from <see cref="UnityMain"/>.
     /// </summary>
-    public sealed class UnityApp
+    public static class UnityApp
     {
-        // The shared platform-independent MainV2 form (System.Windows.Forms.Form).
-        public System.Windows.Forms.Form? MainForm { get; private set; }
-
-        public void Start()
-        {
-            // Apply any platform-specific DPI / font overrides before the form
-            // tree is constructed.
-            ApplyPlatformDefaults();
-
-            // Instantiate the main WinForms form.  MainV2 is the root form of
-            // MissionPlanner; it creates all child views in its constructor.
-            MainForm = new MainV2();
-
-#if UNITY_ENGINE_PRESENT
-            Debug.Log($"[MissionPlanner] MainForm created: {MainForm.GetType().Name}");
-#endif
-        }
-
-        private static void ApplyPlatformDefaults()
+        public static void ApplyPlatformDefaults()
         {
             // Mirror what Xamarin.Android does: set up locale, logging, etc.
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture =

@@ -86,6 +86,7 @@ namespace MissionPlanner.Unity
 
         private void Boot()
         {
+            UnityApp.ApplyPlatformDefaults();
             UnityPlatformServices.Register();
 
             // MissionPlanner uses a static "Settings" object – point it at the
