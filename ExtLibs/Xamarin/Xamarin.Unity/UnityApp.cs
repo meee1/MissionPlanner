@@ -45,15 +45,20 @@ namespace MissionPlanner.Unity
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture =
                 System.Globalization.CultureInfo.InvariantCulture;
 
-            // Route MissionPlanner's internal Log to Unity's console.
-            MissionPlanner.Utilities.Logging.ConsoleLogging += (s, e) =>
+            // Route MissionPlanner's log4net output to the console / Unity log.
+            var hierarchy = (log4net.Repository.Hierarchy.Hierarchy)
+                log4net.LogManager.GetRepository(typeof(UnityApp).Assembly);
+            if (!hierarchy.Configured)
             {
-#if UNITY_ENGINE_PRESENT
-                Debug.Log($"[MP] {e.LogData}");
-#else
-                Console.WriteLine($"[MP] {e.LogData}");
-#endif
-            };
+                var layout = new log4net.Layout.PatternLayout();
+                layout.ConversionPattern = "%-5level [%logger] - %message%newline";
+                layout.ActivateOptions();
+                var appender = new log4net.Appender.ConsoleAppender { Layout = layout };
+                appender.ActivateOptions();
+                hierarchy.Root.AddAppender(appender);
+                hierarchy.Root.Level = log4net.Core.Level.Debug;
+                hierarchy.Configured = true;
+            }
         }
     }
 }

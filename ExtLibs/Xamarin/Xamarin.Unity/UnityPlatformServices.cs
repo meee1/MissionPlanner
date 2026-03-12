@@ -39,20 +39,12 @@ namespace MissionPlanner.Unity
             string persistentPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "MissionPlanner");
-            string streamingPath = AppContext.BaseDirectory;
 #endif
 
             Directory.CreateDirectory(persistentPath);
 
             // Inform MissionPlanner where to store user data.
-            Settings.UserDataDirectory = persistentPath;
-
-            // ----------------------------------------------------------------
-            // System.Environment overrides expected by MissionPlanner
-            // ----------------------------------------------------------------
-            // MissionPlanner reads Application.StartupPath to locate resources.
-            // On Unity this maps to the streaming assets folder.
-            MissionPlanner.Utilities.Misc.StartupPath = streamingPath;
+            Settings.CustomUserDataDirectory = persistentPath;
 
             // ----------------------------------------------------------------
             // Log initialisation
