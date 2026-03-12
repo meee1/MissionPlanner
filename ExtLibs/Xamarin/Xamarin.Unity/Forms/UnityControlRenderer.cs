@@ -11,10 +11,13 @@
 // This is analogous to how Xamarin.Android's MySKCanvasView wraps a canvas view
 // and a Xamarin.Forms.View into an Android native view.
 
+extern alias UnityDrawing;
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using MissionPlanner.Drawing.Unity;
+using UnityDrawing::MissionPlanner.Drawing.Unity;
 
 #if UNITY_ENGINE_PRESENT
 using UnityEngine;
@@ -108,16 +111,17 @@ namespace MissionPlanner.Unity.Forms
         {
             if (_disposed) return;
 
-            var g = _surface.CreateGraphics();
-            // Clear to control's BackColor.
-            var bg = _control.BackColor;
-            g.Clear(bg);
+            // Paint using standard MissionPlanner.Drawing.Bitmap/Graphics so the
+            // Graphics type satisfies PaintEventArgs (which was compiled against
+            // MissionPlanner.Drawing, not MissionPlanner.Drawing.Unity).
+            int w = Math.Max(1, _surface.Width);
+            int h = Math.Max(1, _surface.Height);
+            using var bitmap = new Bitmap(w, h);
+            using var g = Graphics.FromImage(bitmap);
+            g.Clear(_control.BackColor);
 
-            // Raise the WinForms paint event so the control draws itself.
-            var args = new PaintEventArgs(g,
-                new Rectangle(0, 0, _control.Width, _control.Height));
+            var args = new PaintEventArgs(g, new Rectangle(0, 0, w, h));
 
-            // Invoke via reflection to access the protected OnPaint method.
             try
             {
                 var method = _control.GetType().GetMethod("OnPaint",
@@ -133,6 +137,16 @@ namespace MissionPlanner.Unity.Forms
                 Console.Error.WriteLine(ex);
 #endif
             }
+
+            // Transfer rendered pixels to the Unity surface.
+            var bmpData = bitmap.LockBits(
+                new Rectangle(0, 0, w, h),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
+            var pixels = new byte[w * h * 4];
+            Marshal.Copy(bmpData.Scan0, pixels, 0, pixels.Length);
+            bitmap.UnlockBits(bmpData);
+            _surface.UploadPixels(pixels);
 
             IsDirty = false;
         }

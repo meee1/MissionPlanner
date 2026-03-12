@@ -107,6 +107,21 @@ namespace MissionPlanner.Drawing.Unity
         }
 
         /// <summary>
+        /// Directly uploads raw BGRA32 pixel data to the Texture2D, bypassing the
+        /// internal bitmap.  Used when the caller renders into a standard
+        /// System.Drawing.Bitmap and needs to push the result to Unity.
+        /// </summary>
+        public void UploadPixels(byte[] bgra32Data)
+        {
+#if UNITY_ENGINE_PRESENT
+            if (_texture == null || bgra32Data == null) return;
+            _texture.LoadRawTextureData(bgra32Data);
+            _texture.Apply(false, false);
+            _dirty = false;
+#endif
+        }
+
+        /// <summary>
         /// Returns the Unity Texture2D, or <c>null</c> when UnityEngine is not present.
         /// Assign this to a <c>UnityEngine.UI.RawImage.texture</c> field.
         /// </summary>

@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using MissionPlanner.Drawing.Unity;
 
 #if UNITY_ENGINE_PRESENT
 using UnityEngine;
@@ -94,11 +93,11 @@ namespace MissionPlanner.Unity.Forms
         /// </summary>
         public void Tick()
         {
-            foreach (var (control, renderer) in _renderers)
+            foreach (var kvp in _renderers)
             {
-                if (renderer.IsDirty)
-                    renderer.Repaint();
-                renderer.FlushTexture();
+                if (kvp.Value.IsDirty)
+                    kvp.Value.Repaint();
+                kvp.Value.FlushTexture();
             }
         }
 

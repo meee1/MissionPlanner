@@ -16,7 +16,6 @@ extern alias UnityDrawing;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using MissionPlanner.Drawing.Unity;
 using Bitmap        = UnityDrawing::System.Drawing.Bitmap;
 using Graphics      = UnityDrawing::System.Drawing.Graphics;
 using ImageLockMode = UnityDrawing::System.Drawing.Imaging.ImageLockMode;
