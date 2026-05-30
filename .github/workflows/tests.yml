@@ -1,0 +1,49 @@
+name: Tests
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  unit-tests:
+    name: Unit tests (Linux / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore MissionPlannerTests.Unit/MissionPlannerTests.Unit.csproj
+
+      - name: Test
+        run: >
+          dotnet test MissionPlannerTests.Unit/MissionPlannerTests.Unit.csproj
+          -f net8.0
+          -c Debug
+          --no-restore
+          --filter "TestCategory=Unit"
+          --logger "trx;LogFileName=unit.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: TestResults/*.trx
+
+  # ---------------------------------------------------------------------------
+  # Phase 2 (planned): headless SITL integration tests.
+  #
+  # A `sitl-tests` job will live here. It builds ArduPilot SITL from source on
+  # ubuntu-latest (Tools/environment_install/install-prereqs-ubuntu.sh, then
+  # ./waf configure --board sitl && ./waf copter plane), caches the build, and
+  # runs MissionPlannerTests.Sitl with SITL_BIN_DIR pointing at the binaries.
+  # Gated on a label / schedule because it is much heavier than the unit job.
+  # See tests/run-unit-tests.sh and the test plan for details.
+  # ---------------------------------------------------------------------------
