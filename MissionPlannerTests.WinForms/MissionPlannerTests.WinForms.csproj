@@ -10,9 +10,6 @@
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
     <NoWarn>$(NoWarn);CS0618;NU1701</NoWarn>
-    <!-- The referenced MissionPlanner.Drawing.Common signs with open.snk, which
-         is not committed to the repo; signing is irrelevant for these tests. -->
-    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +18,11 @@
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <!-- Native libSkiaSharp for the Linux CI runner (the WinForms renderer). -->
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
+    <!-- Mission Planner's cross-platform System.Drawing is the Skia-based shim
+         (MissionPlanner.Drawing). Exclude the real System.Drawing.Common, which
+         would otherwise leak in transitively and collide (two System.Drawing.Bitmap
+         types) and break controls that load bitmaps in their constructor. -->
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" ExcludeAssets="all" />
   </ItemGroup>
 
   <!-- The netstandard2.0 flavour of MissionPlanner.Controls pulls in the

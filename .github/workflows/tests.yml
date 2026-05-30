@@ -136,7 +136,6 @@ jobs:
           dotnet test MissionPlannerTests.WinForms/MissionPlannerTests.WinForms.csproj
           -f net8.0
           -c Debug
-          -p:SignAssembly=false
           --filter "TestCategory=WinForms"
           --logger "trx;LogFileName=winforms.trx"
           --results-directory TestResults

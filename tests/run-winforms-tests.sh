@@ -9,8 +9,6 @@
 # Requirements:
 #   - the ExtLibs/mono submodule must be initialised:
 #       git submodule update --init --depth 1 ExtLibs/mono
-#   - SignAssembly is disabled on the command line because the referenced
-#     MissionPlanner.Drawing.Common signs with open.snk, which is not in the repo.
 #
 # Usage: tests/run-winforms-tests.sh [extra dotnet test args...]
 set -euo pipefail
@@ -27,7 +25,6 @@ PROJECT="MissionPlannerTests.WinForms/MissionPlannerTests.WinForms.csproj"
 dotnet test "$PROJECT" \
   -f net8.0 \
   -c Debug \
-  -p:SignAssembly=false \
   --filter "TestCategory=WinForms" \
   --logger "trx;LogFileName=winforms.trx" \
   --results-directory "TestResults" \

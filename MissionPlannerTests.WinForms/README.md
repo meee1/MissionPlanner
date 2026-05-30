@@ -28,20 +28,31 @@ The runner initialises the submodule if needed.
 ## Notes / requirements
 
 - **Submodule**: `ExtLibs/mono` must be checked out; the runner/CI do this.
-- **Signing**: built with `-p:SignAssembly=false` because the referenced
-  `MissionPlanner.Drawing.Common` signs with `open.snk`, which is not committed
-  to the repo. Signing is irrelevant for these tests.
 - **Native renderer**: `SkiaSharp.NativeAssets.Linux` supplies `libSkiaSharp.so`
   for the Linux CI runner (the WinForms paint backend).
+- **System.Drawing**: the real `System.Drawing.Common` is excluded
+  (`ExcludeAssets="all"`) so the Skia-based `MissionPlanner.Drawing` is the sole
+  provider of `System.Drawing.*`; otherwise two `System.Drawing.Bitmap` types
+  collide and break controls that load bitmaps in their constructor.
+- **Signing**: `ExtLibs/MissionPlanner.Drawing.Common/open.snk` (an OSS
+  strong-name key) is committed so the cross-platform build signs cleanly with
+  no command-line flags. The vendored Mono `System.Windows.Forms` public-signs
+  with its own `ecma.pub`.
 - **Scope**: this covers the **netstandard2.0** control set only. The net472
   main application (with its Win32 P/Invokes, DirectInput/DirectShow, OpenGL HUD)
   is not loadable this way and remains Windows-only.
 - This project is intentionally **not** part of `MissionPlanner.sln`, to avoid
-  coupling the main Windows build to the submodule + signing workaround.
+  coupling the main Windows build to the submodule.
 
 ## What's covered
 
-`WinFormsControlTests` — the WinForms assembly really is the vendored Mono one,
-forms host controls, `MyButton` subclasses `Button` and round-trips its colours,
-`HSI` heading properties round-trip, and a control renders to a bitmap through
-the Mono-WinForms + SkiaSharp paint path.
+`WinFormsControlTests`:
+
+- the loaded `System.Windows.Forms` really is the vendored Mono assembly;
+- **every** public concrete control in `MissionPlanner.Controls` (~42) is
+  instantiated by reflection (zero failures);
+- every non-dialog control can be hosted on a `Form`;
+- `MyButton` subclasses `Button` and round-trips its colours; `HSI` heading and
+  `MyTrackBar`/`HorizontalProgressBar` values round-trip;
+- a representative set of controls renders to a bitmap through the
+  Mono-WinForms + SkiaSharp paint path.
