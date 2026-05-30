@@ -38,6 +38,7 @@ offline — no network, no GUI, no hardware.
 | `Mavlink/`   | `MavlinkCRC` (wire CRC), `MavlinkParse` (v1/v2 + tlog framing)     |
 | `Grid/`      | `Grid.CreateGrid` survey generation                               |
 | `Logs/`      | DataFlash text (`DFLog`) and binary (`BinaryLog`) parsing          |
+| `Gps/`       | RTCM3 (ECEF, CRC-24Q), u-blox UBX framing, NMEA parser             |
 | `Params/`    | `CurrentState` display-unit conversions, `ParamChanges47` renames |
 | `TestData/`  | committed fixtures copied to the test output directory            |
 
