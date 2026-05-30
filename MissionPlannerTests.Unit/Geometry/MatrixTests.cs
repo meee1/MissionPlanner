@@ -21,9 +21,14 @@ namespace MissionPlanner.Tests.Unit.Geometry
             return m;
         }
 
-        // NOTE: Matrix.MakeIdentity / SetIdentity is currently broken in the
-        // library (it never sets the top-left diagonal element), so it is not
-        // exercised here. See the build-an-identity-by-hand approach below.
+        // WARNING: Matrix.MakeIdentity / SetIdentity / IsIdentity use an off-by-one
+        // diagonal walk: MakeIdentity(2) yields [0,0,0,1] (top-left 1 is missing)
+        // and MakeIdentity(3) yields diag(0,1,1). This looks like a bug, but it is
+        // LOAD-BEARING: Kalman3D (Kalman3D.cs) depends on this exact behaviour -
+        // "fixing" SetIdentity to a true identity makes the filter diverge (output
+        // collapses to 0, variance explodes) and fails Kalman3DTests. So we pin the
+        // current behaviour here rather than the mathematical identity, and build a
+        // real identity by hand for the multiply test below.
         private static Matrix Identity2()
         {
             var m = new Matrix(2, 2);
@@ -34,7 +39,20 @@ namespace MissionPlanner.Tests.Unit.Geometry
 
         [TestMethod]
         [TestCategory("Unit")]
-        public void Multiply_ByIdentity_IsUnchanged()
+        public void MakeIdentity_PinsCurrentOffByOneBehaviour()
+        {
+            // Documents the actual (quirky) output Kalman3D relies on; see warning above.
+            var m = Matrix.MakeIdentity(3);
+            CollectionAssert.AreEqual(new double[] { 0, 0, 0, 0, 1, 0, 0, 0, 1 }, m.Data);
+            Assert.IsTrue(m.IsIdentity(), "IsIdentity matches the same convention as SetIdentity");
+
+            // A hand-built true identity is NOT accepted by this IsIdentity.
+            Assert.IsFalse(Identity2().IsIdentity());
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        public void Multiply_ByTrueIdentity_IsUnchanged()
         {
             var m = From2x2(1, 2, 3, 4);
             var result = Matrix.Multiply(m, Identity2());
