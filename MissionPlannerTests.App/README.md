@@ -47,6 +47,13 @@ All targets are genuine `MissionPlanner.*` main-app code compiled into
   `MissionPlannerLib`, key main-app types (`MainV2`, `GCSViews.FlightData`,
   `GCSViews.FlightPlanner`, `Log.LogBrowse`, `MagCalib`) are loadable, and the
   whole app (hundreds of types) compiled in.
+- **`SwarmFormationTests`** — `FormationControl.getOffsetFromLeader`, the swarm
+  UTM-projection + heading-rotation geometry, driven by lightweight `MAVState`
+  fixtures (`MAVState(null, 0, 0)` with `cs.lat/lng/yaw` set). The control is
+  allocated without its WinForms constructor (the method holds no state).
+- **`CurrentStateDerivedTests`** — MAVState-driven derived telemetry on
+  `mav.cs` (`Location`, `timeInAirMinSec`, `tot`, `DistToHome`), the computed
+  values the GUI reads from a connected vehicle.
 
 Most main-app root code is UI/stateful; this tier targets the dependency-light,
 deterministic logic. It is straightforward to extend with more such classes.
