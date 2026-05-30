@@ -64,7 +64,9 @@ jobs:
       - name: Build ArduPilot SITL
         run: tests/build-sitl.sh
 
-      - name: Test
+      # Run each vehicle's tests in its own process (one MAVLinkInterface per
+      # process is the supported usage).
+      - name: Test (copter)
         env:
           SITL_BIN_DIR: ${{ github.workspace }}/.sitl/ardupilot/build/sitl/bin
           SITL_SPEEDUP: "5"
@@ -73,7 +75,19 @@ jobs:
           -f net8.0
           -c Debug
           --filter "TestCategory=Sitl"
-          --logger "trx;LogFileName=sitl.trx"
+          --logger "trx;LogFileName=sitl-copter.trx"
+          --results-directory TestResults
+
+      - name: Test (plane)
+        env:
+          SITL_BIN_DIR: ${{ github.workspace }}/.sitl/ardupilot/build/sitl/bin
+          SITL_SPEEDUP: "5"
+        run: >
+          dotnet test MissionPlannerTests.SitlPlane/MissionPlannerTests.SitlPlane.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=Sitl"
+          --logger "trx;LogFileName=sitl-plane.trx"
           --results-directory TestResults
 
       - name: Upload test results

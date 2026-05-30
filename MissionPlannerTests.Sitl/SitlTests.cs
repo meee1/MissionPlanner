@@ -25,6 +25,7 @@ namespace MissionPlanner.Tests.Sitl
     {
         private const uint CopterGuidedMode = 4;          // ArduCopter GUIDED custom_mode
         private const uint CopterAutoMode = 3;            // ArduCopter AUTO custom_mode
+        private const uint CopterLandMode = 9;            // ArduCopter LAND custom_mode
         private const byte MavModeFlagSafetyArmed = 128;  // MAV_MODE_FLAG.SAFETY_ARMED
 
         private static SitlFixture _sitl;
@@ -203,6 +204,23 @@ namespace MissionPlanner.Tests.Sitl
             SetCustomMode(CopterAutoMode);
             ushort seq = await WaitForMissionSeq(2, TimeSpan.FromSeconds(120));
             Assert.IsTrue(seq >= 2, $"AUTO mission did not advance to a waypoint (reached seq {seq})");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task Land_DescendsAndDisarms()
+        {
+            // Self-contained: take off first, then land.
+            Assert.IsTrue(await EnsureGuided(TimeSpan.FromSeconds(120)), "could not enter GUIDED");
+            Assert.IsTrue(await TryArm(TimeSpan.FromSeconds(60)), "could not arm");
+            await WaitForArmedState(true, TimeSpan.FromSeconds(15));
+            await TakeoffWithRetries(15.0, TimeSpan.FromSeconds(30));
+            await WaitForAltitude(12.0, TimeSpan.FromSeconds(60));
+
+            // Switch to LAND and confirm the vehicle descends and disarms.
+            SetCustomMode(CopterLandMode);
+            bool disarmed = await WaitForArmedState(false, TimeSpan.FromSeconds(120));
+            Assert.IsTrue(disarmed, "vehicle did not disarm after landing");
         }
 
         // --- GUIDED flight helpers --------------------------------------------

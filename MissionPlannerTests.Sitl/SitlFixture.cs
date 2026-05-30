@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -28,19 +29,39 @@ namespace MissionPlanner.Tests.Sitl
         private const int BasePort = 5760;
 
         // Each fixture uses a distinct SITL --instance so multiple instances
-        // (e.g. one per test class) never collide on the TCP port. The binary
-        // maps instance N to port BasePort + 10*N.
-        private static int _instanceCounter = -1;
+        // never collide on the TCP port (instance N maps to BasePort + 10*N).
+        // Instances are released on dispose and reused lowest-first, so a single
+        // class at a time always lands on instance 0 / the known-good base port.
+        private static readonly object InstanceLock = new object();
+        private static readonly HashSet<int> UsedInstances = new HashSet<int>();
 
+        private readonly int _instance;
         private readonly Process _proc;
         private readonly string _workDir;
+
+        private static int AcquireInstance()
+        {
+            lock (InstanceLock)
+            {
+                int i = 0;
+                while (UsedInstances.Contains(i)) i++;
+                UsedInstances.Add(i);
+                return i;
+            }
+        }
+
+        private static void ReleaseInstance(int i)
+        {
+            lock (InstanceLock) UsedInstances.Remove(i);
+        }
 
         public MAVLinkInterface Mav { get; }
         public byte Sysid => Mav.MAV.sysid;
         public byte Compid => Mav.MAV.compid;
 
-        private SitlFixture(Process proc, string workDir, MAVLinkInterface mav)
+        private SitlFixture(int instance, Process proc, string workDir, MAVLinkInterface mav)
         {
+            _instance = instance;
             _proc = proc;
             _workDir = workDir;
             Mav = mav;
@@ -73,7 +94,7 @@ namespace MissionPlanner.Tests.Sitl
                          ?? throw new InvalidOperationException(
                              $"SITL binary '{vehicle}' not found. Set SITL_BIN_DIR (see tests/build-sitl.sh).");
 
-            int instance = System.Threading.Interlocked.Increment(ref _instanceCounter);
+            int instance = AcquireInstance();
             int port = BasePort + 10 * instance;
 
             // SITL needs a writable working directory for its eeprom.bin etc.
@@ -101,12 +122,13 @@ namespace MissionPlanner.Tests.Sitl
             try
             {
                 var mav = Connect(port, TimeSpan.FromSeconds(60));
-                return new SitlFixture(proc, workDir, mav);
+                return new SitlFixture(instance, proc, workDir, mav);
             }
             catch
             {
                 TryKill(proc);
                 TryDeleteDir(workDir);
+                ReleaseInstance(instance);
                 throw;
             }
         }
@@ -173,6 +195,7 @@ namespace MissionPlanner.Tests.Sitl
             try { Mav?.Close(); } catch { /* ignore */ }
             TryKill(_proc);
             TryDeleteDir(_workDir);
+            ReleaseInstance(_instance);
         }
 
         private static void TryKill(Process p)

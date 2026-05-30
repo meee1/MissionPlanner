@@ -10,11 +10,17 @@ uses (see `GCSViews/SITL.cs`), minus WinForms.
 --instance <n> --serial0 tcp:0`), connects a `TcpSerial` to the instance's port
 (`5760 + 10*n`), opens a headless `MAVLinkInterface` (`Open(getparams:false,
 skipconnectedcheck:true, showui:false)` → the `NoUIReporter` path), and requests
-telemetry streams. The tests (`SitlTests`) then exercise heartbeat, parameter
-download / set-get round-trip, mission upload-download round-trip, home position,
-GPS 3D-fix acquisition, a full GUIDED arm + takeoff that confirms the vehicle
-climbs to the commanded altitude via live `GLOBAL_POSITION_INT` telemetry, and an
-AUTO mission run that confirms the active waypoint (`MISSION_CURRENT`) advances.
+telemetry streams. The copter tests (`SitlTests`) exercise heartbeat, parameter download /
+set-get round-trip, mission upload-download round-trip, home position, GPS
+3D-fix acquisition, a full GUIDED arm + takeoff that confirms the vehicle climbs
+to the commanded altitude via live `GLOBAL_POSITION_INT` telemetry, an AUTO
+mission run that confirms the active waypoint (`MISSION_CURRENT`) advances, and a
+LAND that confirms the vehicle descends and disarms.
+
+Fixed-wing tests live in a **separate project** (`MissionPlannerTests.SitlPlane`)
+so they run in their own process. A single `MAVLinkInterface` per process is the
+supported usage; two live interfaces in one process is not. The plane project
+shares this `SitlFixture` via a linked source file.
 
 One SITL instance and one `MAVLinkInterface` are shared across the whole test
 class (an external sim is expensive to start, and a single interface per process
