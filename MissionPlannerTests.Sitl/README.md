@@ -12,8 +12,9 @@ uses (see `GCSViews/SITL.cs`), minus WinForms.
 skipconnectedcheck:true, showui:false)` → the `NoUIReporter` path), and requests
 telemetry streams. The tests (`SitlTests`) then exercise heartbeat, parameter
 download / set-get round-trip, mission upload-download round-trip, home position,
-and a full GUIDED arm + takeoff that confirms the vehicle climbs to the
-commanded altitude via live `GLOBAL_POSITION_INT` telemetry.
+GPS 3D-fix acquisition, a full GUIDED arm + takeoff that confirms the vehicle
+climbs to the commanded altitude via live `GLOBAL_POSITION_INT` telemetry, and an
+AUTO mission run that confirms the active waypoint (`MISSION_CURRENT`) advances.
 
 One SITL instance and one `MAVLinkInterface` are shared across the whole test
 class (an external sim is expensive to start, and a single interface per process

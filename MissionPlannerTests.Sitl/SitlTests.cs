@@ -24,6 +24,7 @@ namespace MissionPlanner.Tests.Sitl
     public class SitlTests
     {
         private const uint CopterGuidedMode = 4;          // ArduCopter GUIDED custom_mode
+        private const uint CopterAutoMode = 3;            // ArduCopter AUTO custom_mode
         private const byte MavModeFlagSafetyArmed = 128;  // MAV_MODE_FLAG.SAFETY_ARMED
 
         private static SitlFixture _sitl;
@@ -139,6 +140,15 @@ namespace MissionPlanner.Tests.Sitl
 
         [TestMethod]
         [TestCategory("Sitl")]
+        public async Task Gps_AcquiresThreeDimensionalFix()
+        {
+            byte fix = await WaitForGpsFix(TimeSpan.FromSeconds(60));
+            // GPS_FIX_TYPE_3D_FIX == 3; SITL typically reports a higher quality fix.
+            Assert.IsTrue(fix >= 3, $"expected a 3D GPS fix (>=3), got fix_type {fix}");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
         public async Task ArmInGuided_Takeoff_ReachesAltitude()
         {
             const double targetAlt = 10.0;
@@ -163,6 +173,36 @@ namespace MissionPlanner.Tests.Sitl
             double reached = await WaitForAltitude(targetAlt * 0.9, TimeSpan.FromSeconds(120));
             Assert.IsTrue(reached >= targetAlt * 0.9,
                 $"expected to climb to >= {targetAlt * 0.9:0.0} m, reached {reached:0.0} m");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task AutoMission_AdvancesThroughWaypoints()
+        {
+            // Self-contained: get the vehicle armed and airborne first so this
+            // test does not depend on the order of the other flight test.
+            Assert.IsTrue(await EnsureGuided(TimeSpan.FromSeconds(120)), "could not enter GUIDED");
+            Assert.IsTrue(await TryArm(TimeSpan.FromSeconds(60)), "could not arm");
+            await WaitForArmedState(true, TimeSpan.FromSeconds(15));
+            await TakeoffWithRetries(10.0, TimeSpan.FromSeconds(30));
+            await WaitForAltitude(8.0, TimeSpan.FromSeconds(60));
+
+            // Upload a short mission: takeoff, two waypoints near home, then RTL.
+            var mission = new List<Locationwp>
+            {
+                new Locationwp().Set(-35.363261, 149.165230, 0, (ushort)MAVLink.MAV_CMD.WAYPOINT),    // 0 home
+                new Locationwp().Set(0, 0, 15, (ushort)MAVLink.MAV_CMD.TAKEOFF),                       // 1 takeoff
+                new Locationwp().Set(-35.362000, 149.165230, 20, (ushort)MAVLink.MAV_CMD.WAYPOINT),    // 2
+                new Locationwp().Set(-35.362000, 149.167000, 20, (ushort)MAVLink.MAV_CMD.WAYPOINT),    // 3
+                new Locationwp().Set(0, 0, 0, (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH),               // 4 RTL
+            };
+            await mav_mission.upload(Mav, Sysid, Compid, MAVLink.MAV_MISSION_TYPE.MISSION, mission);
+
+            // Switch to AUTO and confirm the vehicle starts executing the mission
+            // by watching the active waypoint index advance to a navigation item.
+            SetCustomMode(CopterAutoMode);
+            ushort seq = await WaitForMissionSeq(2, TimeSpan.FromSeconds(120));
+            Assert.IsTrue(seq >= 2, $"AUTO mission did not advance to a waypoint (reached seq {seq})");
         }
 
         // --- GUIDED flight helpers --------------------------------------------
@@ -277,6 +317,59 @@ namespace MissionPlanner.Tests.Sitl
                 }
             }
             return alt;
+        }
+
+        /// <summary>Set a flight mode by numeric custom_mode (firmware-independent).</summary>
+        private static void SetCustomMode(uint customMode)
+        {
+            Mav.setMode(Sysid, Compid, new MAVLink.mavlink_set_mode_t
+            {
+                target_system = Sysid,
+                base_mode = (byte)MAVLink.MAV_MODE_FLAG.CUSTOM_MODE_ENABLED,
+                custom_mode = customMode,
+            });
+        }
+
+        /// <summary>Pump packets until MISSION_CURRENT reports seq >= min, or timeout.</summary>
+        private static async Task<ushort> WaitForMissionSeq(ushort minSeq, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            ushort seq = 0;
+            while (DateTime.UtcNow < deadline)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg == null)
+                    continue;
+
+                if (msg.msgid == (uint)MAVLink.MAVLINK_MSG_ID.MISSION_CURRENT)
+                {
+                    seq = msg.ToStructure<MAVLink.mavlink_mission_current_t>().seq;
+                    if (seq >= minSeq)
+                        return seq;
+                }
+            }
+            return seq;
+        }
+
+        /// <summary>Pump packets until GPS_RAW_INT reports a usable fix, or timeout.</summary>
+        private static async Task<byte> WaitForGpsFix(TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            byte fix = 0;
+            while (DateTime.UtcNow < deadline)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg == null)
+                    continue;
+
+                if (msg.msgid == (uint)MAVLink.MAVLINK_MSG_ID.GPS_RAW_INT)
+                {
+                    fix = msg.ToStructure<MAVLink.mavlink_gps_raw_int_t>().fix_type;
+                    if (fix >= 3)
+                        return fix;
+                }
+            }
+            return fix;
         }
 
         /// <summary>Read packets until a HEARTBEAT arrives, or the window elapses.</summary>
