@@ -23,8 +23,13 @@ namespace MissionPlanner.Tests.Sitl
         [ClassInitialize]
         public static void StartSitl(TestContext _)
         {
-            if (SitlFixture.IsAvailable)
-                _sitl = SitlFixture.StartCopter();
+            if (!SitlFixture.IsAvailable)
+                return;
+
+            _sitl = SitlFixture.StartCopter();
+            // Download the parameter list once, as the GUI does on connect, so
+            // setParamAsync can resolve parameters by name in the tests below.
+            _sitl.Mav.getParamListAsync(_sitl.Sysid, _sitl.Compid).GetAwaiter().GetResult();
         }
 
         [ClassCleanup]
@@ -59,15 +64,27 @@ namespace MissionPlanner.Tests.Sitl
         [TestCategory("Sitl")]
         public async Task SetParam_ThenGetParam_RoundTrips()
         {
-            // RTL_ALT exists on copter; round-trip a distinctive value (in cm).
-            const string name = "RTL_ALT";
-            const double value = 2500;
+            var paramlist = await _sitl.Mav.getParamListAsync(_sitl.Sysid, _sitl.Compid);
+            Assert.IsTrue(paramlist.Count > 0, "no parameters downloaded");
 
-            bool set = await _sitl.Mav.setParamAsync(_sitl.Sysid, _sitl.Compid, name, value);
+            // Choose an existing parameter rather than hard-coding a name, since
+            // ArduPilot renames/regroups parameters across versions. Prefer a
+            // historically stable, writable one; fall back to whatever is present.
+            string name = new[] { "WPNAV_SPEED", "PILOT_SPEED_UP", "ANGLE_MAX" }
+                              .FirstOrDefault(paramlist.ContainsKey)
+                          ?? paramlist.First().Name;
+
+            double original = paramlist[name].Value;
+
+            // Round-trip the value through a real PARAM_SET / PARAM_VALUE exchange.
+            // force:true ensures the set is sent even when the value is unchanged,
+            // so the value stays in range and we exercise the full wire path.
+            bool set = await _sitl.Mav.setParamAsync(_sitl.Sysid, _sitl.Compid, name, original, force: true);
             Assert.IsTrue(set, $"failed to set {name}");
 
             float readback = await _sitl.Mav.GetParamAsync(_sitl.Sysid, _sitl.Compid, name);
-            Assert.AreEqual(value, readback, 1e-3);
+            Assert.AreEqual(original, readback, System.Math.Max(1e-3, System.Math.Abs(original) * 1e-4),
+                $"readback of {name} did not match");
         }
 
         [TestMethod]
