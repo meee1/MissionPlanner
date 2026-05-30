@@ -29,16 +29,27 @@ tests/run-app-tests.sh
 
 ## What's covered
 
-- **`MagCalibTests`** — the `MagCalib` magnetometer hard-iron least-squares
-  solver (root `MagCalib.cs`, using alglib). Synthetic sphere samples with a
-  known centre are fed in and the recovered offsets/radius are asserted, for
-  both the sphere and ellipsoid fits.
-- **`ExtensionsMPTests`** — the `ExtensionsMP` percent↔pixel layout conversions
-  (root `Utilities/ExtensionsMP.cs`), including round-trips, which also exercises
-  the vendored WinForms stack through the app library.
+All targets are genuine `MissionPlanner.*` main-app code compiled into
+`MissionPlannerLib` (root sources, not `ExtLibs/*` — those are the Unit tier):
 
-This tier is intentionally seeded with dependency-light, deterministic logic;
-it is straightforward to extend with more `MissionPlanner.*` classes.
+- **`MagCalibTests`** — the `MagCalib` magnetometer hard-iron least-squares
+  solver (`MagCalib.cs`, alglib). Synthetic sphere samples with a known centre,
+  asserting recovered offsets/radius for the sphere and ellipsoid fits.
+- **`ExtensionsMPTests`** — the `ExtensionsMP` percent↔pixel layout conversions
+  (`Utilities/ExtensionsMP.cs`), including round-trips, which also exercises the
+  vendored WinForms stack through the app library.
+- **`ParsingTests`** — `temp.StringToByteArray` (hex→bytes), the
+  `Radio.XModem` XMODEM CRC-16, and `Log.MavlinkLogBase.HexStringToColor`
+  (AABBGGRR colour parsing).
+- **`CultureInfoExTests`** — `Utilities.CultureInfoEx` translation
+  culture-hierarchy helpers (`GetCultureInfo`, `IsChildOf`).
+- **`AppSurfaceTests`** — a build/load guard: the code lives in
+  `MissionPlannerLib`, key main-app types (`MainV2`, `GCSViews.FlightData`,
+  `GCSViews.FlightPlanner`, `Log.LogBrowse`, `MagCalib`) are loadable, and the
+  whole app (hundreds of types) compiled in.
+
+Most main-app root code is UI/stateful; this tier targets the dependency-light,
+deterministic logic. It is straightforward to extend with more such classes.
 
 ## Notes / requirements
 
