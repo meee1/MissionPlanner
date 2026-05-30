@@ -27,6 +27,11 @@ namespace MissionPlanner.Tests.Sitl
         private const string Host = "127.0.0.1";
         private const int BasePort = 5760;
 
+        // Each fixture uses a distinct SITL --instance so multiple instances
+        // (e.g. one per test class) never collide on the TCP port. The binary
+        // maps instance N to port BasePort + 10*N.
+        private static int _instanceCounter = -1;
+
         private readonly Process _proc;
         private readonly string _workDir;
 
@@ -68,15 +73,18 @@ namespace MissionPlanner.Tests.Sitl
                          ?? throw new InvalidOperationException(
                              $"SITL binary '{vehicle}' not found. Set SITL_BIN_DIR (see tests/build-sitl.sh).");
 
+            int instance = System.Threading.Interlocked.Increment(ref _instanceCounter);
+            int port = BasePort + 10 * instance;
+
             // SITL needs a writable working directory for its eeprom.bin etc.
             string workDir = Path.Combine(Path.GetTempPath(), "mp_sitl_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(workDir);
 
-            // Mirror GCSViews/SITL.cs:664 argument layout.
+            // Mirror GCSViews/SITL.cs:664 argument layout, with a unique instance.
             var psi = new ProcessStartInfo
             {
                 FileName = bin,
-                Arguments = $"-M{model} -O{home} -s{Speedup} --serial0 tcp:0 -w",
+                Arguments = $"-M{model} -O{home} -s{Speedup} --instance {instance} --serial0 tcp:0 -w",
                 WorkingDirectory = workDir,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -85,14 +93,14 @@ namespace MissionPlanner.Tests.Sitl
             };
             var proc = Process.Start(psi)
                        ?? throw new InvalidOperationException("Failed to start SITL process.");
-            proc.OutputDataReceived += (_, e) => { if (e.Data != null) Console.WriteLine("[SITL] " + e.Data); };
-            proc.ErrorDataReceived += (_, e) => { if (e.Data != null) Console.WriteLine("[SITL!] " + e.Data); };
+            proc.OutputDataReceived += (_, e) => { if (e.Data != null) Console.WriteLine($"[SITL{instance}] " + e.Data); };
+            proc.ErrorDataReceived += (_, e) => { if (e.Data != null) Console.WriteLine($"[SITL{instance}!] " + e.Data); };
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
 
             try
             {
-                var mav = Connect(BasePort, TimeSpan.FromSeconds(60));
+                var mav = Connect(port, TimeSpan.FromSeconds(60));
                 return new SitlFixture(proc, workDir, mav);
             }
             catch
@@ -125,7 +133,12 @@ namespace MissionPlanner.Tests.Sitl
 
                     var hb = mav.getHeartBeatAsync().GetAwaiter().GetResult();
                     if (hb != null)
+                    {
+                        // The GUI requests telemetry streams on connect; do the same
+                        // here so position/attitude messages actually flow to tests.
+                        mav.requestDatastream(MAVLink.MAV_DATA_STREAM.ALL, 4);
                         return mav;
+                    }
                 }
                 catch (Exception ex)
                 {

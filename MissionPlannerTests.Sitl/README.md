@@ -7,11 +7,18 @@ uses (see `GCSViews/SITL.cs`), minus WinForms.
 ## How it works
 
 `SitlFixture` launches a SITL binary (`-M<model> -O<home> -s<speedup>
---serial0 tcp:0`), connects a `TcpSerial` to `127.0.0.1:5760`, and opens a
-headless `MAVLinkInterface` (`Open(getparams:false, skipconnectedcheck:true,
-showui:false)` → the `NoUIReporter` path). Tests then exercise heartbeat,
-parameter download / set-get round-trip, mission upload-download round-trip, and
-home position.
+--instance <n> --serial0 tcp:0`), connects a `TcpSerial` to the instance's port
+(`5760 + 10*n`), opens a headless `MAVLinkInterface` (`Open(getparams:false,
+skipconnectedcheck:true, showui:false)` → the `NoUIReporter` path), and requests
+telemetry streams. The tests (`SitlTests`) then exercise heartbeat, parameter
+download / set-get round-trip, mission upload-download round-trip, home position,
+and a full GUIDED arm + takeoff that confirms the vehicle climbs to the
+commanded altitude via live `GLOBAL_POSITION_INT` telemetry.
+
+One SITL instance and one `MAVLinkInterface` are shared across the whole test
+class (an external sim is expensive to start, and a single interface per process
+is the supported usage). The tests are independent — the read-only ones do not
+care whether the vehicle is armed or flying.
 
 ## Running
 
@@ -38,8 +45,11 @@ gated `sitl-tests` job (`.github/workflows/tests.yml`).
 
 ## Adding scenarios
 
-Add `[TestMethod] [TestCategory("Sitl")]` methods to `SitlConnectionTests`
-(shared instance) or a new class with its own `[ClassInitialize]` fixture. Drive
-the vehicle via the async `MAVLinkInterface` API (`doARMAsync`, `doCommandAsync`
-for `NAV_TAKEOFF`, mode changes, etc.). Keep assertions tolerant of simulation
-timing and prefer high `SITL_SPEEDUP` to keep runs fast.
+Add `[TestMethod] [TestCategory("Sitl")]` methods to `SitlTests`, which shares
+the single SITL connection. Drive the vehicle via the async `MAVLinkInterface`
+API (`doARMAsync`, `doCommandAsync` for `NAV_TAKEOFF`, `setMode`, etc.). Note
+that headless there is no GUI timer calling `UpdateCurrentSettings`, so read live
+state by pumping `readPacketAsync()` and decoding messages (as the takeoff test
+does) rather than relying on `MAV.cs`. Set flight modes by numeric `custom_mode`
+(name translation needs `cs.firmware`, which the GUI populates). Keep assertions
+tolerant of simulation timing and prefer a high `SITL_SPEEDUP` to keep runs fast.
