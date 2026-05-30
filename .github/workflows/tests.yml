@@ -146,3 +146,53 @@ jobs:
         with:
           name: winforms-test-results
           path: TestResults/*.trx
+
+  # Application-logic tests against MissionPlannerLib (the whole app compiled as
+  # a netstandard2.0 library). Doubles as a build-guard: it must compile the
+  # entire app cross-platform before the tests can run.
+  app-tests:
+    name: App logic (Linux / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # libSkiaSharp needs fontconfig on a bare runner.
+      - name: Install native deps
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
+      - name: Resolve mono submodule commit
+        id: mono
+        run: echo "sha=$(git ls-tree HEAD ExtLibs/mono | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vendored Mono WinForms (ExtLibs/mono)
+        id: monocache
+        uses: actions/cache@v4
+        with:
+          path: ExtLibs/mono
+          key: ${{ runner.os }}-mono-submodule-${{ steps.mono.outputs.sha }}
+
+      - name: Init mono submodule
+        if: steps.monocache.outputs.cache-hit != 'true'
+        run: git submodule update --init --depth 1 ExtLibs/mono
+
+      - name: Test
+        run: >
+          dotnet test MissionPlannerTests.App/MissionPlannerTests.App.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=App"
+          --logger "trx;LogFileName=app.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-test-results
+          path: TestResults/*.trx
