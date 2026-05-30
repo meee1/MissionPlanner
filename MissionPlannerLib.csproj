@@ -110,7 +110,7 @@
     <Compile Remove="ExtLibs\Xamarin\**" />
     <Compile Remove="ExtLibs\ZedGraph\**" />
     <Compile Remove="ExtLibs\Zeroconf\**" />
-    <Compile Remove="MissionPlannerTests\**" />
+    <Compile Remove="MissionPlannerTests*\**" />
     <Compile Remove="Msi\**" />
     <Compile Remove="obj3\**" />
     <Compile Remove="Plugins\**" />
@@ -209,7 +209,7 @@
     <EmbeddedResource Remove="ExtLibs\Xamarin\**" />
     <EmbeddedResource Remove="ExtLibs\ZedGraph\**" />
     <EmbeddedResource Remove="ExtLibs\Zeroconf\**" />
-    <EmbeddedResource Remove="MissionPlannerTests\**" />
+    <EmbeddedResource Remove="MissionPlannerTests*\**" />
     <EmbeddedResource Remove="Msi\**" />
     <EmbeddedResource Remove="obj3\**" />
     <EmbeddedResource Remove="Plugins\**" />
@@ -307,7 +307,7 @@
     <None Remove="ExtLibs\Xamarin\**" />
     <None Remove="ExtLibs\ZedGraph\**" />
     <None Remove="ExtLibs\Zeroconf\**" />
-    <None Remove="MissionPlannerTests\**" />
+    <None Remove="MissionPlannerTests*\**" />
     <None Remove="Msi\**" />
     <None Remove="obj3\**" />
     <None Remove="Plugins\**" />
@@ -417,33 +417,15 @@
 
    <Compile Include="plugins\example.cs" />
 
-   <Compile Include="plugins\example10-canlogfile.cs" />
-
    <Compile Include="plugins\example11-trace.cs" />
 
    <Compile Include="plugins\example12-forwarding.cs" />
 
    <Compile Include="plugins\example13-herelink2.cs" />
 
-   <Compile Include="plugins\example14-mass.cs" />
-
-   <Compile Include="plugins\example15-leds.cs" />
-
-   <Compile Include="plugins\example16-donate.cs" />
-
-   <Compile Include="plugins\example17-menuremove.cs" />
-
-   <Compile Include="plugins\example18-externalapi.cs" />
-
-   <Compile Include="plugins\example19-multiforward.cs" />
-
    <Compile Include="plugins\example2-menu.cs" />
 
    <Compile Include="plugins\example2.cs" />
-
-   <Compile Include="plugins\example20-multiplepositions.cs" />
-
-   <Compile Include="plugins\example21-persistentsimple.cs" />
 
    <Compile Include="plugins\example22-fontsize.cs" />
 
