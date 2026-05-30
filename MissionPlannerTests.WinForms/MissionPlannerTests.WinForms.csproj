@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Runs on .NET 8 cross-platform. The WinForms types come from Mission
+         Planner's vendored Mono System.Windows.Forms (ExtLibs/mono submodule),
+         compiled to netstandard2.0 and rendered with SkiaSharp - no Mono runtime
+         and no display server required. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS0618;NU1701</NoWarn>
+    <!-- The referenced MissionPlanner.Drawing.Common signs with open.snk, which
+         is not committed to the repo; signing is irrelevant for these tests. -->
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <!-- Native libSkiaSharp for the Linux CI runner (the WinForms renderer). -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
+  </ItemGroup>
+
+  <!-- The netstandard2.0 flavour of MissionPlanner.Controls pulls in the
+       vendored Mono System.Windows.Forms + the Skia drawing shim. -->
+  <ItemGroup>
+    <ProjectReference Include="..\ExtLibs\Controls\MissionPlanner.Controls.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -96,3 +96,54 @@ jobs:
         with:
           name: sitl-test-results
           path: TestResults/*.trx
+
+  # Cross-platform WinForms control tests: instantiate/render Mission Planner's
+  # WinForms controls on .NET 8 via the vendored Mono System.Windows.Forms
+  # (ExtLibs/mono) rendered with SkiaSharp - no Mono runtime, no display server.
+  winforms-tests:
+    name: WinForms controls (Linux / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # libSkiaSharp needs fontconfig on a bare runner.
+      - name: Install native deps
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
+      - name: Resolve mono submodule commit
+        id: mono
+        run: echo "sha=$(git ls-tree HEAD ExtLibs/mono | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vendored Mono WinForms (ExtLibs/mono)
+        id: monocache
+        uses: actions/cache@v4
+        with:
+          path: ExtLibs/mono
+          key: ${{ runner.os }}-mono-submodule-${{ steps.mono.outputs.sha }}
+
+      - name: Init mono submodule
+        if: steps.monocache.outputs.cache-hit != 'true'
+        run: git submodule update --init --depth 1 ExtLibs/mono
+
+      - name: Test
+        run: >
+          dotnet test MissionPlannerTests.WinForms/MissionPlannerTests.WinForms.csproj
+          -f net8.0
+          -c Debug
+          -p:SignAssembly=false
+          --filter "TestCategory=WinForms"
+          --logger "trx;LogFileName=winforms.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: winforms-test-results
+          path: TestResults/*.trx
