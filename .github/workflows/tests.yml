@@ -37,13 +37,48 @@ jobs:
           name: unit-test-results
           path: TestResults/*.trx
 
-  # ---------------------------------------------------------------------------
-  # Phase 2 (planned): headless SITL integration tests.
-  #
-  # A `sitl-tests` job will live here. It builds ArduPilot SITL from source on
-  # ubuntu-latest (Tools/environment_install/install-prereqs-ubuntu.sh, then
-  # ./waf configure --board sitl && ./waf copter plane), caches the build, and
-  # runs MissionPlannerTests.Sitl with SITL_BIN_DIR pointing at the binaries.
-  # Gated on a label / schedule because it is much heavier than the unit job.
-  # See tests/run-unit-tests.sh and the test plan for details.
-  # ---------------------------------------------------------------------------
+  # Headless ArduPilot SITL integration tests. Much heavier than the unit job
+  # (it builds ArduPilot from source), so it is gated: it runs on manual dispatch
+  # or when a PR carries the "sitl" label. Tests self-skip if no binary is built.
+  sitl-tests:
+    name: SITL integration (Linux)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'sitl')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache ArduPilot SITL build
+        uses: actions/cache@v4
+        with:
+          path: .sitl
+          key: ${{ runner.os }}-ardupilot-sitl-${{ hashFiles('tests/build-sitl.sh') }}
+
+      - name: Build ArduPilot SITL
+        run: tests/build-sitl.sh
+
+      - name: Test
+        env:
+          SITL_BIN_DIR: ${{ github.workspace }}/.sitl/ardupilot/build/sitl/bin
+          SITL_SPEEDUP: "5"
+        run: >
+          dotnet test MissionPlannerTests.Sitl/MissionPlannerTests.Sitl.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=Sitl"
+          --logger "trx;LogFileName=sitl.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitl-test-results
+          path: TestResults/*.trx

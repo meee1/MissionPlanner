@@ -229,6 +229,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nefarius.Drivers.WinUSB", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MissionPlannerTests.Unit", "MissionPlannerTests.Unit\MissionPlannerTests.Unit.csproj", "{1F127282-DBA5-4383-B56B-9A6BE0AF8F6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MissionPlannerTests.Sitl", "MissionPlannerTests.Sitl\MissionPlannerTests.Sitl.csproj", "{B4E3000D-2C49-4D4B-A488-EE8C4D39D827}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -568,6 +570,10 @@ Global
 		{1F127282-DBA5-4383-B56B-9A6BE0AF8F6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F127282-DBA5-4383-B56B-9A6BE0AF8F6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F127282-DBA5-4383-B56B-9A6BE0AF8F6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4E3000D-2C49-4D4B-A488-EE8C4D39D827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4E3000D-2C49-4D4B-A488-EE8C4D39D827}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4E3000D-2C49-4D4B-A488-EE8C4D39D827}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4E3000D-2C49-4D4B-A488-EE8C4D39D827}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
