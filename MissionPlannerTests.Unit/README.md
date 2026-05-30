@@ -33,11 +33,12 @@ offline — no network, no GUI, no hardware.
 
 | Folder       | Under test                                                        |
 |--------------|-------------------------------------------------------------------|
-| `Geometry/`  | `PointLatLngAlt` (distance/bearing/newpos/UTM), `Vector3`         |
-| `Mission/`   | `Locationwp` ↔ MAVLink mission item conversions, `WaypointFile`   |
-| `Mavlink/`   | `MavlinkCRC` (X25/MCRF4XX wire CRC)                                |
+| `Geometry/`  | `PointLatLngAlt`, `Vector3`, `Quaternion`, `Matrix3`, UTM, `Spline2`, math helpers |
+| `Mission/`   | `Locationwp` ↔ MAVLink items, `WaypointFile`, QGC `.plan` JSON, geofence |
+| `Mavlink/`   | `MavlinkCRC` (wire CRC), `MavlinkParse` (v1/v2 + tlog framing)     |
 | `Grid/`      | `Grid.CreateGrid` survey generation                               |
-| `Params/`    | `CurrentState` display-unit conversions                           |
+| `Logs/`      | DataFlash text (`DFLog`) and binary (`BinaryLog`) parsing          |
+| `Params/`    | `CurrentState` display-unit conversions, `ParamChanges47` renames |
 | `TestData/`  | committed fixtures copied to the test output directory            |
 
 ## Adding tests
