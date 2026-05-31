@@ -196,3 +196,59 @@ jobs:
         with:
           name: app-test-results
           path: TestResults/*.trx
+
+  # GPU render tests: exercise the SkiaSharp GPU path (GRContext + GPU SKSurface)
+  # against a headless software GL context (Mesa llvmpipe via EGL surfaceless).
+  # Validates the GPU half of MissionPlanner.Drawing.GpuContext for real.
+  gpu-tests:
+    name: GPU render (Linux software GL / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Mesa software GL + EGL (surfaceless) + fontconfig for libSkiaSharp.
+      - name: Install software GL stack
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1-mesa-dri libgles2 libfontconfig1
+
+      - name: Resolve mono submodule commit
+        id: mono
+        run: echo "sha=$(git ls-tree HEAD ExtLibs/mono | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vendored Mono WinForms (ExtLibs/mono)
+        id: monocache
+        uses: actions/cache@v4
+        with:
+          path: ExtLibs/mono
+          key: ${{ runner.os }}-mono-submodule-${{ steps.mono.outputs.sha }}
+
+      - name: Init mono submodule
+        if: steps.monocache.outputs.cache-hit != 'true'
+        run: git submodule update --init --depth 1 ExtLibs/mono
+
+      - name: Test
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          GALLIUM_DRIVER: llvmpipe
+          EGL_PLATFORM: surfaceless
+          MESA_GL_VERSION_OVERRIDE: "3.3"
+          MESA_GLES_VERSION_OVERRIDE: "3.0"
+        run: >
+          dotnet test MissionPlannerTests.WinForms/MissionPlannerTests.WinForms.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=Gpu"
+          --logger "trx;LogFileName=gpu.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-test-results
+          path: TestResults/*.trx
