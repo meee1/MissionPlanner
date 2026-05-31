@@ -10,19 +10,27 @@ Xamarin heads with one cross-platform project:
 | `Xamarin.MacOS`       | `net8.0-maccatalyst` target                |
 | `Xamarin.UWP`         | `net8.0-windows10.0.19041.0` target        |
 
-## Status — Phase 1 scaffold
+## Status — Phase 1 scaffold + Phase 2 render loop
 
-This is the **scaffold** stage of the Xamarin → .NET MAUI migration. What is in place:
+What is in place:
 
 - MAUI single project (`MissionPlanner.Maui.csproj`) targeting Android / iOS /
   MacCatalyst / Windows on net8.0.
 - App bootstrap: `MauiProgram`, `App`, `AppShell` (Shell flyout replaces the old
   `MasterDetailPage`).
-- `GCSViews/WinFormsHostPage` — MAUI port of the old `GCSViews/WinForms` page,
-  using `SkiaSharp.Views.Maui.Controls.SKGLView` (was `SkiaSharp.Views.Forms`).
+- `GCSViews/WinFormsHostPage` — full MAUI port of the old `GCSViews/WinForms`
+  render loop (touch→WinForms message translation, the SkiaSharp paint loop via
+  `FormsRender.DrawOntoCanvas`, `Speech`/`Browser` services), using
+  `SkiaSharp.Views.Maui.Controls.SKGLView` (was `SkiaSharp.Views.Forms`).
 - Platform entry points under `Platforms/`.
-- The SkiaSharp-backed `System.Drawing` port (`MissionPlanner.Drawing`,
-  now multi-targeted to `net8.0`) is referenced, plus SkiaSharp **2.88.x**.
+- References: `MissionPlanner.Drawing` (SkiaSharp `System.Drawing`, net8),
+  `MissionPlannerLib` (provides `FormsRender` via `ZZZLibShims.cs`), the Mono
+  `System.Windows.Forms` driver (netstandard2.0), and the linked Xamarin-free
+  helper `ITest.cs` (`Test`). SkiaSharp **2.88.x**.
+
+See **`PHASE2-NOTES.md`** for the render-loop port details, the dependency
+analysis (why the port is mostly net8-viable and the Xamarin.Forms WinForms
+bridge is not needed), and the remaining work.
 
 ## Dependency migration map
 

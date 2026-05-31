@@ -64,7 +64,24 @@
   <ItemGroup>
     <!-- Wire in the SkiaSharp-backed System.Drawing port (net8.0 target). -->
     <ProjectReference Include="..\..\MissionPlanner.Drawing\MissionPlanner.Drawing.csproj" />
-    <!-- TODO (Phase 2): add ProjectReference to the retargeted shared "Xamarin" project here. -->
+
+    <!-- Mission Planner core (netstandard2.0): MainV2, Program, GCSViews, SerialPort, Settings,
+         SITL, files, ISpeech, IBrowserOpen, CommsInjection, ArduPilot.DeviceInfo, ... -->
+    <ProjectReference Include="..\..\..\MissionPlannerLib.csproj" />
+
+    <!-- Mono System.Windows.Forms driver (netstandard2.0 — consumable from net8):
+         XplatUIMine, XplatUI, Hwnd, Msg, MsgButtons, Screen, Control, Form, NativeWindow,
+         CaretStruct, KeyboardXplat, ComboBox, FormWindowState, ... -->
+    <ProjectReference Include="..\..\mono\mcs\class\System.Windows.Forms\System.Windows.Forms-net_4_x.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test is the platform-service facade. It lives under ExtLibs\Xamarin\** which MissionPlannerLib
+         excludes from compilation, so it is linked here (single source of truth, not copied).
+         FormsRender (ZZZLibShims.cs) is NOT linked: MissionPlannerLib already compiles it, so it
+         resolves through that project reference. The legacy Xamarin.Forms WinForms bridge is
+         intentionally not referenced (unused under MAUI). -->
+    <Compile Include="..\Xamarin\ITest.cs" Link="Legacy\ITest.cs" />
   </ItemGroup>
 
 </Project>
