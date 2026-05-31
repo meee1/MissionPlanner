@@ -84,5 +84,19 @@ namespace MissionPlanner.Tests.WinForms
             Assert.AreEqual((byte)255, px.Green);
             Assert.AreEqual((byte)0, px.Blue);
         }
+
+        [TestMethod]
+        [TestCategory("WinForms")]
+        public void SKGLControl_ConstructsHeadless_WithoutRegisteringGpu()
+        {
+            GpuContext.Unregister();
+
+            using var c = new SkiaSharp.Views.Desktop.SKGLControl();
+            Assert.IsInstanceOfType(c, typeof(System.Windows.Forms.Control));
+            // No real GL context headless: it must not claim acceleration or
+            // register a GPU context just by being constructed.
+            Assert.IsFalse(c.IsHardwareAccelerated);
+            Assert.IsFalse(GpuContext.IsGpuAvailable);
+        }
     }
 }
