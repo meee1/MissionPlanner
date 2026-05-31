@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
     <!-- The Skia-based MissionPlanner.Drawing is the cross-platform System.Drawing;
          keep the real System.Drawing.Common out to avoid a duplicate-type clash. -->
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" ExcludeAssets="all" />
