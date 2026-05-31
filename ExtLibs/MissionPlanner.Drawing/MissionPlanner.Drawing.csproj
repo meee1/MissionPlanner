@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Multi-target: netstandard2.0 for the legacy net472 desktop head, net8.0 for the .NET MAUI heads. -->
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>System.Drawing</RootNamespace>
 
     <AssemblyName>MissionPlanner.Drawing</AssemblyName>
@@ -18,7 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
+    <!-- SkiaSharp 2.88.x is the last 2.x line; it keeps SKFilterQuality/SKPaint APIs used by Graphics.cs
+         and is the version that SkiaSharp.Views.Maui targets. -->
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- System.Drawing.Primitives (Color, Point, Size, Rectangle, ...) ships in the shared framework on net8.0,
+         so it is only needed as an explicit package for the netstandard2.0 target. -->
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
   </ItemGroup>
 

@@ -1,7 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Multi-target so the System.Drawing.Common drop-in shim is available to both the legacy
+         netstandard2.0 consumers and the net8.0 .NET MAUI heads. On net8.0 the in-box
+         System.Drawing.Common is Windows-only, so this type-forwarding assembly replaces it cross-platform. -->
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <RootNamespace>System.Drawing</RootNamespace>
     <AssemblyName>System.Drawing.Common</AssemblyName>
     <AssemblyVersion>5.0.99.0</AssemblyVersion>
@@ -14,7 +17,7 @@
     <AssemblyOriginatorKeyFile>open.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
   </ItemGroup>
 
