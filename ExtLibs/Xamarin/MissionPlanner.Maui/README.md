@@ -28,9 +28,14 @@ What is in place:
   `System.Windows.Forms` driver (netstandard2.0), and the linked Xamarin-free
   helper `ITest.cs` (`Test`). SkiaSharp **2.88.x**.
 
-See **`PHASE2-NOTES.md`** for the render-loop port details, the dependency
-analysis (why the port is mostly net8-viable and the Xamarin.Forms WinForms
-bridge is not needed), and the remaining work.
+- **Android platform services** wired (`Platforms/Android/MainActivity.cs` +
+  linked native service files: USB/BT/Radio/GPS/SystemInfo). iOS / Mac Catalyst /
+  Windows have registration hooks + TODOs.
+
+See **`PHASE2-NOTES.md`** for the render-loop port details and the dependency
+analysis, and **`PHASE3-NOTES.md`** for the platform-service architecture, the
+Android dependency blocker (`UsbSerialForAndroid` / `GDALForAndroid` still need a
+net8-android migration), and the per-platform service work remaining.
 
 ## Dependency migration map
 

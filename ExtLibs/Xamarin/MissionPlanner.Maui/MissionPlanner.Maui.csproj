@@ -84,4 +84,28 @@
     <Compile Include="..\Xamarin\ITest.cs" Link="Legacy\ITest.cs" />
   </ItemGroup>
 
+  <!-- ============================ Android platform services ============================ -->
+  <!-- The legacy Android service implementations are Xamarin.Forms/Essentials-free, so they are
+       linked into the android target (single source of truth). Only the entry point
+       (Platforms/Android/MainActivity.cs) was rewritten for MAUI. AndroidVideo / FormsVideoLibrary
+       are intentionally dropped (video page removed). -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <Compile Include="..\Xamarin.Android\BTDevice.cs" Link="Platforms\Android\Services\BTDevice.cs" />
+    <Compile Include="..\Xamarin.Android\USBDevices.cs" Link="Platforms\Android\Services\USBDevices.cs" />
+    <Compile Include="..\Xamarin.Android\Radio.cs" Link="Platforms\Android\Services\Radio.cs" />
+    <Compile Include="..\Xamarin.Android\AndroidSerial.cs" Link="Platforms\Android\Services\AndroidSerial.cs" />
+    <Compile Include="..\Xamarin.Android\UsbDeviceReceiver.cs" Link="Platforms\Android\Services\UsbDeviceReceiver.cs" />
+    <Compile Include="..\Xamarin.Android\DeviceDiscoveredReceiver.cs" Link="Platforms\Android\Services\DeviceDiscoveredReceiver.cs" />
+    <Compile Include="..\Xamarin.Android\DiscoverableModeReceiver.cs" Link="Platforms\Android\Services\DiscoverableModeReceiver.cs" />
+    <Compile Include="..\Xamarin.Android\BluetoothDiscoveryModeArgs.cs" Link="Platforms\Android\Services\BluetoothDiscoveryModeArgs.cs" />
+    <Compile Include="..\Xamarin.Android\SysProp.cs" Link="Platforms\Android\Services\SysProp.cs" />
+    <Compile Include="..\Xamarin.Android\AbstractUnixEndPoint.cs" Link="Platforms\Android\Services\AbstractUnixEndPoint.cs" />
+
+    <!-- USB serial + GDAL bindings used by USBDevices / GDAL map overlays.
+         NOTE: these are still legacy MonoAndroid (v13.0) projects and must be migrated to
+         net8.0-android before this target will build (see PHASE3-NOTES.md). -->
+    <ProjectReference Include="..\..\UsbSerialForAndroid\UsbSerialForAndroid.csproj" />
+    <ProjectReference Include="..\GDALForAndroid\GDALForAndroid.csproj" />
+  </ItemGroup>
+
 </Project>
