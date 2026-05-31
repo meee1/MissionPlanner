@@ -29,6 +29,7 @@ namespace MissionPlanner.Tests.Sitl
         private const byte MavModeFlagSafetyArmed = 128;  // MAV_MODE_FLAG.SAFETY_ARMED
 
         private static SitlFixture _sitl;
+        private static string _knownParam;
 
         private static MAVLinkInterface Mav => _sitl.Mav;
         private static byte Sysid => _sitl.Sysid;
@@ -43,7 +44,10 @@ namespace MissionPlanner.Tests.Sitl
             _sitl = SitlFixture.StartCopter();
             // Download the parameter list once, as the GUI does on connect, so
             // setParamAsync can resolve parameters by name.
-            Mav.getParamListAsync(Sysid, Compid).GetAwaiter().GetResult();
+            var paramlist = Mav.getParamListAsync(Sysid, Compid).GetAwaiter().GetResult();
+            _knownParam = new[] { "WPNAV_SPEED", "PILOT_SPEED_UP", "ANGLE_MAX" }
+                              .FirstOrDefault(paramlist.ContainsKey)
+                          ?? paramlist.First().Name;
         }
 
         [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
@@ -146,6 +150,83 @@ namespace MissionPlanner.Tests.Sitl
             byte fix = await WaitForGpsFix(TimeSpan.FromSeconds(60));
             // GPS_FIX_TYPE_3D_FIX == 3; SITL typically reports a higher quality fix.
             Assert.IsTrue(fix >= 3, $"expected a 3D GPS fix (>=3), got fix_type {fix}");
+        }
+
+        // --- MAVLinkInterface async I/O behaviour ------------------------------
+        // These validate the asynchronous I/O itself against the live stream:
+        // the read pump, concurrent-read serialisation via the internal readlock,
+        // the async retry/timeout path, and the synchronous AwaitSync wrappers.
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task ReadPacketAsync_StreamsMultipleMessageTypes()
+        {
+            var seen = new HashSet<uint>();
+            for (int i = 0; i < 30 && seen.Count < 3; i++)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg != null && msg.Length > 5)
+                    seen.Add(msg.msgid);
+            }
+
+            // A live SITL link continuously streams heartbeat, attitude, GPS, etc.
+            Assert.IsTrue(seen.Count >= 3,
+                $"expected several distinct streaming message types, saw {seen.Count}");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task ConcurrentReadPacketAsync_AllComplete_SerializedByReadLock()
+        {
+            // Fire many reads at once against the single shared BaseStream. Without
+            // the internal readlock these would race and corrupt the parser; with
+            // it they serialise and every one completes.
+            const int n = 12;
+            var tasks = Enumerable.Range(0, n).Select(_ => Mav.readPacketAsync()).ToArray();
+
+            var results = await Task.WhenAll(tasks);
+
+            // WhenAll completing without exception/deadlock is the core proof that
+            // the readlock serialised concurrent access to the shared stream.
+            Assert.AreEqual(n, results.Length);
+            int valid = results.Count(r => r != null && r.Length > 5);
+            Assert.IsTrue(valid >= n - 2, $"expected almost all concurrent reads to carry payloads, got {valid}/{n}");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task InterfaceStaysUsable_AfterConcurrentReads()
+        {
+            // Hammer the link concurrently, then confirm the readlock was released
+            // and a normal request/response round-trip still works.
+            await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Mav.readPacketAsync()));
+
+            float value = await Mav.GetParamAsync(Sysid, Compid, _knownParam);
+            Assert.IsFalse(float.IsNaN(value), $"GetParamAsync({_knownParam}) returned NaN after concurrent reads");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task GetParamAsync_UnknownParameter_ThrowsTimeout()
+        {
+            // No PARAM_VALUE will ever match this name, so the async retry/timeout
+            // path must surface a TimeoutException rather than hang.
+            await Assert.ThrowsExceptionAsync<TimeoutException>(
+                () => Mav.GetParamAsync(Sysid, Compid, "ZZ_NOPARAM"));
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task SyncAndAsyncHeartbeat_BothReturnHeartbeat()
+        {
+            // The async call and its AwaitSync() wrapper must both work over real I/O.
+            var asyncHb = await Mav.getHeartBeatAsync();
+            var syncHb = Mav.getHeartBeat();
+
+            Assert.IsNotNull(asyncHb);
+            Assert.IsNotNull(syncHb);
+            Assert.AreEqual((uint)MAVLink.MAVLINK_MSG_ID.HEARTBEAT, asyncHb.msgid);
+            Assert.AreEqual((uint)MAVLink.MAVLINK_MSG_ID.HEARTBEAT, syncHb.msgid);
         }
 
         [TestMethod]
