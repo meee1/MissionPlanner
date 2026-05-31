@@ -30,9 +30,25 @@ namespace MissionPlanner.Tests.WinForms
         [DllImport(EGL)] static extern bool eglMakeCurrent(IntPtr dpy, IntPtr draw, IntPtr read, IntPtr ctx);
         [DllImport(EGL, CharSet = CharSet.Ansi)] static extern IntPtr eglGetProcAddress(string name);
 
+        const string GLES = "libGLESv2.so.2";
+        [DllImport(GLES)] static extern void glGenFramebuffers(int n, uint[] ids);
+        [DllImport(GLES)] static extern void glBindFramebuffer(uint target, uint fb);
+        [DllImport(GLES)] static extern void glGenRenderbuffers(int n, uint[] ids);
+        [DllImport(GLES)] static extern void glBindRenderbuffer(uint target, uint rb);
+        [DllImport(GLES)] static extern void glRenderbufferStorage(uint target, uint internalformat, int w, int h);
+        [DllImport(GLES)] static extern void glFramebufferRenderbuffer(uint target, uint attachment, uint rbtarget, uint rb);
+        [DllImport(GLES)] static extern uint glCheckFramebufferStatus(uint target);
+        [DllImport(GLES)] static extern void glReadPixels(int x, int y, int w, int h, uint format, uint type, byte[] data);
+        [DllImport(GLES)] static extern void glViewport(int x, int y, int w, int h);
+        [DllImport(GLES)] static extern void glFinish();
+
         const int EGL_SURFACE_TYPE = 0x3033, EGL_PBUFFER_BIT = 0x0001, EGL_RENDERABLE_TYPE = 0x3040,
                   EGL_OPENGL_ES2_BIT = 0x0004, EGL_NONE = 0x3038, EGL_CONTEXT_CLIENT_VERSION = 0x3098;
         const uint EGL_OPENGL_ES_API = 0x30A0;
+
+        const uint GL_FRAMEBUFFER = 0x8D40, GL_RENDERBUFFER = 0x8D41, GL_COLOR_ATTACHMENT0 = 0x8CE0,
+                   GL_DEPTH_STENCIL_ATTACHMENT = 0x821A, GL_RGBA8 = 0x8058, GL_DEPTH24_STENCIL8 = 0x88F0,
+                   GL_FRAMEBUFFER_COMPLETE = 0x8CD5, GL_RGBA = 0x1908, GL_UNSIGNED_BYTE = 0x1401;
 
         private static IntPtr _dpy, _ctx;
         private static GRContext _grContext;
@@ -133,6 +149,54 @@ namespace MissionPlanner.Tests.WinForms
             var px = bmp.GetPixel(50, 40);
             Assert.AreEqual((byte)255, px.Blue);
             Assert.AreEqual((byte)0, px.Red);
+        }
+
+        [TestMethod]
+        public void RenderTargetSurface_WrapsGlFramebuffer_AndRenders()
+        {
+            // This is the path SKGLControl uses: wrap a real GL framebuffer rather
+            // than an offscreen texture. Build an FBO (RGBA8 colour + depth24/stencil8,
+            // matching stencilBits:8), let Skia render into it, then read it straight
+            // back with glReadPixels to prove the wrap actually targeted that FBO.
+            const int W = 128, H = 96;
+
+            var fbo = new uint[1];
+            glGenFramebuffers(1, fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo[0]);
+
+            var color = new uint[1];
+            glGenRenderbuffers(1, color);
+            glBindRenderbuffer(GL_RENDERBUFFER, color[0]);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, W, H);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color[0]);
+
+            var ds = new uint[1];
+            glGenRenderbuffers(1, ds);
+            glBindRenderbuffer(GL_RENDERBUFFER, ds[0]);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, W, H);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, ds[0]);
+
+            Assert.AreEqual(GL_FRAMEBUFFER_COMPLETE, glCheckFramebufferStatus(GL_FRAMEBUFFER), "FBO incomplete");
+            glViewport(0, 0, W, H);
+
+            using (var surface = GpuContext.CreateRenderTargetSurface(W, H, out bool gpu,
+                       framebuffer: fbo[0], samples: 0, stencilBits: 8))
+            {
+                Assert.IsTrue(gpu, "must wrap the GL framebuffer as a GPU surface");
+                surface.Canvas.Clear(SKColors.Red);
+                surface.Canvas.Flush();
+                _grContext.Flush();
+            }
+
+            glFinish();
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo[0]);
+            var px = new byte[W * H * 4];
+            glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, px);
+
+            int c = (48 * W + 64) * 4; // centre pixel, RGBA
+            Assert.AreEqual((byte)255, px[c + 0], "R");
+            Assert.AreEqual((byte)0, px[c + 1], "G");
+            Assert.AreEqual((byte)0, px[c + 2], "B");
         }
     }
 }
