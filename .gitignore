@@ -50,3 +50,7 @@ obj3/
 
 /.claude/settings.local.json
 /CLAUDE.md
+
+# ArduPilot SITL build tree created by tests/build-sitl.sh (and CI cache)
+/.sitl/
+/TestResults/
