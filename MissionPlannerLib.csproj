@@ -479,7 +479,6 @@
      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
    </PackageReference>
    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.12" />
-   <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="2.80.2" />
    <PackageReference Include="SkiaSharp.Views.Forms" Version="2.80.2" />
    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
    <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
