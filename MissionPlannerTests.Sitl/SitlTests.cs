@@ -14,11 +14,15 @@ namespace MissionPlanner.Tests.Sitl
     /// heartbeat, parameter download / set-get, mission upload/download, home
     /// position, and a full GUIDED arm + takeoff climb.
     ///
-    /// One SITL instance and one connection are shared across all tests (an
-    /// external sim is expensive to spin up, and a single MAVLinkInterface per
-    /// process is the supported usage). The tests are independent: the read-only
-    /// ones do not care whether the vehicle is armed or flying. When no SITL
-    /// binary is available every test is marked inconclusive.
+    /// One SITL instance and one connection are shared across all tests purely
+    /// for efficiency — an external sim is expensive to spin up. (Mission Planner
+    /// itself runs many MAVLinkInterface instances at once via MainV2.Comports,
+    /// e.g. for swarms, so multiple connections per process are fully supported;
+    /// they just share a little process-global state — gcssysid, the ADSB
+    /// callbacks, speech and UI-progress hooks — none of which affects telemetry
+    /// or command I/O on independent links.) The tests are independent: the
+    /// read-only ones do not care whether the vehicle is armed or flying. When no
+    /// SITL binary is available every test is marked inconclusive.
     /// </summary>
     [TestClass]
     public class SitlTests
