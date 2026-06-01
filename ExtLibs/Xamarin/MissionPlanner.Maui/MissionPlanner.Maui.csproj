@@ -102,8 +102,7 @@
     <Compile Include="..\Xamarin.Android\AbstractUnixEndPoint.cs" Link="Platforms\Android\Services\AbstractUnixEndPoint.cs" />
 
     <!-- USB serial + GDAL bindings used by USBDevices / GDAL map overlays.
-         NOTE: these are still legacy MonoAndroid (v13.0) projects and must be migrated to
-         net8.0-android before this target will build (see PHASE3-NOTES.md). -->
+         Migrated to net8.0-android binding projects (see PHASE3-NOTES.md). -->
     <ProjectReference Include="..\..\UsbSerialForAndroid\UsbSerialForAndroid.csproj" />
     <ProjectReference Include="..\GDALForAndroid\GDALForAndroid.csproj" />
   </ItemGroup>

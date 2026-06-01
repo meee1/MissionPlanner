@@ -37,14 +37,21 @@ Only the entry point was rewritten for MAUI in `Platforms/Android/MainActivity.c
 the legacy `MainActivity`) are ported here. Video (`AndroidVideo`,
 `FormsVideoLibrary`) and gstreamer were dropped (video page removed).
 
-### Android dependency blocker
+### Android binding dependencies — migrated
 
 `USBDevices` needs `UsbSerialForAndroid`, and the GDAL map overlays need
-`GDALForAndroid`. **Both are still legacy MonoAndroid `v13.0` projects** and must be
-migrated to `net8.0-android` (SDK-style csproj, `<TargetFramework>net8.0-android</…>`,
-updated Android binding APIs) before the android target will build. They are
-referenced from the csproj so the wiring is visible, but expect them to be the next
-thing to fix.
+`GDALForAndroid`. Both were legacy MonoAndroid `v13.0` binding projects; they have now
+been migrated to **`net8.0-android`** SDK-style binding projects
+(`<IsBindingProject>true</IsBindingProject>`, `Xamarin.Android.Bindings.targets`
+import removed, `<EmbeddedJar>`/`<LibraryProjectZip>` → `<AndroidLibrary Bind="true">`,
+`<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` to keep the existing
+`AssemblyInfo.cs`). The `Transforms/*.xml` metadata is unchanged. `GDALForAndroid`
+still references `System.Drawing.android` (a netstandard2.0 facade that type-forwards
+to `MissionPlanner.Drawing`).
+
+> Not compile-verified (no .NET SDK / Android workload here). On first build, the most
+> likely fixups are binding generator (`class-parse`) differences in the generated API
+> surface — adjust `Transforms/Metadata.xml` if names/visibility shifted.
 
 ## iOS / Mac Catalyst / Windows — remaining
 
