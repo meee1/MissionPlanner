@@ -37,9 +37,9 @@ single most important thing to understand before touching shared code.
 
 ### CI
 
-GitHub Actions (`.github/workflows/main.yml` = "DotNet Build", plus `android.yml`, `mac.yml`),
-Azure Pipelines (`azure-pipelines.yml`), and AppVeyor (`appveyor.yml`) all build on Windows with
-MSBuild. CI builds the solution and zips `bin/Release/net461`; tagging `beta` publishes a release.
+GitHub Actions (`.github/workflows/main.yml` = "DotNet Build", plus `android.yml`, `mac.yml`)
+build on Windows with MSBuild. CI builds the solution and zips `bin/Release/net461`; tagging
+`beta` publishes a release.
 
 ## Tests
 
