@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Multi-target so the System.Drawing.Common drop-in shim is available to both the legacy
-         netstandard2.0 consumers and the net8.0 .NET MAUI heads. On net8.0 the in-box
-         System.Drawing.Common is Windows-only, so this type-forwarding assembly replaces it cross-platform. -->
-    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <!-- netstandard2.0 only. A net8.0 target was tried, but on net8 the type-forwards in Consts.cs
+         (KnownColor, SystemColors, ColorTranslator, ...) become ambiguous between MissionPlanner.Drawing
+         and the in-box System.Drawing.Primitives 8.0 (CS0433). netstandard2.0 is consumable by the net8
+         MAUI head; resolving the net8 type overlap is deferred to when the MAUI app is built. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>System.Drawing</RootNamespace>
     <AssemblyName>System.Drawing.Common</AssemblyName>
     <AssemblyVersion>5.0.99.0</AssemblyVersion>
@@ -17,7 +18,7 @@
     <AssemblyOriginatorKeyFile>open.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup>
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
   </ItemGroup>
 

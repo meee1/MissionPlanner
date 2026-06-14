@@ -1,8 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Multi-target: netstandard2.0 for the legacy net472 desktop head, net8.0 for the .NET MAUI heads. -->
-    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <!-- netstandard2.0 only. It is consumed by both the legacy net472 desktop/Xamarin stack and the
+         net8 .NET MAUI head (net8 can reference netstandard2.0). A net8.0 target was tried but its
+         hand-rolled System.Drawing types (KnownColor, SystemColors, ColorTranslator, ...) collide
+         with the in-box System.Drawing.Primitives 8.0 that ships in the net8 shared framework
+         (CS0433). Resolving that overlap is deferred to when the MAUI app itself is built. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>System.Drawing</RootNamespace>
 
     <AssemblyName>MissionPlanner.Drawing</AssemblyName>
@@ -18,21 +22,12 @@
     <None Include="Color.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <!-- Keep the netstandard2.0 target on SkiaSharp 2.80.2 to match the rest of the legacy
-         desktop / Xamarin stack (Utilities, Controls, SvgNet, MissionPlannerLib,
-         SkiaSharp.Views.Forms are all 2.80.x). Bumping it higher makes NuGet flag a package
-         downgrade (NU1605) in every consumer that references SkiaSharp 2.80.2 directly. -->
+  <ItemGroup>
+    <!-- SkiaSharp 2.80.2 matches the rest of the legacy desktop/Xamarin stack (Utilities, Controls,
+         SvgNet, MissionPlannerLib, SkiaSharp.Views.Forms). The MAUI head pulls SkiaSharp 2.88.x via
+         SkiaSharp.Views.Maui, which unifies upward at the app level. -->
     <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <!-- System.Drawing.Primitives (Color, Point, Size, Rectangle, ...) ships in the shared framework
-         on net8.0, so it is only needed as an explicit package for the netstandard2.0 target. -->
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <!-- SkiaSharp 2.88.x for the .NET MAUI path; it is the last 2.x line (keeps SKFilterQuality/
-         SKPaint APIs used by Graphics.cs) and aligns with SkiaSharp.Views.Maui. -->
-    <PackageReference Include="SkiaSharp" Version="2.88.8" />
   </ItemGroup>
 
   <ItemGroup>
