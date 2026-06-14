@@ -25,6 +25,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
 
+    <!-- MissionPlannerLib transitively references some OutputType=Exe projects (WebAPIs, px4uploader,
+         solo) that are consumed as libraries. A self-contained app (Android) otherwise rejects them
+         with NETSDK1150; reference their output assemblies instead of failing. -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+
     <!-- Display name and identity (matches the legacy Xamarin heads) -->
     <ApplicationTitle>Mission Planner</ApplicationTitle>
     <ApplicationId>com.michaeloborne.MissionPlanner</ApplicationId>
