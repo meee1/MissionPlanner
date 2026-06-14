@@ -505,8 +505,8 @@
    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
    <PackageReference Include="TimeZoneConverter" Version="3.2.0" />
-   <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
-   <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />
+   <PackageReference Include="Xamarin.Essentials" Version="1.6.1" PrivateAssets="all" />
+   <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" PrivateAssets="all" />
     <PackageReference Include="SSH.NET" version="2020.0.2" /> 
 	 <PackageReference Include="SharpDX" version="4.1.0" />
     <PackageReference Include="SharpDX.DirectInput" version="4.1.0" />
