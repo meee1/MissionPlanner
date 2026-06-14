@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Tests real Mission Planner application logic on plain .NET 8 by
+         referencing MissionPlannerLib - the whole app compiled as a
+         netstandard2.0 library. No Mono runtime, no display server. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS0618;NU1701;NU1702</NoWarn>
+    <!-- The app pulls in dozens of localized satellite assemblies; we only need
+         the neutral resources for tests. This also avoids a parallel-copy race
+         on the per-locale output folders. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
+    <!-- The Skia-based MissionPlanner.Drawing is the cross-platform System.Drawing;
+         keep the real System.Drawing.Common out to avoid a duplicate-type clash. -->
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MissionPlannerLib.csproj" />
+  </ItemGroup>
+
+  <!-- The app's reference closure drags in dozens of localized satellite
+       assemblies (ZedGraph etc.), some duplicated across reference paths, which
+       race/clash when copied into the test output. Tests need none of them, so
+       drop the *.resources.dll satellites (leaving native runtime assets such as
+       libSkiaSharp untouched). -->
+  <Target Name="DropCultureSatellites" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                               Condition="$([System.String]::Copy('%(FileName)').EndsWith('.resources'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>
