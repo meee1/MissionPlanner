@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    .NET (net8.0-android) binding project for the usb-serial-for-android Java library.
+    .NET (net10.0-android) binding project for the usb-serial-for-android Java library.
     Migrated from the legacy Xamarin.Android binding project:
-      - TargetFrameworkVersion v13.0            -> TargetFramework net8.0-android
+      - TargetFrameworkVersion v13.0            -> TargetFramework net10.0-android
       - Xamarin.Android.Bindings.targets import -> <IsBindingProject>true</IsBindingProject>
       - <EmbeddedJar> classes.jar               -> <AndroidLibrary ... Bind="true">
     The C# additions (AndroidSerialBase.cs, Additions/*.cs) are picked up by the default
@@ -11,7 +11,7 @@
   -->
 
   <PropertyGroup>
-    <TargetFramework>net8.0-android</TargetFramework>
+    <TargetFramework>net10.0-android</TargetFramework>
     <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
     <OutputType>Library</OutputType>
     <IsBindingProject>true</IsBindingProject>

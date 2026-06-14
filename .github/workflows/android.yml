@@ -8,12 +8,12 @@ on:
         tags:
             - beta
 
-# Builds the .NET MAUI head (ExtLibs/Xamarin/MissionPlanner.Maui) for net8.0-android.
+# Builds the .NET MAUI head (ExtLibs/Xamarin/MissionPlanner.Maui) for net10.0-android.
 # Replaces the retired legacy Xamarin.Android head, which can no longer consume the
-# net8.0-android binding projects (UsbSerialForAndroid / GDALForAndroid).
+# net10.0-android binding projects (UsbSerialForAndroid / GDALForAndroid).
 env:
   MAUI_PROJECT: ExtLibs/Xamarin/MissionPlanner.Maui/MissionPlanner.Maui.csproj
-  PUBLISH_DIR: ExtLibs/Xamarin/MissionPlanner.Maui/bin/Release/net8.0-android/publish
+  PUBLISH_DIR: ExtLibs/Xamarin/MissionPlanner.Maui/bin/Release/net10.0-android/publish
 
 jobs:
   buildAAB:
@@ -26,10 +26,10 @@ jobs:
           submodules: true
           fetch-depth: 10
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
@@ -50,7 +50,7 @@ jobs:
         shell: pwsh
         run: |
           $days = [int]((New-TimeSpan -Start 2020-01-01 -End (Get-Date)).totaldays * 100)
-          dotnet publish $env:MAUI_PROJECT -f net8.0-android -c Release `
+          dotnet publish $env:MAUI_PROJECT -f net10.0-android -c Release `
             -p:AndroidPackageFormat=aab `
             -p:ApplicationVersion=$days
           mkdir whatsnew
@@ -95,10 +95,10 @@ jobs:
           submodules: true
           fetch-depth: 10
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
@@ -119,7 +119,7 @@ jobs:
         shell: pwsh
         run: |
           $days = [int]((New-TimeSpan -Start 2020-01-01 -End (Get-Date)).totaldays * 100)
-          dotnet publish $env:MAUI_PROJECT -f net8.0-android -c Release `
+          dotnet publish $env:MAUI_PROJECT -f net10.0-android -c Release `
             -p:AndroidPackageFormat=apk `
             -p:ApplicationVersion=$days
 

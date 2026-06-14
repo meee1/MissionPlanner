@@ -15,8 +15,8 @@
   -->
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
     <OutputType>Exe</OutputType>
     <RootNamespace>MissionPlanner.Maui</RootNamespace>
@@ -62,14 +62,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Wire in the SkiaSharp-backed System.Drawing port (net8.0 target). -->
+    <!-- Wire in the SkiaSharp-backed System.Drawing port (netstandard2.0, consumed by net10). -->
     <ProjectReference Include="..\..\MissionPlanner.Drawing\MissionPlanner.Drawing.csproj" />
 
     <!-- Mission Planner core (netstandard2.0): MainV2, Program, GCSViews, SerialPort, Settings,
          SITL, files, ISpeech, IBrowserOpen, CommsInjection, ArduPilot.DeviceInfo, ... -->
     <ProjectReference Include="..\..\..\MissionPlannerLib.csproj" />
 
-    <!-- Mono System.Windows.Forms driver (netstandard2.0 — consumable from net8):
+    <!-- Mono System.Windows.Forms driver (netstandard2.0 — consumable from net10):
          XplatUIMine, XplatUI, Hwnd, Msg, MsgButtons, Screen, Control, Form, NativeWindow,
          CaretStruct, KeyboardXplat, ComboBox, FormWindowState, ... -->
     <ProjectReference Include="..\..\mono\mcs\class\System.Windows.Forms\System.Windows.Forms-net_4_x.csproj" />
@@ -102,7 +102,7 @@
     <Compile Include="..\Xamarin.Android\AbstractUnixEndPoint.cs" Link="Platforms\Android\Services\AbstractUnixEndPoint.cs" />
 
     <!-- USB serial + GDAL bindings used by USBDevices / GDAL map overlays.
-         Migrated to net8.0-android binding projects (see PHASE3-NOTES.md). -->
+         Migrated to net10.0-android binding projects (see PHASE3-NOTES.md). -->
     <ProjectReference Include="..\..\UsbSerialForAndroid\UsbSerialForAndroid.csproj" />
     <ProjectReference Include="..\GDALForAndroid\GDALForAndroid.csproj" />
   </ItemGroup>

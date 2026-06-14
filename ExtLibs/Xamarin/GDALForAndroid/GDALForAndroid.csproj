@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    .NET (net8.0-android) binding project for the GDAL Android AAR.
+    .NET (net10.0-android) binding project for the GDAL Android AAR.
     Migrated from the legacy Xamarin.Android binding project:
-      - TargetFrameworkVersion v13.0            -> TargetFramework net8.0-android
+      - TargetFrameworkVersion v13.0            -> TargetFramework net10.0-android
       - Xamarin.Android.Bindings.targets import -> <IsBindingProject>true</IsBindingProject>
       - <LibraryProjectZip> gdal-release.aar    -> <AndroidLibrary ... Bind="true">
     Transforms/*.xml metadata is unchanged. References System.Drawing.android for the
@@ -11,7 +11,7 @@
   -->
 
   <PropertyGroup>
-    <TargetFramework>net8.0-android</TargetFramework>
+    <TargetFramework>net10.0-android</TargetFramework>
     <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
     <OutputType>Library</OutputType>
     <IsBindingProject>true</IsBindingProject>
