@@ -21,7 +21,6 @@ using Xamarin;          // Test facade
 using Xamarin.Droid;    // BTDevice / USBDevices / Radio / receivers (linked native services)
 using Application = Android.App.Application;
 using Environment = Android.OS.Environment;
-using Log = Android.Util.Log;     // 'Log' otherwise resolves to the MissionPlanner.Log namespace
 using Settings = MissionPlanner.Utilities.Settings;
 using Thread = System.Threading.Thread;
 
@@ -72,7 +71,7 @@ public class MainActivity : MauiAppCompatActivity
         base.OnCreate(savedInstanceState);
 
         Settings.CustomUserDataDirectory = Application.Context.GetExternalFilesDir(null).ToString();
-        Log.Info(TAG, "Settings.CustomUserDataDirectory " + Settings.CustomUserDataDirectory);
+        MpLog.Info(TAG, "Settings.CustomUserDataDirectory " + Settings.CustomUserDataDirectory);
 
         try
         {
@@ -80,7 +79,7 @@ public class MainActivity : MauiAppCompatActivity
             WinFormsHostPage.BundledPath = Application.Context.ApplicationInfo.NativeLibraryDir;
         }
         catch { }
-        Log.Info(TAG, "WinFormsHostPage.BundledPath " + WinFormsHostPage.BundledPath);
+        MpLog.Info(TAG, "WinFormsHostPage.BundledPath " + WinFormsHostPage.BundledPath);
 
         // Register the platform service implementations onto the Test facade.
         Test.BlueToothDevice = new Xamarin.Droid.BTDevice();
@@ -131,10 +130,10 @@ public class MainActivity : MauiAppCompatActivity
         if (intent == null) return;
         if (!UsbManager.ActionUsbDeviceAttached.Equals(intent.Action)) return;
 
-        Log.Verbose(TAG, "usb device attached");
+        MpLog.Verbose(TAG, "usb device attached");
         WinFormsHostPage.InitDevice = () =>
         {
-            Log.Info(TAG, "WinFormsHostPage.InitDevice");
+            MpLog.Info(TAG, "WinFormsHostPage.InitDevice");
             UsbBroadcastReceiver.OnReceive(this.ApplicationContext, intent);
         };
     }
@@ -198,11 +197,11 @@ public class MainActivity : MauiAppCompatActivity
                         } while (readlen > 0);
                         socket.Close();
                     }
-                    catch (System.Exception ex) { Log.Warn(TAG, ex.ToString()); Thread.Sleep(1000); }
+                    catch (System.Exception ex) { MpLog.Warn(TAG, ex.ToString()); Thread.Sleep(1000); }
                 }
             });
         }
-        catch (System.Exception ex) { Log.Warn(TAG, ex.ToString()); }
+        catch (System.Exception ex) { MpLog.Warn(TAG, ex.ToString()); }
     }
 
     private byte[] genTone(int sampleRate, int freqOfTone, int numSamples)

@@ -44,7 +44,6 @@ using Application = System.Windows.Forms.Application;
 using Extensions = MissionPlanner.Utilities.Extensions;
 using Form = System.Windows.Forms.Form;
 using FormsSize = Microsoft.Maui.Graphics.Size;
-using Log = MissionPlanner.Maui.MpLog;   // legacy render loop used Acr.UserDialogs.Infrastructure.Log(category, message)
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
@@ -120,12 +119,12 @@ public partial class WinFormsHostPage : ContentPage
         {
             return Task.Run(async () =>
             {
-                Log.Info(TAG, "SerialPort.DefaultType in " + s + " " + i);
+                MpLog.Info(TAG, "SerialPort.DefaultType in " + s + " " + i);
 
                 // no valid portname to start
                 if (String.IsNullOrEmpty(s))
                 {
-                    Log.Info(TAG, "SerialPort.DefaultType passthrough s = null");
+                    MpLog.Info(TAG, "SerialPort.DefaultType passthrough s = null");
                     return self._baseport;
                 }
                 else
@@ -138,7 +137,7 @@ public partial class WinFormsHostPage : ContentPage
 
                         if (di.Count() > 0)
                         {
-                            Log.Info(TAG, "SerialPort.DefaultType found device " + di.First().board + " search " + s);
+                            MpLog.Info(TAG, "SerialPort.DefaultType found device " + di.First().board + " search " + s);
                             return await Test.BlueToothDevice.GetBT(di.First());
                         }
                     }
@@ -179,7 +178,7 @@ public partial class WinFormsHostPage : ContentPage
 
                         if (di.Count() > 0)
                         {
-                            Log.Info(TAG,
+                            MpLog.Info(TAG,
                                 "SerialPort.DefaultType found device " + di.First().board + " search " + s);
                             return await Test.UsbDevices.GetUSB(di.First());
                         }
@@ -187,7 +186,7 @@ public partial class WinFormsHostPage : ContentPage
 
                     if (DeviceInfo.Platform == DevicePlatform.MacCatalyst || s != null && File.Exists(s))
                     {
-                        Log.Info(TAG, "SerialPort.DefaultType in " + s + " " + i + " for " + DeviceInfo.Platform);
+                        MpLog.Info(TAG, "SerialPort.DefaultType in " + s + " " + i + " for " + DeviceInfo.Platform);
                         if (s != null && i > 0)
                             return new MonoSerialPort(s, i);
                         if (s != null)
@@ -196,7 +195,7 @@ public partial class WinFormsHostPage : ContentPage
                     }
                 }
 
-                Log.Info(TAG, "SerialPort.DefaultType passthrough no board match");
+                MpLog.Info(TAG, "SerialPort.DefaultType passthrough no board match");
                 return self._baseport;
             }).Result;
         };
@@ -273,7 +272,7 @@ public partial class WinFormsHostPage : ContentPage
         }
         catch (Exception ex)
         {
-            Log.Error("MP", ex.ToString());
+            MpLog.Error("MP", ex.ToString());
         }
     }
 
