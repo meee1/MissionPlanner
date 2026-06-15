@@ -15,11 +15,13 @@ using MissionPlanner;
 using MissionPlanner.Comms;       // DeviceDiscoveredReceiver
 using MissionPlanner.Maui.GCSViews;
 using MissionPlanner.Utilities;
+using Mono.Unix;                  // AbstractUnixEndPoint (linked native service)
 using System.Net.Sockets;
 using Xamarin;          // Test facade
 using Xamarin.Droid;    // BTDevice / USBDevices / Radio / receivers (linked native services)
 using Application = Android.App.Application;
 using Environment = Android.OS.Environment;
+using Log = Android.Util.Log;     // 'Log' otherwise resolves to the MissionPlanner.Log namespace
 using Settings = MissionPlanner.Utilities.Settings;
 using Thread = System.Threading.Thread;
 
@@ -81,31 +83,16 @@ public class MainActivity : MauiAppCompatActivity
         Log.Info(TAG, "WinFormsHostPage.BundledPath " + WinFormsHostPage.BundledPath);
 
         // Register the platform service implementations onto the Test facade.
-        Test.BlueToothDevice = new BTDevice();
-        Test.UsbDevices = new USBDevices();
-        Test.Radio = new Radio();
+        Test.BlueToothDevice = new Xamarin.Droid.BTDevice();
+        Test.UsbDevices = new Xamarin.Droid.USBDevices();
+        Test.Radio = new Xamarin.Droid.Radio();
         Test.GPS = new GPS();
         Test.SystemInfo = new SystemInfo();
 
         Vario.Beep = (i, i1) => { playSound(i, i1); };
 
-        // Optional GDAL map overlays — guarded; requires GDALForAndroid (see PHASE3-NOTES.md).
-        try
-        {
-            Java.Lang.JavaSystem.LoadLibrary("gdal");
-            Java.Lang.JavaSystem.LoadLibrary("gdalalljni");
-            Java.Lang.JavaSystem.LoadLibrary("gdalwrap");
-
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                var gdaldir = Settings.GetRunningDirectory() + "gdalimages";
-                System.IO.Directory.CreateDirectory(gdaldir);
-                MissionPlanner.Utilities.GDAL.GDALBase = new GDAL.GDAL();
-                GDAL.GDAL.ScanDirectory(gdaldir);
-                GMap.NET.MapProviders.GMapProviders.List.Add(GDAL.GDALProvider.Instance);
-            });
-        }
-        catch (System.Exception ex) { Log.Error("GDAL", ex.ToString()); }
+        // TODO: GDAL map overlays — the managed GDAL.GDAL/GDALProvider wrappers aren't wired for the
+        // net10-android head yet (GDALForAndroid is the binding only). Re-add once that's ported.
 
         // Permissions
         if (ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessFineLocation) != (int)Permission.Granted ||

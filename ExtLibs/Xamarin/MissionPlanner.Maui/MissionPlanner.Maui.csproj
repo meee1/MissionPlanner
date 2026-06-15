@@ -46,12 +46,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Drop MAUI's implicit global 'using Microsoft.Maui.Devices' so the legacy/service code
-         compiled into this project (ITest.cs, BTDevice.cs, USBDevices.cs) resolves the unqualified
-         'DeviceInfo' to MissionPlanner.ArduPilot.DeviceInfo rather than colliding with
-         Microsoft.Maui.Devices.DeviceInfo (CS0104). Files that need the MAUI DeviceInfo
-         (e.g. WinFormsHostPage) import Microsoft.Maui.Devices explicitly. -->
+    <!-- Drop MAUI implicit global usings that collide with the WinForms/Android/legacy code compiled
+         into this head. Files that need them import explicitly:
+           Microsoft.Maui.Devices  -> DeviceInfo clashes with MissionPlanner.ArduPilot.DeviceInfo
+           Microsoft.Maui.Controls -> Application/View/... clash with Android.App.* / System.Windows.Forms.* -->
     <Using Remove="Microsoft.Maui.Devices" />
+    <Using Remove="Microsoft.Maui.Controls" />
   </ItemGroup>
 
   <ItemGroup>
@@ -103,6 +103,9 @@
          ResourceManager expects ("MissionPlanner.files"). -->
     <Compile Include="..\Xamarin\files.Designer.cs" Link="Legacy\files.Designer.cs" />
     <EmbeddedResource Include="..\Xamarin\files.resx" Link="Legacy\files.resx" LogicalName="MissionPlanner.files.resources" />
+    <!-- Xamarin.MonoSerialPort (ICommsSerial over Mono System.IO.Ports) used by the render loop's
+         SerialPort.DefaultType; lives in the legacy shared project. -->
+    <Compile Include="..\Xamarin\MonoSerialPort.cs" Link="Legacy\MonoSerialPort.cs" />
   </ItemGroup>
 
   <!-- ============================ Android platform services ============================ -->

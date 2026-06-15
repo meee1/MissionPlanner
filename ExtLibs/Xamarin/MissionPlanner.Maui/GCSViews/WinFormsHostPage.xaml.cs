@@ -44,6 +44,7 @@ using Application = System.Windows.Forms.Application;
 using Extensions = MissionPlanner.Utilities.Extensions;
 using Form = System.Windows.Forms.Form;
 using FormsSize = Microsoft.Maui.Graphics.Size;
+using Log = MissionPlanner.Maui.MpLog;   // legacy render loop used Acr.UserDialogs.Infrastructure.Log(category, message)
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
@@ -268,7 +269,7 @@ public partial class WinFormsHostPage : ContentPage
     {
         try
         {
-            MissionPlanner.GCSViews.FlightData.myhud.bgimage = Bitmap.FromStream(new MemoryStream(buffer));
+            MissionPlanner.GCSViews.FlightData.myhud.bgimage = System.Drawing.Bitmap.FromStream(new MemoryStream(buffer));
         }
         catch (Exception ex)
         {
