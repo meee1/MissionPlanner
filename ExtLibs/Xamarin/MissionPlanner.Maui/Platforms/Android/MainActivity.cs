@@ -22,9 +22,8 @@ using Environment = Android.OS.Environment;
 using Settings = MissionPlanner.Utilities.Settings;
 using Thread = System.Threading.Thread;
 
-namespace MissionPlanner.Maui;
-
 // Permissions / features previously declared in the legacy MainActivity.cs.
+// (Assembly attributes must precede the file-scoped namespace declaration — CS1730.)
 [assembly: UsesFeature("android.hardware.usb.host", Required = false)]
 [assembly: UsesFeature("android.hardware.bluetooth", Required = false)]
 [assembly: UsesFeature("android.hardware.bluetooth_le", Required = false)]
@@ -37,6 +36,8 @@ namespace MissionPlanner.Maui;
 [assembly: UsesPermission("android.permission.INTERNET")]
 [assembly: UsesPermission("android.permission.WAKE_LOCK")]
 [assembly: UsesPermission("android.permission.ACCESS_NETWORK_STATE")]
+
+namespace MissionPlanner.Maui;
 
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, Exported = true,
     ScreenOrientation = ScreenOrientation.SensorLandscape, HardwareAccelerated = true,
