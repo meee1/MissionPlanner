@@ -28,9 +28,9 @@ What is in place:
   `System.Windows.Forms` driver (netstandard2.0), and the linked Xamarin-free
   helper `ITest.cs` (`Test`). SkiaSharp **2.88.x**.
 
-- **Android platform services** wired (`Platforms/Android/MainActivity.cs` +
-  linked native service files: USB/BT/Radio/GPS/SystemInfo). iOS / Mac Catalyst /
-  Windows have registration hooks + TODOs.
+- **Platform services** wired for all heads: Android (`Platforms/Android/MainActivity.cs`
+  + linked native USB/BT/Radio/GPS/SystemInfo), and iOS / Mac Catalyst / Windows via
+  `Platforms/<plat>/PlatformServices.cs` registered from each entry point. See PHASE3-NOTES.md.
 
 See **`PHASE2-NOTES.md`** for the render-loop port details and the dependency
 analysis, and **`PHASE3-NOTES.md`** for the platform-service architecture, the

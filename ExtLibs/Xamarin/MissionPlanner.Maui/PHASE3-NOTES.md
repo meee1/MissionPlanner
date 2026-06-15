@@ -41,7 +41,7 @@ the legacy `MainActivity`) are ported here. Video (`AndroidVideo`,
 
 `USBDevices` needs `UsbSerialForAndroid`, and the GDAL map overlays need
 `GDALForAndroid`. Both were legacy MonoAndroid `v13.0` binding projects; they have now
-been migrated to **`net8.0-android`** SDK-style binding projects
+been migrated to **`net10.0-android`** SDK-style binding projects
 (`<IsBindingProject>true</IsBindingProject>`, `Xamarin.Android.Bindings.targets`
 import removed, `<EmbeddedJar>`/`<LibraryProjectZip>` → `<AndroidLibrary Bind="true">`,
 `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` to keep the existing
@@ -53,25 +53,31 @@ to `MissionPlanner.Drawing`).
 > likely fixups are binding generator (`class-parse`) differences in the generated API
 > surface — adjust `Transforms/Metadata.xml` if names/visibility shifted.
 
-## iOS / Mac Catalyst / Windows — remaining
+## iOS / Mac Catalyst / Windows — done
 
-These heads kept their service implementations **inline in Xamarin.Forms-coupled
-entry points**, so they need real per-platform porting (they were not linkable as-is):
+Each platform now has a `Platforms/<plat>/PlatformServices.cs` that implements the `Test`
+facade interfaces and is wired up from the platform entry point's `CreateMauiApp`
+override (mirroring `Platforms/Android/MainActivity.OnCreate`):
 
-- **iOS** (`Xamarin.iOS/Main.cs`, `Serial.cs`): `BTDevice` / `USBDevices` / `Radio`
-  are inline. iOS has no general USB serial; BT uses CoreBluetooth. Port into
-  `Platforms/iOS/` and register in `Platforms/iOS/AppDelegate`.
-- **Mac Catalyst** (`Xamarin.MacOS/AppDelegate.cs`): `BTDevice` / `USBDevices` /
-  `Radio` / `OSXSpeech` are inline **AppKit** code. Mac Catalyst is UIKit-based, so
-  the AppKit/IOKit device code needs reworking. `GPS.cs` (stub) and `SystemInfo.cs`
-  are trivial and portable.
-- **Windows** (`Xamarin.UWP/MainPage.xaml.cs`, `Serial.cs`): WinRT
-  `Windows.Devices.SerialCommunication` / `Bluetooth`. Port into
-  `Platforms/Windows/` and register in `Platforms/Windows/App`.
+- **iOS** (`Platforms/iOS/PlatformServices.cs`, registered in `AppDelegate`): ported from
+  the legacy `Xamarin.iOS/Main.cs`. `Radio`/`BTDevice`/`USBDevices` are stubs (iOS has no
+  general USB serial; BT would use CoreBluetooth — TODO), `GPS` uses MAUI Geolocation,
+  `SystemInfo` is trivial. Sets `WinFormsHostPage.IOS`.
+- **Mac Catalyst** (`Platforms/MacCatalyst/PlatformServices.cs`, registered in
+  `AppDelegate`): ported from `Xamarin.MacOS/AppDelegate.cs`. `USBDevices` keeps the real
+  `ioreg` + `/dev/tty.*` enumeration returning `MissionPlanner.Comms.SerialPort`; `GPS`
+  uses MAUI Geolocation; `SystemInfo` ported. **Speech is not registered** — the legacy
+  `OSXSpeech` used AppKit `NSSpeechSynthesizer` (unavailable on UIKit-based Catalyst), so
+  the render loop falls back to the MAUI `TextToSpeech`-based `Speech` in `WinFormsHostPage`.
+  Sets `WinFormsHostPage.OSX`.
+- **Windows** (`Platforms/Windows/PlatformServices.cs`, registered in WinUI `App`): ported
+  from `Xamarin.UWP/MainPage.xaml.cs`. `Radio`/`USBDevices`/`BlueTooth` are stubs; real
+  serial/BT via `Windows.Devices.SerialCommunication` / `Windows.Devices.Bluetooth` on
+  WinAppSDK is a TODO.
 
-Registration hook for each: assign `Test.UsbDevices` / `Test.BlueToothDevice` / etc.
-in the platform `AppDelegate.FinishedLaunching` (iOS/Mac) or `App` ctor (Windows),
-mirroring `Platforms/Android/MainActivity.OnCreate`.
+> Not compile-verified: CI only builds the `net10.0-android` target, so the iOS /
+> maccatalyst / windows service files (which compile only under their own TFM) have not
+> been exercised by a build yet.
 
 ## Dependency swaps
 
