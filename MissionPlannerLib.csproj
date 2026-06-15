@@ -88,6 +88,10 @@
     <Compile Remove="ExtLibs\SharpKml\**" />
     <Compile Remove="ExtLibs\SimpleExample\**" />
     <Compile Remove="ExtLibs\SkiaSharp.Views.Forms.WinForms\**" />
+    <!-- The Xamarin.Forms->WinForms bridge is its own project and is Xamarin.Forms-based; don't glob its
+         source into this lib (its only consumer here, ExtensionsMP.ShowXamarinControl, was removed).
+         Compiling it pulled Xamarin.Forms into the lib and thus into the MAUI head (MA001). -->
+    <Compile Remove="ExtLibs\Xamarin.Forms.Platform.WinForms\**" />
     <Compile Remove="ExtLibs\solo\**" />
     <Compile Remove="ExtLibs\Strings\**" />
     <Compile Remove="ExtLibs\SvgNet\**" />
@@ -187,6 +191,7 @@
     <EmbeddedResource Remove="ExtLibs\SharpKml\**" />
     <EmbeddedResource Remove="ExtLibs\SimpleExample\**" />
     <EmbeddedResource Remove="ExtLibs\SkiaSharp.Views.Forms.WinForms\**" />
+    <EmbeddedResource Remove="ExtLibs\Xamarin.Forms.Platform.WinForms\**" />
     <EmbeddedResource Remove="ExtLibs\solo\**" />
     <EmbeddedResource Remove="ExtLibs\Strings\**" />
     <EmbeddedResource Remove="ExtLibs\SvgNet\**" />
@@ -285,6 +290,7 @@
     <None Remove="ExtLibs\SharpKml\**" />
     <None Remove="ExtLibs\SimpleExample\**" />
     <None Remove="ExtLibs\SkiaSharp.Views.Forms.WinForms\**" />
+    <None Remove="ExtLibs\Xamarin.Forms.Platform.WinForms\**" />
     <None Remove="ExtLibs\solo\**" />
     <None Remove="ExtLibs\Strings\**" />
     <None Remove="ExtLibs\SvgNet\**" />

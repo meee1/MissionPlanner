@@ -55,6 +55,12 @@
     <Compile Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.cs" Link="GCSViews\ConfigurationView\ConfigRawParams.cs" />
     <Compile Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.Designer.cs" Link="GCSViews\ConfigurationView\ConfigRawParams.Designer.cs" />
     <Compile Include="..\..\..\test\FirmwareSelection.cs" Link="Linked\FirmwareSelection.cs" />
+    <!-- Compile the Xamarin.Forms->WinForms bridge here. It used to be globbed into MissionPlannerLib,
+         but that dragged Xamarin.Forms into the .NET MAUI head (MA001), so the lib no longer compiles it.
+         This (Xamarin.Forms-based) legacy head still needs the bridge (e.g. Forms.UIThread). -->
+    <Compile Include="..\..\Xamarin.Forms.Platform.WinForms\**\*.cs"
+             Exclude="..\..\Xamarin.Forms.Platform.WinForms\obj\**;..\..\Xamarin.Forms.Platform.WinForms\bin\**;..\..\Xamarin.Forms.Platform.WinForms\Properties\**"
+             Link="Bridge\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="..\..\..\Utilities\ExtensionsMP.cs" Link="GCSViews\ExtensionsMP.cs" />
     <Compile Include="..\..\Controls\IDynamicParameterControl.cs" Link="GCSViews\IDynamicParameterControl.cs" />
     <Compile Include="..\..\Controls\MyButton.cs" Link="GCSViews\MyButton.cs" />
