@@ -50,9 +50,10 @@
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#03A9F4" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#03A9F4" BaseSize="128,128" />
 
-    <!-- Images, fonts, raw assets -->
-    <MauiImage Include="Resources\Images\*" />
-    <MauiFont Include="Resources\Fonts\*" />
+    <!-- Images, fonts, raw assets (extension-scoped so stray files like .gitkeep aren't swept in) -->
+    <MauiImage Include="Resources\Images\*.svg" />
+    <MauiImage Include="Resources\Images\*.png" />
+    <MauiFont Include="Resources\Fonts\*.ttf" />
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
