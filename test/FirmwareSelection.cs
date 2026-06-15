@@ -64,7 +64,7 @@ namespace MissionPlanner.test
                 }
             }
 
-            try { MissionPlanner.Controls.ThemeManager.ApplyThemeTo(this); } catch { }
+            try { MissionPlanner.Utilities.ThemeManager.ApplyThemeTo(this); } catch { }
         }
 
         public DeviceInfo? DevInfo { get; set; } = null;
