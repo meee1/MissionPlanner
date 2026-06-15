@@ -46,6 +46,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Drop MAUI's implicit global 'using Microsoft.Maui.Devices' so the legacy/service code
+         compiled into this project (ITest.cs, BTDevice.cs, USBDevices.cs) resolves the unqualified
+         'DeviceInfo' to MissionPlanner.ArduPilot.DeviceInfo rather than colliding with
+         Microsoft.Maui.Devices.DeviceInfo (CS0104). Files that need the MAUI DeviceInfo
+         (e.g. WinFormsHostPage) import Microsoft.Maui.Devices explicitly. -->
+    <Using Remove="Microsoft.Maui.Devices" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- App icon and splash (placeholders; replace with branded assets in Resources\AppIcon / Resources\Splash) -->
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#03A9F4" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#03A9F4" BaseSize="128,128" />

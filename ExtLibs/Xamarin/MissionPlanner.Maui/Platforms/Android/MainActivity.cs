@@ -12,6 +12,7 @@ using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using Microsoft.Maui.Devices.Sensors;
 using MissionPlanner;
+using MissionPlanner.Comms;       // DeviceDiscoveredReceiver
 using MissionPlanner.Maui.GCSViews;
 using MissionPlanner.Utilities;
 using System.Net.Sockets;
@@ -124,7 +125,7 @@ public class MainActivity : MauiAppCompatActivity
         proxyIfUsbAttached(this.Intent);
     }
 
-    public static void ShowKeyboard(View pView)
+    public static void ShowKeyboard(Android.Views.View pView)
     {
         pView.RequestFocus();
         var imm = Current.GetSystemService(Context.InputMethodService) as InputMethodManager;
@@ -132,7 +133,7 @@ public class MainActivity : MauiAppCompatActivity
         imm.ToggleSoftInput(ShowFlags.Forced, HideSoftInputFlags.ImplicitOnly);
     }
 
-    public static void HideKeyboard(View pView)
+    public static void HideKeyboard(Android.Views.View pView)
     {
         var imm = Current.GetSystemService(Context.InputMethodService) as InputMethodManager;
         imm.HideSoftInputFromWindow(pView.WindowToken, HideSoftInputFlags.None);
