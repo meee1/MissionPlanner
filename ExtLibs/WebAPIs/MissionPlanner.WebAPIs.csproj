@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <!-- Library, not Exe: only ever referenced as a library, and OutputType=Exe broke the .NET MAUI
+         Android per-RID publish (NETSDK1047 - no netstandard2.0/android-* target). -->
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
