@@ -54,7 +54,7 @@
     <Compile Include="..\..\..\Controls\paramcompare.Designer.cs" Link="GCSViews\paramcompare.Designer.cs" />
     <Compile Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.cs" Link="GCSViews\ConfigurationView\ConfigRawParams.cs" />
     <Compile Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.Designer.cs" Link="GCSViews\ConfigurationView\ConfigRawParams.Designer.cs" />
-    <Compile Include="..\..\..\test\FirmwareSelection.xaml.cs" Link="Linked\FirmwareSelection.xaml.cs" />
+    <Compile Include="..\..\..\test\FirmwareSelection.cs" Link="Linked\FirmwareSelection.cs" />
     <None Include="..\..\..\Utilities\ExtensionsMP.cs" Link="GCSViews\ExtensionsMP.cs" />
     <Compile Include="..\..\Controls\IDynamicParameterControl.cs" Link="GCSViews\IDynamicParameterControl.cs" />
     <Compile Include="..\..\Controls\MyButton.cs" Link="GCSViews\MyButton.cs" />
@@ -99,9 +99,6 @@
     <EmbeddedResource Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.zh-Hans.resx" Link="GCSViews\ConfigurationView\ConfigRawParams.zh-Hans.resx" />
     <EmbeddedResource Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.zh-Hant.resx" Link="GCSViews\ConfigurationView\ConfigRawParams.zh-Hant.resx" />
     <EmbeddedResource Include="..\..\..\GCSViews\ConfigurationView\ConfigRawParams.zh-TW.resx" Link="GCSViews\ConfigurationView\ConfigRawParams.zh-TW.resx" />
-    <EmbeddedResource Include="..\..\..\test\FirmwareSelection.xaml" Link="Linked\FirmwareSelection.xaml">
-      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
