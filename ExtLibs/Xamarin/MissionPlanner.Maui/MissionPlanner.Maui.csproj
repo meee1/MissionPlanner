@@ -97,6 +97,12 @@
          resolves through that project reference. The legacy Xamarin.Forms WinForms bridge is
          intentionally not referenced (unused under MAUI). -->
     <Compile Include="..\Xamarin\ITest.cs" Link="Legacy\ITest.cs" />
+    <!-- MissionPlanner.files resource bundle (airports.csv, themes, ParameterMetaData, ...) used by
+         WinFormsHostPage.RestoreFiles. It lives in the legacy shared Xamarin project, which the MAUI
+         head doesn't reference, so link the generated accessor + embed the resx under the basename its
+         ResourceManager expects ("MissionPlanner.files"). -->
+    <Compile Include="..\Xamarin\files.Designer.cs" Link="Legacy\files.Designer.cs" />
+    <EmbeddedResource Include="..\Xamarin\files.resx" Link="Legacy\files.resx" LogicalName="MissionPlanner.files.resources" />
   </ItemGroup>
 
   <!-- ============================ Android platform services ============================ -->

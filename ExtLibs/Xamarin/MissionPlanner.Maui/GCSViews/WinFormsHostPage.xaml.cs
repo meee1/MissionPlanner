@@ -845,7 +845,7 @@ public partial class WinFormsHostPage : ContentPage
 
             canvas.Scale((float)scale.Width, (float)scale.Height);
 
-            foreach (Form form in Application.OpenForms.Select(a => a).ToArray())
+            foreach (Form form in Application.OpenForms.OfType<Form>().ToArray())
             {
                 if (form.IsHandleCreated)
                 {
