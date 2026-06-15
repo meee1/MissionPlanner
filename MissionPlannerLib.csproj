@@ -512,10 +512,10 @@
    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
    <PackageReference Include="TimeZoneConverter" Version="3.2.0" />
-   <!-- Xamarin.Forms removed: FirmwareSelection ported to native WinForms and ExtensionsMP.ShowXamarinControl deleted.
-        Xamarin.Essentials is still used by Program.cs (DeviceInfo diagnostics); kept PrivateAssets so it doesn't flow to the MAUI head. -->
-   <PackageReference Include="Xamarin.Essentials" Version="1.6.1" PrivateAssets="all" />
-    <PackageReference Include="SSH.NET" version="2020.0.2" /> 
+   <!-- Xamarin.Forms and Xamarin.Essentials removed: MissionPlannerLib is now Xamarin-free.
+        (FirmwareSelection ported to WinForms; ExtensionsMP.ShowXamarinControl + the WinForms bridge
+        no longer compiled here; Program.cs DeviceInfo replaced with MainV2 flags / RuntimeInformation.) -->
+    <PackageReference Include="SSH.NET" version="2020.0.2" />
 	 <PackageReference Include="SharpDX" version="4.1.0" />
     <PackageReference Include="SharpDX.DirectInput" version="4.1.0" />
     <PackageReference Include="SkiaSharp" Version="2.80.2" /> <PackageReference Include="Crc32.NET">

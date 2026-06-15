@@ -351,11 +351,12 @@ namespace MissionPlanner
             GMap.NET.MapProviders.GMapProviders.List.Add(Maps.EsriArcticOceanBase.Instance);
 
 
-            if(Xamarin.Essentials.DeviceInfo.Idiom == Xamarin.Essentials.DeviceIdiom.Desktop || Xamarin.Essentials.DeviceInfo.Idiom == Xamarin.Essentials.DeviceIdiom.Unknown)
+            // Disable ZedGraph font scaling on desktop/Mac (was Xamarin.Essentials
+            // DeviceInfo.Idiom == Desktop/Unknown); keep scaling on the Android/iOS touch heads.
+            if (!MainV2.Android && !MainV2.IOS)
                 ZedGraph.PaneBase.Default.IsFontsScaled = false;
 
-            if(Xamarin.Essentials.DeviceInfo.Platform != Xamarin.Essentials.DevicePlatform.Unknown)
-                log.Info(typeof(Xamarin.Essentials.DeviceInfo).ToJSON());
+            log.Info("Platform " + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
 
             Console.WriteLine("Setup GoogleMapProvider API");
             if (Settings.Instance["GoogleApiKey"] != null) GoogleMapProvider.APIKey = Settings.Instance["GoogleApiKey"];
