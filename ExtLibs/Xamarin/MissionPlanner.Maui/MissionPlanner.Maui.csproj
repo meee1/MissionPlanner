@@ -83,6 +83,18 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" Condition="'$(Configuration)' == 'Debug'" />
   </ItemGroup>
 
+  <!-- Windows target only: the SkiaSharp-backed System.Drawing port (MissionPlanner.Drawing.Common,
+       AssemblyName=System.Drawing.Common) replaces the real System.Drawing.Common. But a deep transitive
+       chain pulls the real package (System.Configuration.ConfigurationManager -> System.Security.Permissions
+       -> System.Windows.Extensions -> System.Drawing.Common 4.7.0), and on the full-runtime Windows TFM its
+       win-specific runtime DLL materializes and collides with the shim in the MSIX payload (APPX1101 - two
+       System.Drawing.Common.dll). Pull it in directly with all assets excluded so the package contributes
+       nothing and only the shim is packaged. Android/iOS/MacCatalyst don't materialize the win runtime asset,
+       so this is scoped to Windows. -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" ExcludeAssets="all" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Wire in the SkiaSharp-backed System.Drawing port (netstandard2.0, consumed by net10). -->
     <ProjectReference Include="..\..\MissionPlanner.Drawing\MissionPlanner.Drawing.csproj" />
