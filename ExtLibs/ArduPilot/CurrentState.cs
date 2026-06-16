@@ -2290,6 +2290,7 @@ namespace MissionPlanner
                     case (uint)MAVLink.MAVLINK_MSG_ID.SIMSTATE:
                         {
                             var simstate = mavLinkMessage.ToStructure<MAVLink.mavlink_simstate_t>();
+                            /*
                             lat = simstate.lat / 1e7;
                             lng = simstate.lng / 1e7;
                             roll = (float)(simstate.roll * MathHelper.rad2deg);
@@ -2301,6 +2302,7 @@ namespace MissionPlanner
                             ax = simstate.xacc;
                             ay = simstate.yacc;
                             az = simstate.zacc;
+                            */
                         }
                         break;
 
