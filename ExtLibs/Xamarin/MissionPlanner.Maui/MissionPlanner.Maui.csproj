@@ -30,6 +30,11 @@
          with NETSDK1150; reference their output assemblies instead of failing. -->
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
 
+    <!-- Some referenced libraries multi-target (e.g. px4uploader: netstandard2.0;netcoreapp3.1) and
+         emit a same-named .deps.json from each TFM, colliding in the single publish output (NETSDK1152).
+         Keep the first and don't fail the build over the duplicate. -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+
     <!-- Display name and identity (matches the legacy Xamarin heads) -->
     <ApplicationTitle>Mission Planner</ApplicationTitle>
     <ApplicationId>com.michaeloborne.MissionPlanner</ApplicationId>
@@ -74,6 +79,8 @@
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="6.0.3" />
+    <!-- ILoggingBuilder.AddDebug() used by MauiProgram under #if DEBUG. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" Condition="'$(Configuration)' == 'Debug'" />
   </ItemGroup>
 
   <ItemGroup>
