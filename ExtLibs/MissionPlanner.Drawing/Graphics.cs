@@ -65,7 +65,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
              */
             //_surface = SKSurface.Create(GRContext.Create(GRBackend.OpenGL), );
 
-            _surface = SKSurface.Create(width, height, SKImageInfo.PlatformColorType, SKAlphaType.Premul);
+            // SkiaSharp 3.x removed the (int,int,SKColorType,SKAlphaType) overload; build an SKImageInfo.
+            _surface = SKSurface.Create(new SKImageInfo(width, height, SKImageInfo.PlatformColorType, SKAlphaType.Premul));
 
 
             Debug.Assert(_surface != null);
@@ -822,8 +823,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (String.IsNullOrEmpty(s))
                 return;
             var pnt = brush.ToSKPaint();
-            // Find the text bounds
-            var fnt = font.ToSKPaint();
+            // SkiaSharp 3.x: text size/typeface/bold live on SKFont; SKCanvas.DrawText takes (font, paint).
+            var fnt = font.ToSKFont();
             var textBounds = MeasureString(s, font);
 
             if (layoutRectangle.Width > 0 && textBounds.Width > layoutRectangle.Width)
@@ -837,10 +838,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
                 textBounds = layoutRectangle.Size;
             }
 
-            pnt.TextSize = fnt.TextSize;
-            pnt.Typeface = fnt.Typeface;
-            pnt.FakeBoldText = font.Bold;
-            
+            fnt.Embolden = font.Bold;
+
             pnt.StrokeWidth = 1;
             if(font.Bold)
                 pnt.StrokeWidth = 2;
@@ -855,22 +854,17 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
                 layoutRectangle.Y += layoutRectangle.Height / 2 - textBounds.Height / 2;
             }
 
-            if (format.FormatFlags == StringFormatFlags.DirectionVertical)
-            {
-                pnt.IsVerticalText = true;
-            }
-            else
-            {
-                pnt.IsVerticalText = false;
-            }
+            // SkiaSharp 3.x removed SKPaint.IsVerticalText (vertical text is no longer supported by the
+            // paint API). The StringFormatFlags.DirectionVertical case is now drawn as normal horizontal
+            // text; vertical layout would need manual per-glyph positioning, out of scope here.
 
             var lines = s.Trim().Split('\n');
             int a=0;
             foreach (var line in lines)
             {
-                _image.DrawText(line.TrimEnd(), layoutRectangle.X, layoutRectangle.Y - 2 + (a+1) *font.Height, pnt);
+                _image.DrawText(line.TrimEnd(), layoutRectangle.X, layoutRectangle.Y - 2 + (a+1) *font.Height, SKTextAlign.Left, fnt, pnt);
                 a++;
-            }            
+            }
         }
 
         public class Line
@@ -880,7 +874,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             public float Width { get; set; }
         }
 
-        private Line[] SplitLines(string text, SKPaint paint, float maxWidth)
+        private Line[] SplitLines(string text, SKFont paint, float maxWidth)
         {
             var spaceWidth = paint.MeasureText(" ");
             var lines = text.Split('\n');
@@ -1235,7 +1229,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             var lines = text.Trim().Split('\n');
             foreach (var line in lines)
             {
-                font.ToSKPaint().MeasureText(line, ref bound);
+                font.ToSKFont().MeasureText(line, out bound);
                 width = Math.Max(width, bound.Width);
                 height += font.Height;
             }
@@ -1280,8 +1274,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             {
                 //checkthis
                 var old = _image.TotalMatrix;
-                var extra = SKMatrix.MakeRotation(angle * 0.0174533f);
-                SKMatrix.PreConcat(ref old, extra);
+                var extra = SKMatrix.CreateRotation(angle * 0.0174533f);
+                old = old.PreConcat(extra);
                 _image.SetMatrix(old);
             }
         }
@@ -1300,7 +1294,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (order == MatrixOrder.Append)
             {
                 var old = _image.TotalMatrix;
-                old.SetScaleTranslate(sx, sy, old.TransX, old.TransY);
+                // SkiaSharp 3.x: SKMatrix is immutable; SetScaleTranslate (instance) -> CreateScaleTranslation (static).
+                old = SKMatrix.CreateScaleTranslation(sx, sy, old.TransX, old.TransY);
                 _image.SetMatrix(old);
             }
         }
@@ -1409,7 +1404,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (order == MatrixOrder.Append)
             {
                 var old = _image.TotalMatrix;
-                old.SetScaleTranslate(old.ScaleX, old.ScaleY, f, f1);
+                old = SKMatrix.CreateScaleTranslation(old.ScaleX, old.ScaleY, f, f1);
                 _image.SetMatrix(old);
             }
         }

@@ -825,11 +825,11 @@ public partial class WinFormsHostPage : ContentPage
         catch { }
     }
 
-    private void SkCanvasView_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
-    {
-        PaintSurfaceCore(e.Surface);
-    }
-
+    // The XAML hosts an SKGLView, whose PaintSurface event is EventHandler<SKPaintGLSurfaceEventArgs>.
+    // Exactly ONE method named SkCanvasView_PaintSurface must exist: MAUI wires XAML event handlers by
+    // name via reflection and throws AmbiguousMatchException (crashing page load at startup) if two
+    // overloads share the name. The former SKPaintSurfaceEventArgs (non-GL, SKCanvasView) overload was
+    // unused by this XAML and has been removed.
     private void SkCanvasView_PaintSurface(object sender, SKPaintGLSurfaceEventArgs e)
     {
         PaintSurfaceCore(e.Surface);

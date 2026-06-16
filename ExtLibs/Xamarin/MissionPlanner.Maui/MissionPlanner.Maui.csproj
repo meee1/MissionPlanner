@@ -48,6 +48,15 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+
+    <!-- Build the Windows head as an UNPACKAGED app: produces a directly-runnable
+         win-x64\MissionPlanner.Maui.exe that self-initializes the Windows App SDK via its
+         unpackaged bootstrapper. Without this the head builds as a packaged (MSIX) app, and the
+         loose exe crashes at startup with REGDB_E_CLASSNOTREG (Class not registered) because the
+         Windows App Runtime is only registered on MSIX deploy. Set WindowsAppSDKSelfContained so
+         the runtime is carried in the output and no machine-wide WinAppSDK install is required. -->
+    <WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">None</WindowsPackageType>
+    <WindowsAppSDKSelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -72,8 +81,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- SkiaSharp 2.88.x: same major line as MissionPlanner.Drawing so the rendering surface is compatible. -->
-    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.8" />
+    <!-- SkiaSharp 3.119.x: same major line as MissionPlanner.Drawing so the rendering surface is
+         compatible, and 3.x ships the WinUI SKGLViewHandler that 2.88.x lacked (SKGLView in
+         WinFormsHostPage threw HandlerNotFoundException at startup on Windows under 2.88.x). -->
+    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.4" />
     <!-- MAUI replacements for the legacy Xamarin plugins:
            Acr.UserDialogs / Xamarin.Plugin.FilePicker -> CommunityToolkit.Maui + MAUI Essentials -->
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />

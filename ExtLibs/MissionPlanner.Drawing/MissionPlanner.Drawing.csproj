@@ -23,10 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- SkiaSharp 2.80.2 matches the rest of the legacy desktop/Xamarin stack (Utilities, Controls,
-         SvgNet, MissionPlannerLib, SkiaSharp.Views.Forms). The MAUI head pulls SkiaSharp 2.88.x via
-         SkiaSharp.Views.Maui, which unifies upward at the app level. -->
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
+    <!-- SkiaSharp 3.119.x across the whole stack (Utilities, Controls, SvgNet, MissionPlannerLib,
+         desktop head) and the MAUI head's SkiaSharp.Views.Maui, so the rendering surface unifies at
+         the app level. Bumped from 2.80.2 to get the WinUI SKGLViewHandler that 2.88.x lacked. -->
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
   </ItemGroup>
 
