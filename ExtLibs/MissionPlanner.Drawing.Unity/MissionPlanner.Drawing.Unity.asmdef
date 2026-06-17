@@ -1,0 +1,16 @@
+{
+    "name": "MissionPlanner.Drawing.Unity",
+    "rootNamespace": "MissionPlanner.Drawing.Unity",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "MissionPlanner.Drawing.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
