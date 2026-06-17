@@ -15,20 +15,14 @@ namespace MissionPlanner.test
     /// without any Xamarin.Forms dependency. Shown with ShowDialog(); the chosen url is FinalResult
     /// (null if the user closed without picking).
     /// </summary>
-    public class FirmwareSelection : Form
+    public partial class FirmwareSelection : Form
     {
-        private Label lbltype, lblversiontype, lblplatform, lblversion, lblformat, lblusbid, lblboardid, lblbootloaderid, lblfirmware;
-        private ComboBox mavtype, versiontype, platform, version, format, USBID, board_id, bootloader_str, Result;
-        private Button Button;
-
         public FirmwareSelection(List<APFirmware.FirmwareInfo> fwitems, DeviceInfo? item = null)
         {
             InitializeComponent();
 
             DevInfo = item;
             FWList = fwitems;
-
-            OnSelectedIndexChanged(null, null);
 
             if (DevInfo.HasValue)
             {
@@ -73,67 +67,7 @@ namespace MissionPlanner.test
 
         public string FinalResult { get; set; }
 
-        private void InitializeComponent()
-        {
-            Text = "Firmware Selection";
-            ClientSize = new Size(560, 470);
-            StartPosition = FormStartPosition.CenterParent;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
-
-            var panel = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.TopDown,
-                WrapContents = false,
-                AutoScroll = true,
-                Padding = new Padding(10)
-            };
-            Controls.Add(panel);
-
-            Label MakeLabel(string text)
-            {
-                var l = new Label { Text = text, AutoSize = true, Margin = new Padding(3, 6, 3, 0) };
-                panel.Controls.Add(l);
-                return l;
-            }
-
-            ComboBox MakeCombo()
-            {
-                var c = new ComboBox
-                {
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                    Width = 520,
-                    Margin = new Padding(3, 0, 3, 6)
-                };
-                c.SelectedIndexChanged += OnSelectedIndexChanged;
-                panel.Controls.Add(c);
-                return c;
-            }
-
-            var hdr = new Label { Text = "More than one choice exists. Please filter down to the desired selection.", AutoSize = true, Margin = new Padding(3, 0, 3, 6) };
-            panel.Controls.Add(hdr);
-
-            lbltype = MakeLabel("Type"); mavtype = MakeCombo();
-            lblversiontype = MakeLabel("Version Type"); versiontype = MakeCombo();
-            lblplatform = MakeLabel("Platform"); platform = MakeCombo();
-            lblversion = MakeLabel("Version"); version = MakeCombo();
-            lblformat = MakeLabel("Format"); format = MakeCombo();
-            lblusbid = MakeLabel("USB ID"); USBID = MakeCombo();
-            lblboardid = MakeLabel("Board ID"); board_id = MakeCombo();
-            lblbootloaderid = MakeLabel("Bootloader ID"); bootloader_str = MakeCombo();
-
-            lblfirmware = MakeLabel("Firmwares - Please pick a file to download and upload (.apj)");
-            Result = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 520, Margin = new Padding(3, 0, 3, 6) };
-            Result.SelectedIndexChanged += Result_OnSelectedIndexChanged;
-            panel.Controls.Add(Result);
-
-            Button = new Button { Text = "Upload Firmware", Height = 30, Width = 520, Margin = new Padding(3, 6, 3, 6) };
-            Button.Click += Button_OnClicked;
-            panel.Controls.Add(Button);
-        }
-
+ 
         private bool _updating;
 
         private void OnSelectedIndexChanged(object sender, EventArgs e)
@@ -145,7 +79,9 @@ namespace MissionPlanner.test
             _updating = true;
             try
             {
+                this.SuspendLayout();
                 UpdateFilters();
+                this.ResumeLayout(true);
             }
             finally
             {
@@ -155,6 +91,8 @@ namespace MissionPlanner.test
 
         private void UpdateFilters()
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            
             var FWList = this.FWList;
 
             if (board_id.SelectedItem != null && (string)board_id.SelectedItem != "Ignore")
@@ -214,8 +152,12 @@ namespace MissionPlanner.test
             {
                 Result.Items.Add("No options to show");
                 Result.SelectedIndex = 0;
+                sw.Stop();
+                Console.WriteLine($"UpdateFilters completed in {sw.ElapsedMilliseconds}ms");
                 return;
             }
+
+            Console.WriteLine($"UpdateFilters mid in {sw.ElapsedMilliseconds}ms");
 
             PopulatePicker(lblboardid, board_id,
                 FWList.Select(a => a.BoardId.ToString()).Distinct().OrderBy(a => int.Parse(a)));
@@ -240,6 +182,9 @@ namespace MissionPlanner.test
                 FWList.Where(a => a.BootloaderStr?.Length > 0)
                     .SelectMany(info => info.BootloaderStr, (info, s) => s)
                     .Distinct().OrderBy(a => a));
+            
+            sw.Stop();
+            Console.WriteLine($"UpdateFilters completed in {sw.ElapsedMilliseconds}ms");
         }
 
         private void PopulatePicker(Label label, ComboBox picker, IEnumerable<string> list)
@@ -283,6 +228,11 @@ namespace MissionPlanner.test
 
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void FirmwareSelection_Load(object sender, EventArgs e)
+        {
+            OnSelectedIndexChanged(null, null);
         }
     }
 }
