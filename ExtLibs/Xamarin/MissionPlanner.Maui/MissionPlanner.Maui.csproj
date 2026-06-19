@@ -1,0 +1,164 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    .NET MAUI single-project head for Mission Planner.
+
+    This replaces the four legacy Xamarin heads (Xamarin.Android / Xamarin.iOS /
+    Xamarin.MacOS / Xamarin.UWP) with one cross-platform project. It is the
+    Phase 1 scaffold of the Xamarin -> .NET MAUI migration: the app shell, the
+    SkiaSharp host page and the platform entry points are in place, and the
+    SkiaSharp-backed System.Drawing (MissionPlanner.Drawing) is wired in.
+
+    Still TODO (Phase 2): retarget the shared "Xamarin" project to net8 and
+    reference it here so the real Mission Planner / Mono WinForms render loop is
+    hosted in WinFormsHostPage.
+  -->
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MissionPlanner.Maui</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+
+    <!-- MissionPlannerLib transitively references some OutputType=Exe projects (WebAPIs, px4uploader,
+         solo) that are consumed as libraries. A self-contained app (Android) otherwise rejects them
+         with NETSDK1150; reference their output assemblies instead of failing. -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+
+    <!-- Some referenced libraries multi-target (e.g. px4uploader: netstandard2.0;netcoreapp3.1) and
+         emit a same-named .deps.json from each TFM, colliding in the single publish output (NETSDK1152).
+         Keep the first and don't fail the build over the duplicate. -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+
+    <!-- Display name and identity (matches the legacy Xamarin heads) -->
+    <ApplicationTitle>Mission Planner</ApplicationTitle>
+    <ApplicationId>com.michaeloborne.MissionPlanner</ApplicationId>
+    <ApplicationIdGuid>5e8f1c9a-6d2b-4a3e-9f1c-7b2d8e4f6a10</ApplicationIdGuid>
+    <ApplicationDisplayVersion>1.3</ApplicationDisplayVersion>
+    <ApplicationVersion>107288</ApplicationVersion>
+
+    <!-- Supported platform versions (mirror the legacy heads) -->
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+
+    <!-- Build the Windows head as an UNPACKAGED app: produces a directly-runnable
+         win-x64\MissionPlanner.Maui.exe that self-initializes the Windows App SDK via its
+         unpackaged bootstrapper. Without this the head builds as a packaged (MSIX) app, and the
+         loose exe crashes at startup with REGDB_E_CLASSNOTREG (Class not registered) because the
+         Windows App Runtime is only registered on MSIX deploy. Set WindowsAppSDKSelfContained so
+         the runtime is carried in the output and no machine-wide WinAppSDK install is required. -->
+    <WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">None</WindowsPackageType>
+    <WindowsAppSDKSelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Drop MAUI implicit global usings that collide with the WinForms/Android/legacy code compiled
+         into this head. Files that need them import explicitly:
+           Microsoft.Maui.Devices  -> DeviceInfo clashes with MissionPlanner.ArduPilot.DeviceInfo
+           Microsoft.Maui.Controls -> Application/View/... clash with Android.App.* / System.Windows.Forms.* -->
+    <Using Remove="Microsoft.Maui.Devices" />
+    <Using Remove="Microsoft.Maui.Controls" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- App icon and splash (placeholders; replace with branded assets in Resources\AppIcon / Resources\Splash) -->
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#03A9F4" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#03A9F4" BaseSize="128,128" />
+
+    <!-- Images, fonts, raw assets (extension-scoped so stray files like .gitkeep aren't swept in) -->
+    <MauiImage Include="Resources\Images\*.svg" />
+    <MauiImage Include="Resources\Images\*.png" />
+    <MauiFont Include="Resources\Fonts\*.ttf" />
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SkiaSharp 3.119.x: same major line as MissionPlanner.Drawing so the rendering surface is
+         compatible, and 3.x ships the WinUI SKGLViewHandler that 2.88.x lacked (SKGLView in
+         WinFormsHostPage threw HandlerNotFoundException at startup on Windows under 2.88.x). -->
+    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.4" />
+    <!-- MAUI replacements for the legacy Xamarin plugins:
+           Acr.UserDialogs / Xamarin.Plugin.FilePicker -> CommunityToolkit.Maui + MAUI Essentials -->
+    <PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NLog" Version="6.0.3" />
+    <!-- ILoggingBuilder.AddDebug() used by MauiProgram under #if DEBUG. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" Condition="'$(Configuration)' == 'Debug'" />
+  </ItemGroup>
+
+  <!-- Windows target only: the SkiaSharp-backed System.Drawing port (MissionPlanner.Drawing.Common,
+       AssemblyName=System.Drawing.Common) replaces the real System.Drawing.Common. But a deep transitive
+       chain pulls the real package (System.Configuration.ConfigurationManager -> System.Security.Permissions
+       -> System.Windows.Extensions -> System.Drawing.Common 4.7.0), and on the full-runtime Windows TFM its
+       win-specific runtime DLL materializes and collides with the shim in the MSIX payload (APPX1101 - two
+       System.Drawing.Common.dll). Pull it in directly with all assets excluded so the package contributes
+       nothing and only the shim is packaged. Android/iOS/MacCatalyst don't materialize the win runtime asset,
+       so this is scoped to Windows. -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Wire in the SkiaSharp-backed System.Drawing port (netstandard2.0, consumed by net10). -->
+    <ProjectReference Include="..\..\MissionPlanner.Drawing\MissionPlanner.Drawing.csproj" />
+
+    <!-- Mission Planner core (netstandard2.0): MainV2, Program, GCSViews, SerialPort, Settings,
+         SITL, files, ISpeech, IBrowserOpen, CommsInjection, ArduPilot.DeviceInfo, ... -->
+    <ProjectReference Include="..\..\..\MissionPlannerLib.csproj" />
+
+    <!-- Mono System.Windows.Forms driver (netstandard2.0 — consumable from net10):
+         XplatUIMine, XplatUI, Hwnd, Msg, MsgButtons, Screen, Control, Form, NativeWindow,
+         CaretStruct, KeyboardXplat, ComboBox, FormWindowState, ... -->
+    <ProjectReference Include="..\..\mono\mcs\class\System.Windows.Forms\System.Windows.Forms-net_4_x.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test is the platform-service facade. It lives under ExtLibs\Xamarin\** which MissionPlannerLib
+         excludes from compilation, so it is linked here (single source of truth, not copied).
+         FormsRender (ZZZLibShims.cs) is NOT linked: MissionPlannerLib already compiles it, so it
+         resolves through that project reference. The legacy Xamarin.Forms WinForms bridge is
+         intentionally not referenced (unused under MAUI). -->
+    <Compile Include="..\Xamarin\ITest.cs" Link="Legacy\ITest.cs" />
+    <!-- MissionPlanner.files resource bundle (airports.csv, themes, ParameterMetaData, ...) used by
+         WinFormsHostPage.RestoreFiles. It lives in the legacy shared Xamarin project, which the MAUI
+         head doesn't reference, so link the generated accessor + embed the resx under the basename its
+         ResourceManager expects ("MissionPlanner.files"). -->
+    <Compile Include="..\Xamarin\files.Designer.cs" Link="Legacy\files.Designer.cs" />
+    <EmbeddedResource Include="..\Xamarin\files.resx" Link="Legacy\files.resx" LogicalName="MissionPlanner.files.resources" />
+    <!-- Xamarin.MonoSerialPort (ICommsSerial over Mono System.IO.Ports) used by the render loop's
+         SerialPort.DefaultType; lives in the legacy shared project. -->
+    <Compile Include="..\Xamarin\MonoSerialPort.cs" Link="Legacy\MonoSerialPort.cs" />
+  </ItemGroup>
+
+  <!-- ============================ Android platform services ============================ -->
+  <!-- The legacy Android service implementations are Xamarin.Forms/Essentials-free, so they are
+       linked into the android target (single source of truth). Only the entry point
+       (Platforms/Android/MainActivity.cs) was rewritten for MAUI. AndroidVideo / FormsVideoLibrary
+       are intentionally dropped (video page removed). -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <Compile Include="..\Xamarin.Android\BTDevice.cs" Link="Platforms\Android\Services\BTDevice.cs" />
+    <Compile Include="..\Xamarin.Android\USBDevices.cs" Link="Platforms\Android\Services\USBDevices.cs" />
+    <Compile Include="..\Xamarin.Android\Radio.cs" Link="Platforms\Android\Services\Radio.cs" />
+    <Compile Include="..\Xamarin.Android\AndroidSerial.cs" Link="Platforms\Android\Services\AndroidSerial.cs" />
+    <Compile Include="..\Xamarin.Android\UsbDeviceReceiver.cs" Link="Platforms\Android\Services\UsbDeviceReceiver.cs" />
+    <Compile Include="..\Xamarin.Android\DeviceDiscoveredReceiver.cs" Link="Platforms\Android\Services\DeviceDiscoveredReceiver.cs" />
+    <Compile Include="..\Xamarin.Android\DiscoverableModeReceiver.cs" Link="Platforms\Android\Services\DiscoverableModeReceiver.cs" />
+    <Compile Include="..\Xamarin.Android\BluetoothDiscoveryModeArgs.cs" Link="Platforms\Android\Services\BluetoothDiscoveryModeArgs.cs" />
+    <Compile Include="..\Xamarin.Android\SysProp.cs" Link="Platforms\Android\Services\SysProp.cs" />
+    <Compile Include="..\Xamarin.Android\AbstractUnixEndPoint.cs" Link="Platforms\Android\Services\AbstractUnixEndPoint.cs" />
+
+    <!-- USB serial + GDAL bindings used by USBDevices / GDAL map overlays.
+         Migrated to net10.0-android binding projects (see PHASE3-NOTES.md). -->
+    <ProjectReference Include="..\..\UsbSerialForAndroid\UsbSerialForAndroid.csproj" />
+    <ProjectReference Include="..\GDALForAndroid\GDALForAndroid.csproj" />
+  </ItemGroup>
+
+</Project>

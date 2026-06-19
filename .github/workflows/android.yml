@@ -1,5 +1,5 @@
 name: Android Build
-on: 
+on:
     workflow_dispatch:
     pull_request:
     push:
@@ -8,31 +8,32 @@ on:
         tags:
             - beta
 
+# Builds the .NET MAUI head (ExtLibs/Xamarin/MissionPlanner.Maui) for net10.0-android.
+# Replaces the retired legacy Xamarin.Android head, which can no longer consume the
+# net10.0-android binding projects (UsbSerialForAndroid / GDALForAndroid).
+env:
+  MAUI_PROJECT: ExtLibs/Xamarin/MissionPlanner.Maui/MissionPlanner.Maui.csproj
+  PUBLISH_DIR: ExtLibs/Xamarin/MissionPlanner.Maui/bin/Release/net10.0-android/publish
+
 jobs:
   buildAAB:
     name: Build Release AAB
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 10
-          
-      - name: Install Android SDK Platform 33
-        run: |
-            gci
-            pwd
-            cd "C:\Program Files (x86)\Android\android-sdk\cmdline-tools"
-            gci
-            pwd
-            cd latest
-            cd bin            
-            .\sdkmanager.bat --list
-            .\sdkmanager.bat "platforms;android-33" "build-tools;31.0.0"
 
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
-          
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
       - name: Cache multiple paths
         uses: actions/cache@v4
         with:
@@ -43,31 +44,15 @@ jobs:
             !**.aab
             !**.dll
             !jl
-          key: ${{ runner.os }}-buildAAB
+          key: ${{ runner.os }}-maui-buildAAB
 
       - name: Build
         shell: pwsh
         run: |
-          $msbuildPath = Split-Path (& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild\Current\Bin\amd64\MSBuild.exe | Select-Object -First 1) -Parent
-          $env:PATH = $msbuildPath + ';' + $env:PATH
-          nuget locals all -clear
-          $current = Get-Location
-          
           $days = [int]((New-TimeSpan -Start 2020-01-01 -End (Get-Date)).totaldays * 100)
-          
-          $manifest = [xml](Get-Content -Path ExtLibs\Xamarin\Xamarin.Android\Properties\AndroidManifest.xml -Raw)
-
-          $manifest.SelectNodes("manifest") | % { $_.versionCode = ""+$days }
-          $manifest.SelectNodes("manifest") | % { $_.versionName = ""+$days }
-          
-          $manifest.Save($current.Path + "\ExtLibs\Xamarin\Xamarin.Android\Properties\AndroidManifest.xml")
-
-          choco install microsoft-openjdk --version=11.0.11.9
-
-          msbuild -v:m -restore -t:SignAndroidPackage -p:Configuration=Release "ExtLibs\Xamarin\Xamarin.Android\Xamarin.Android.csproj"
-          
-          del ExtLibs\Xamarin\Xamarin.Android\bin\Release\com.michaeloborne.MissionPlanner-Signed.aab
-          
+          dotnet publish $env:MAUI_PROJECT -f net10.0-android -c Release `
+            -p:AndroidPackageFormat=aab `
+            -p:ApplicationVersion=$days
           mkdir whatsnew
           git log --pretty=oneline --abbrev-commit -5 > whatsnew\whatsnew-en-US
           git log --pretty=oneline --abbrev-commit -5 > whatsnew\whatsnew-en-GB
@@ -77,7 +62,7 @@ jobs:
         id: sign
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: ExtLibs\Xamarin\Xamarin.Android\bin\Release
+          releaseDirectory: ${{ env.PUBLISH_DIR }}
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -86,7 +71,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: com.michaeloborne.MissionPlanner.aab.zip
-          path: ExtLibs\Xamarin\Xamarin.Android\bin\Release\*.aab
+          path: ${{ env.PUBLISH_DIR }}/*.aab
 
       - name: Upload Android Release to Play Store
         if: ${{ github.event_name == 'push' }}
@@ -95,7 +80,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.michaeloborne.MissionPlanner
-          releaseFiles: ExtLibs\Xamarin\Xamarin.Android\bin\Release\com.michaeloborne.MissionPlanner.aab
+          releaseFiles: ${{ env.PUBLISH_DIR }}/com.michaeloborne.MissionPlanner-Signed.aab
           track: internal
           whatsNewDirectory: whatsnew
 
@@ -105,23 +90,19 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 10
-          
-      - name: Install Android SDK Platform 33
-        run: |
-            gci
-            pwd
-            cd "C:\Program Files (x86)\Android\android-sdk\cmdline-tools"
-            gci
-            pwd
-            cd latest
-            cd bin          
-            .\sdkmanager.bat --list  
-            .\sdkmanager.bat "platforms;android-33" "build-tools;31.0.0"
-          
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
       - name: Cache multiple paths
         uses: actions/cache@v4
         with:
@@ -132,61 +113,34 @@ jobs:
             !**.aab
             !**.dll
             !jl
-          key: ${{ runner.os }}-buildAPK
+          key: ${{ runner.os }}-maui-buildAPK
+
       - name: Build
         shell: pwsh
         run: |
-          $msbuildPath = Split-Path (& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild\Current\Bin\amd64\MSBuild.exe | Select-Object -First 1) -Parent
-          $env:PATH = $msbuildPath + ';' + $env:PATH
-          nuget locals all -clear
-          $current = Get-Location
-          
           $days = [int]((New-TimeSpan -Start 2020-01-01 -End (Get-Date)).totaldays * 100)
-          
-          $manifest = [xml](Get-Content -Path ExtLibs\Xamarin\Xamarin.Android\Properties\AndroidManifest.xml -Raw)
-
-          $manifest.SelectNodes("manifest") | % { $_.versionCode = ""+$days }
-          $manifest.SelectNodes("manifest") | % { $_.versionName = ""+$days }
-          
-          $manifest.Save($current.Path + "\ExtLibs\Xamarin\Xamarin.Android\Properties\AndroidManifest.xml")
-          
-          Set-Content -Path ExtLibs\Xamarin\Xamarin.Android\Xamarin.Android.csproj -Value (Get-Content -Path ExtLibs\Xamarin\Xamarin.Android\Xamarin.Android.csproj -Raw).Replace("<AndroidPackageFormat>aab</AndroidPackageFormat>","<AndroidPackageFormat>apk</AndroidPackageFormat>")
-
-          Set-Content -Path ExtLibs\Xamarin\Xamarin.Android\Xamarin.Android.csproj -Value (Get-Content -Path ExtLibs\Xamarin\Xamarin.Android\Xamarin.Android.csproj -Raw).Replace("<AotAssemblies>true</AotAssemblies>","<AotAssemblies>false</AotAssemblies>")
-
-          choco install microsoft-openjdk --version=11.0.11.9
-          
-          msbuild -v:m -restore -t:SignAndroidPackage -p:Configuration=Release "ExtLibs\Xamarin\Xamarin.Android\Xamarin.Android.csproj"
-          
-          del ExtLibs\Xamarin\Xamarin.Android\bin\Release\*-Signed.apk
-          
-          $apks = Get-ChildItem -include *.apk -path ExtLibs\Xamarin\Xamarin.Android\bin\Release\ -Recurse
-          
-          ForEach($i in $apks) {
-            echo $i.FullName
-            Move-Item -path $i.FullName temp.apk
-            C:\Android\android-sdk\build-tools\31.0.0\zipalign.exe -p -f -v 4 temp.apk $i.FullName
-            Remove-Item temp.apk
-          }
+          dotnet publish $env:MAUI_PROJECT -f net10.0-android -c Release `
+            -p:AndroidPackageFormat=apk `
+            -p:ApplicationVersion=$days
 
       - name: Sign APK
         if: ${{ github.event_name == 'push' }}
         id: sign2
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: ExtLibs\Xamarin\Xamarin.Android\bin\Release
+          releaseDirectory: ${{ env.PUBLISH_DIR }}
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
-          BUILD_TOOLS_VERSION: "31.0.0"
+          BUILD_TOOLS_VERSION: "34.0.0"
 
       - uses: actions/upload-artifact@v4
         with:
           name: com.michaeloborne.MissionPlanner.apk.zip
-          path: ExtLibs\Xamarin\Xamarin.Android\bin\Release/${{ github.event_name == 'push' && '*-signed.apk' || '*.apk' }}
-          
+          path: ${{ env.PUBLISH_DIR }}/*.apk
+
       - uses: "marvinpinto/action-automatic-releases@v1.2.1"
         if: ${{ github.event_name == 'push' }}
         with:
@@ -194,12 +148,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: true
           title: "Android Development Build"
-          files: '**/*-signed.apk'
-
-
-
-
-
-
-
-
+          files: '${{ env.PUBLISH_DIR }}/*.apk'

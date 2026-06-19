@@ -77,7 +77,8 @@ namespace System.Drawing.Drawing2D
 
         public void AddString(string s, object fontFontFamily, int i, float f, Point point, object genericTypographic)
         {
-            var path = new SKPaint().GetTextPath(s, point.X, point.Y);
+            // SkiaSharp 3.x: text path generation moved from SKPaint to SKFont.
+            var path = new SKFont().GetTextPath(s, new SKPoint(point.X, point.Y));
 
             path.Points.ForEach(a => _pathPoints.Add(new PointF(a.X, a.Y)));
         }
