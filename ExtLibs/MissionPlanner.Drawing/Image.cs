@@ -10,6 +10,8 @@ using SkiaSharp;
 namespace System.Drawing
 {
     [Serializable]
+    // Lets WinForms .resx image blobs (stored as byte[]) round-trip through the resource reader; see ImageConverter.
+    [TypeConverter(typeof(ImageConverter))]
     public abstract class Image : ISerializable, ICloneable, IDisposable
     {
         public delegate bool GetThumbnailImageAbort();

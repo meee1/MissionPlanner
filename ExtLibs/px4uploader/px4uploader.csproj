@@ -1,11 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
-    <OutputTypeEx>Exe</OutputTypeEx>
+    <!-- netstandard2.0 only. The former netcoreapp3.1 target (for a standalone px4uploader console
+         build) is incompatible with a net10.0-android consumer: the SDK's nearest-TFM match preferred
+         it over netstandard2.0, then failed to resolve a RID-specific (e.g. netcoreapp3.1/android-arm64)
+         asset (NETSDK1047). netstandard2.0 is consumable everywhere px4uploader is referenced. -->
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <ApplicationIcon />
-    <OutputType>Exe</OutputType>
-    <StartupObject>px4uploader.Program</StartupObject>
+    <!-- Library, not Exe: only ever referenced as a library, and OutputType=Exe broke the .NET MAUI
+         Android per-RID publish (NETSDK1047 - no netstandard2.0/android-* target). A netstandard2.0
+         target can't produce a runnable exe anyway; px4uploader.Program.Main becomes an unused static
+         method. Mirrors the WebAPIs/solo fix in commit 5c0178fda. -->
+    <OutputType>Library</OutputType>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 

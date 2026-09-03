@@ -1,0 +1,26 @@
+<Project>
+
+  <!--
+    Repo-wide MSBuild props. Intentionally minimal: this is the nearest
+    Directory.Build.props for every project in the tree (none define their own),
+    so anything added here applies everywhere. Keep it inert except where scoped
+    by an explicit condition.
+
+    MissionPlannerLib.csproj and MissionPlanner.csproj (the WinForms desktop head)
+    both live in this root directory. They would otherwise share the same default
+    intermediate dir ($(MSBuildProjectDirectory)\obj) and clobber each other's
+    project.assets.json — MissionPlannerLib is netstandard2.0, MissionPlanner is
+    net472, so whichever restored last wins and the other fails NETSDK1005. This
+    bites the MAUI Android build (which restores MissionPlannerLib) whenever a
+    desktop/VS design-time build has restored MissionPlanner into obj\.
+
+    MissionPlannerLib.csproj sets <BaseIntermediateOutputPath>obj2\</...> in its
+    body, but that is read too late — NuGet/the SDK resolve the intermediate path
+    in Microsoft.Common.props, before the project body. Setting it here (imported
+    first) makes the obj2\ redirect actually take effect.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectFile)' == 'MissionPlannerLib.csproj'">
+    <BaseIntermediateOutputPath>obj2\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+</Project>

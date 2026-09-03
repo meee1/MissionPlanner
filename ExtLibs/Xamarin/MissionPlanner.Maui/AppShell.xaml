@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:gcsviews="clr-namespace:MissionPlanner.Maui.GCSViews"
+       x:Class="MissionPlanner.Maui.AppShell"
+       FlyoutBehavior="Flyout"
+       Title="Mission Planner">
+
+    <!-- MAUI Shell replaces the legacy Xamarin.Forms MasterDetailPage.
+         The flyout items mirror MasterDetailPage1Master's menu. -->
+
+    <FlyoutItem Title="WinForms" Route="winforms">
+        <ShellContent ContentTemplate="{DataTemplate gcsviews:WinFormsHostPage}" />
+    </FlyoutItem>
+
+    <!-- TODO (Phase 2): port and re-enable the Video and Firmware pages.
+    <FlyoutItem Title="Video" Route="video">
+        <ShellContent ContentTemplate="{DataTemplate gcsviews:VideoPage}" />
+    </FlyoutItem>
+    <FlyoutItem Title="Firmware" Route="firmware">
+        <ShellContent ContentTemplate="{DataTemplate gcsviews:FirmwarePage}" />
+    </FlyoutItem>
+    -->
+
+</Shell>

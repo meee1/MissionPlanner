@@ -185,7 +185,18 @@ namespace MissionPlanner
             log.Info("******************* Logging Configured *******************");
 
             ServicePointManager.DefaultConnectionLimit = 10;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
+            // .NET (Core) 10 removed the obsolete Ssl3/Tls/Tls11 enum values from ServicePointManager;
+            // assigning them throws NotSupportedException. Request only the still-supported modern
+            // protocols and ignore the failure (on net10 the OS negotiates TLS 1.2/1.3 by default anyway).
+            // Tls13 (12288) isn't defined in the netstandard2.0 ref assembly, so use the numeric value.
+            try
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | (SecurityProtocolType)12288;
+            }
+            catch (NotSupportedException)
+            {
+                // Leave the runtime/OS default in place.
+            }
 
             System.Windows.Forms.Application.ThreadException += Application_ThreadException;
 
@@ -351,11 +362,12 @@ namespace MissionPlanner
             GMap.NET.MapProviders.GMapProviders.List.Add(Maps.EsriArcticOceanBase.Instance);
 
 
-            if(Xamarin.Essentials.DeviceInfo.Idiom == Xamarin.Essentials.DeviceIdiom.Desktop || Xamarin.Essentials.DeviceInfo.Idiom == Xamarin.Essentials.DeviceIdiom.Unknown)
+            // Disable ZedGraph font scaling on desktop/Mac (was Xamarin.Essentials
+            // DeviceInfo.Idiom == Desktop/Unknown); keep scaling on the Android/iOS touch heads.
+            if (!MainV2.Android && !MainV2.IOS)
                 ZedGraph.PaneBase.Default.IsFontsScaled = false;
 
-            if(Xamarin.Essentials.DeviceInfo.Platform != Xamarin.Essentials.DevicePlatform.Unknown)
-                log.Info(typeof(Xamarin.Essentials.DeviceInfo).ToJSON());
+            log.Info("Platform " + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
 
             Console.WriteLine("Setup GoogleMapProvider API");
             if (Settings.Instance["GoogleApiKey"] != null) GoogleMapProvider.APIKey = Settings.Instance["GoogleApiKey"];

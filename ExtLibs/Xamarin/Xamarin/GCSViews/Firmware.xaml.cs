@@ -147,17 +147,18 @@ namespace Xamarin.GCSViews
                     }
                     else if (fwitems?.Count > 0)
                     {
-                        FirmwareSelection fws = new FirmwareSelection(fwitems, deviceInfo);
-                        fws.CloseAction += async () =>
+                        // FirmwareSelection is now a native WinForms Form (ported off Xamarin.Forms);
+                        // show it through the hosted WinForms loop.
+                        using (FirmwareSelection fws = new FirmwareSelection(fwitems, deviceInfo))
                         {
-                            Navigation.PopModalAsync();
+                            fws.ShowDialog();
                             baseurl = fws.FinalResult;
+                        }
 
-                            await DownloadAndUpload(baseurl);
-
+                        if (baseurl == null)
                             return;
-                        };
-                        await this.Navigation.PushModalAsync(fws);
+
+                        await DownloadAndUpload(baseurl);
                         return;
                     }
                     else

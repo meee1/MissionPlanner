@@ -7,9 +7,12 @@ using SkiaSharp;
 namespace System.Drawing
 {
     [Serializable]
+    // Lets WinForms .resx Font properties (stored as "Name, sizept[, style=...]") deserialize; see FontConverter.
+    [TypeConverter(typeof(FontConverter))]
     public class Font : ISerializable, IDisposable, ICloneable
     {
-        internal SKPaint nativeFont;
+        // SkiaSharp 3.x: text size/typeface/metrics live on SKFont, not SKPaint (which is now color/style only).
+        internal SKFont nativeFont;
 
         /// <summary>Gets style information for this <see cref="T:System.Drawing.Font" />.</summary>
         /// <returns>A <see cref="T:System.Drawing.FontStyle" /> enumeration that contains style information for this <see cref="T:System.Drawing.Font" />.</returns>
@@ -254,17 +257,11 @@ namespace System.Drawing
             try {
                 var loader = SKTypeface.Default;
 
-                nativeFont = new SKPaint()
-                {
-                    Typeface = SKTypeface.FromFamilyName(genericSansSerif?.Name), TextSize = size,
-                    TextAlign = SKTextAlign.Left
-                };
+                nativeFont = new SKFont(SKTypeface.FromFamilyName(genericSansSerif?.Name), size);
 
                 if (nativeFont.Typeface == null)
                 {
-                    nativeFont.Typeface = genericSansSerif.ToSKTypeface();
-                    if (nativeFont.Typeface == null)
-                        nativeFont.Typeface = SKTypeface.Default;
+                    nativeFont.Typeface = genericSansSerif.ToSKTypeface() ?? SKTypeface.Default;
                 }
 
                 FontFamily = new FontFamily() {Name = nativeFont.Typeface.FamilyName};
@@ -311,9 +308,9 @@ namespace System.Drawing
                     if (nativeFont != null)
                     {
                         if (Unit == GraphicsUnit.Pixel)
-                            nativeFont.TextSize = value;
+                            nativeFont.Size = value;
                         else
-                            nativeFont.TextSize = value * 1.33334f;
+                            nativeFont.Size = value * 1.33334f;
                     }
                 }
                 catch (Exception e)
@@ -357,19 +354,21 @@ namespace System.Drawing
 
         public object Clone()
         {
-            return nativeFont.Clone();
+            // SkiaSharp 3.x SKFont has no Clone(); construct an equivalent font.
+            return new SKFont(nativeFont.Typeface, nativeFont.Size, nativeFont.ScaleX, nativeFont.SkewX);
         }
 
         public IntPtr ToHfont()
         {
-            return nativeFont.Handle;
+            // SkiaSharp 3.x SKFont exposes no native Handle; not meaningful here.
+            return IntPtr.Zero;
         }
 
         /// <summary>Returns the line spacing, in pixels, of this font.</summary>
         /// <returns>The line spacing, in pixels, of this font.</returns>
         public float GetHeight()
         {
-            return nativeFont.FontSpacing;
+            return nativeFont.Spacing;
         }
 
         public Font FromHfont(IntPtr hfont)

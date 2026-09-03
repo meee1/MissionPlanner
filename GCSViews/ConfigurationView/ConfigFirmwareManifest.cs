@@ -244,13 +244,15 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                     }
                     else if (fwitems?.Count > 0)
                     {
-                        FirmwareSelection fws = new FirmwareSelection(fwitems, deviceInfo);
-                        fws.ShowXamarinControl(550, 400);
-                        baseurl = fws.FinalResult;
-                        if (fws.FinalResult == null)
+                        using (FirmwareSelection fws = new FirmwareSelection(fwitems, deviceInfo))
                         {
-                            // user canceled
-                            return;
+                            fws.ShowDialog();
+                            baseurl = fws.FinalResult;
+                            if (fws.FinalResult == null)
+                            {
+                                // user canceled
+                                return;
+                            }
                         }
                     }
                     else

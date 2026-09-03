@@ -95,12 +95,17 @@ namespace System.Drawing
 
         public static SKPaint ToSKPaint(this Font font)
         {
+            // SkiaSharp 3.x: SKPaint no longer carries Typeface/TextSize (text props moved to SKFont).
+            // Kept for callers that only need stroke/fill paint; use ToSKFont() for text metrics/drawing.
             return new SKPaint
             {
-                Typeface = font.FontFamily.ToSKTypeface(),
-                TextSize = font.SizeInPoints * 1.33334f,
                 StrokeWidth = 2,
             };
+        }
+
+        public static SKFont ToSKFont(this Font font)
+        {
+            return new SKFont(font.FontFamily.ToSKTypeface(), font.SizeInPoints * 1.33334f);
         }
 
         public static SKPoint ToSKPoint(this PointF pnt)
@@ -156,7 +161,7 @@ namespace System.Drawing
                                 ((LinearGradientBrush) brush).LinearColors[0].ToSKColor(),
                                 ((LinearGradientBrush) brush).LinearColors[1].ToSKColor()
                             }
-                            , null, SKShaderTileMode.Clamp, SKMatrix.MakeIdentity())
+                            , null, SKShaderTileMode.Clamp, SKMatrix.CreateIdentity())
                     };
                 }
 
@@ -173,7 +178,7 @@ namespace System.Drawing
                                 ((LinearGradientBrush) brush).LinearColors[0].ToSKColor(),
                                 ((LinearGradientBrush) brush).LinearColors[1].ToSKColor()
                             }
-                            , null, SKShaderTileMode.Clamp, SKMatrix.MakeIdentity())
+                            , null, SKShaderTileMode.Clamp, SKMatrix.CreateIdentity())
                     };
                 }
             }
