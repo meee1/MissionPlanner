@@ -10,6 +10,7 @@ using MissionPlanner.Utilities;
 namespace MissionPlanner.GCSViews.Tests
 {
     [TestClass()]
+    [TestCategory("Network")]
     public class FlightPlannerTests
     {
         [TestMethod()]

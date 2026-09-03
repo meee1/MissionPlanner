@@ -1,0 +1,254 @@
+name: Tests
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  unit-tests:
+    name: Unit tests (Linux / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore MissionPlannerTests.Unit/MissionPlannerTests.Unit.csproj
+
+      - name: Test
+        run: >
+          dotnet test MissionPlannerTests.Unit/MissionPlannerTests.Unit.csproj
+          -f net8.0
+          -c Debug
+          --no-restore
+          --filter "TestCategory=Unit"
+          --logger "trx;LogFileName=unit.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: TestResults/*.trx
+
+  # Headless ArduPilot SITL integration tests. Much heavier than the unit job
+  # (it builds ArduPilot from source), so it is gated: it runs on manual dispatch
+  # or when a PR carries the "sitl" label. Tests self-skip if no binary is built.
+  sitl-tests:
+    name: SITL integration (Linux)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'sitl')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache ArduPilot SITL build
+        uses: actions/cache@v4
+        with:
+          path: .sitl
+          key: ${{ runner.os }}-ardupilot-sitl-${{ hashFiles('tests/build-sitl.sh') }}
+
+      - name: Build ArduPilot SITL
+        run: tests/build-sitl.sh
+
+      # Run each vehicle's tests in its own process (one MAVLinkInterface per
+      # process is the supported usage).
+      - name: Test (copter)
+        env:
+          SITL_BIN_DIR: ${{ github.workspace }}/.sitl/ardupilot/build/sitl/bin
+          SITL_SPEEDUP: "5"
+        run: >
+          dotnet test MissionPlannerTests.Sitl/MissionPlannerTests.Sitl.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=Sitl"
+          --logger "trx;LogFileName=sitl-copter.trx"
+          --results-directory TestResults
+
+      - name: Test (plane)
+        env:
+          SITL_BIN_DIR: ${{ github.workspace }}/.sitl/ardupilot/build/sitl/bin
+          SITL_SPEEDUP: "5"
+        run: >
+          dotnet test MissionPlannerTests.SitlPlane/MissionPlannerTests.SitlPlane.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=Sitl"
+          --logger "trx;LogFileName=sitl-plane.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitl-test-results
+          path: TestResults/*.trx
+
+  # Cross-platform WinForms control tests: instantiate/render Mission Planner's
+  # WinForms controls on .NET 8 via the vendored Mono System.Windows.Forms
+  # (ExtLibs/mono) rendered with SkiaSharp - no Mono runtime, no display server.
+  winforms-tests:
+    name: WinForms controls (Linux / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # libSkiaSharp needs fontconfig on a bare runner.
+      - name: Install native deps
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
+      - name: Resolve mono submodule commit
+        id: mono
+        run: echo "sha=$(git ls-tree HEAD ExtLibs/mono | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vendored Mono WinForms (ExtLibs/mono)
+        id: monocache
+        uses: actions/cache@v4
+        with:
+          path: ExtLibs/mono
+          key: ${{ runner.os }}-mono-submodule-${{ steps.mono.outputs.sha }}
+
+      - name: Init mono submodule
+        if: steps.monocache.outputs.cache-hit != 'true'
+        run: git submodule update --init --depth 1 ExtLibs/mono
+
+      - name: Test
+        run: >
+          dotnet test MissionPlannerTests.WinForms/MissionPlannerTests.WinForms.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=WinForms"
+          --logger "trx;LogFileName=winforms.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: winforms-test-results
+          path: TestResults/*.trx
+
+  # Application-logic tests against MissionPlannerLib (the whole app compiled as
+  # a netstandard2.0 library). Doubles as a build-guard: it must compile the
+  # entire app cross-platform before the tests can run.
+  app-tests:
+    name: App logic (Linux / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # libSkiaSharp needs fontconfig on a bare runner.
+      - name: Install native deps
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
+      - name: Resolve mono submodule commit
+        id: mono
+        run: echo "sha=$(git ls-tree HEAD ExtLibs/mono | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vendored Mono WinForms (ExtLibs/mono)
+        id: monocache
+        uses: actions/cache@v4
+        with:
+          path: ExtLibs/mono
+          key: ${{ runner.os }}-mono-submodule-${{ steps.mono.outputs.sha }}
+
+      - name: Init mono submodule
+        if: steps.monocache.outputs.cache-hit != 'true'
+        run: git submodule update --init --depth 1 ExtLibs/mono
+
+      - name: Test
+        run: >
+          dotnet test MissionPlannerTests.App/MissionPlannerTests.App.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=App"
+          --logger "trx;LogFileName=app.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-test-results
+          path: TestResults/*.trx
+
+  # GPU render tests: exercise the SkiaSharp GPU path (GRContext + GPU SKSurface)
+  # against a headless software GL context (Mesa llvmpipe via EGL surfaceless).
+  # Validates the GPU half of MissionPlanner.Drawing.GpuContext for real.
+  gpu-tests:
+    name: GPU render (Linux software GL / net8.0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Mesa software GL + EGL (surfaceless) + fontconfig for libSkiaSharp.
+      - name: Install software GL stack
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1-mesa-dri libgles2 libfontconfig1
+
+      - name: Resolve mono submodule commit
+        id: mono
+        run: echo "sha=$(git ls-tree HEAD ExtLibs/mono | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vendored Mono WinForms (ExtLibs/mono)
+        id: monocache
+        uses: actions/cache@v4
+        with:
+          path: ExtLibs/mono
+          key: ${{ runner.os }}-mono-submodule-${{ steps.mono.outputs.sha }}
+
+      - name: Init mono submodule
+        if: steps.monocache.outputs.cache-hit != 'true'
+        run: git submodule update --init --depth 1 ExtLibs/mono
+
+      - name: Test
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          GALLIUM_DRIVER: llvmpipe
+          EGL_PLATFORM: surfaceless
+          MESA_GL_VERSION_OVERRIDE: "3.3"
+          MESA_GLES_VERSION_OVERRIDE: "3.0"
+        run: >
+          dotnet test MissionPlannerTests.WinForms/MissionPlannerTests.WinForms.csproj
+          -f net8.0
+          -c Debug
+          --filter "TestCategory=Gpu"
+          --logger "trx;LogFileName=gpu.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-test-results
+          path: TestResults/*.trx

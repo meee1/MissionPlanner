@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace MissionPlannerTests
 {
     [TestClass()]
+    [TestCategory("Network")]
     public class DroneCANTests
     {
         [TestMethod()]

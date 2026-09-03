@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Fixed-wing SITL tests live in their own project so they run in a
+         separate process from the copter tests: a single MAVLinkInterface per
+         process is the supported usage. -->
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net8.0;net472</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS0618;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtLibs\Utilities\MissionPlanner.Utilities.csproj" />
+    <ProjectReference Include="..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+    <ProjectReference Include="..\ExtLibs\Mavlink\MAVLink.csproj" />
+    <ProjectReference Include="..\ExtLibs\Comms\MissionPlanner.Comms.csproj" />
+  </ItemGroup>
+
+  <!-- Share the SITL launcher/connection helper with the copter test project. -->
+  <ItemGroup>
+    <Compile Include="..\MissionPlannerTests.Sitl\SitlFixture.cs" Link="SitlFixture.cs" />
+  </ItemGroup>
+
+</Project>

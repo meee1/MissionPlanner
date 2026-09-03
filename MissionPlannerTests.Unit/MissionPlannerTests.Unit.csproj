@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net8.0 is the cross-platform regression target run in CI on Linux.
+         net472 is added on Windows only, for Visual Studio / Test Explorer parity. -->
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net8.0;net472</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <LangVersion>latest</LangVersion>
+    <!-- The libraries under test ship plenty of analyzer/obsolete noise; keep the
+         test build quiet and resilient so a green run reflects test outcomes only. -->
+    <NoWarn>$(NoWarn);CS0618;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+  </ItemGroup>
+
+  <!-- Reference only the cross-platform netstandard2.0 logic libraries.
+       NOT MissionPlanner.csproj (WinForms / net472, Windows-only). -->
+  <ItemGroup>
+    <ProjectReference Include="..\ExtLibs\Utilities\MissionPlanner.Utilities.csproj" />
+    <ProjectReference Include="..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+    <ProjectReference Include="..\ExtLibs\Mavlink\MAVLink.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
