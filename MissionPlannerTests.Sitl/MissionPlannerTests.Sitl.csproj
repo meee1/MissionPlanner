@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net8.0 so the harness runs on the Linux CI runner alongside ArduPilot SITL. -->
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net8.0;net472</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS0618;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+  </ItemGroup>
+
+  <!-- Same cross-platform logic libs as the unit project, plus Comms for the
+       TCP transport used to talk to a running SITL instance. -->
+  <ItemGroup>
+    <ProjectReference Include="..\ExtLibs\Utilities\MissionPlanner.Utilities.csproj" />
+    <ProjectReference Include="..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+    <ProjectReference Include="..\ExtLibs\Mavlink\MAVLink.csproj" />
+    <ProjectReference Include="..\ExtLibs\Comms\MissionPlanner.Comms.csproj" />
+  </ItemGroup>
+
+</Project>

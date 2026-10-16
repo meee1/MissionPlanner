@@ -2213,3 +2213,30 @@ public static class Extension
         return new SKPaint();
     }
 }
+
+namespace SkiaSharp.Views.Desktop
+{
+    // Vendored from SkiaSharp.Views.Desktop.Common (this file is compiled for
+    // netstandard2.0 only - excluded for net472). The package is omitted on
+    // netstandard2.0 because its transitive System.Drawing.Common collides with
+    // the MissionPlanner.Drawing shim; SKPaintSurfaceEventArgs is the only package
+    // type the vendored SKControl/MyLabel/QuickView need.
+    public class SKPaintSurfaceEventArgs : EventArgs
+    {
+        public SKPaintSurfaceEventArgs(SKSurface surface, SKImageInfo info)
+            : this(surface, info, info)
+        {
+        }
+
+        public SKPaintSurfaceEventArgs(SKSurface surface, SKImageInfo info, SKImageInfo rawInfo)
+        {
+            Surface = surface;
+            Info = info;
+            RawInfo = rawInfo;
+        }
+
+        public SKSurface Surface { get; }
+        public SKImageInfo Info { get; }
+        public SKImageInfo RawInfo { get; }
+    }
+}

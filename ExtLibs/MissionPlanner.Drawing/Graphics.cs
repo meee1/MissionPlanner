@@ -57,16 +57,11 @@ namespace System.Drawing
                 width = 1;
             if (height == 0)
                 height = 1;
-            /*
-             * 
-GRGlInterface glInterface = GRGlInterface.AssembleGlInterface(GLFW.GetWGLContext(window), (contextHandle, name) => GLFW.GetProcAddress(name));
-GRContext context = GRContext.Create(GRBackend.OpenGL, glInterface);
-GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTargetDesc
-             */
-            //_surface = SKSurface.Create(GRContext.Create(GRBackend.OpenGL), );
 
-            _surface = SKSurface.Create(width, height, SKImageInfo.PlatformColorType, SKAlphaType.Premul);
-
+            // Renders on the GPU when a host has registered a GRContext via
+            // MissionPlanner.Drawing.GpuContext; otherwise transparently falls back
+            // to a CPU raster surface (headless / no GL driver / tests).
+            _surface = MissionPlanner.Drawing.GpuContext.CreateOffscreenSurface(width, height, out _);
 
             Debug.Assert(_surface != null);
             //_rec.BeginRecording(new SKRect(0, 0, width, height));

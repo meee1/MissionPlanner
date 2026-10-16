@@ -14,8 +14,12 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK.GLControl" Version="3.1.0" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="2.80.2" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <!-- net472 uses the package's System.Drawing<->Skia conversion extensions.
+         netstandard2.0 deliberately omits it: the package's transitive
+         System.Drawing.Common collides with the MissionPlanner.Drawing shim, and
+         the shim already provides these conversions (MissionPlanner.Drawing/Extension.cs). -->
+    <PackageReference Include="SkiaSharp.Views.Desktop.Common" Version="2.88.8" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
 
   </ItemGroup>

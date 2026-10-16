@@ -1,0 +1,491 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MissionPlanner.ArduPilot;
+using MissionPlanner.Utilities;
+
+namespace MissionPlanner.Tests.Sitl
+{
+    /// <summary>
+    /// End-to-end integration tests against a real ArduPilot SITL instance,
+    /// driving the same <see cref="MAVLinkInterface"/> API the GUI uses:
+    /// heartbeat, parameter download / set-get, mission upload/download, home
+    /// position, and a full GUIDED arm + takeoff climb.
+    ///
+    /// One SITL instance and one connection are shared across all tests purely
+    /// for efficiency — an external sim is expensive to spin up. (Mission Planner
+    /// itself runs many MAVLinkInterface instances at once via MainV2.Comports,
+    /// e.g. for swarms, so multiple connections per process are fully supported;
+    /// they just share a little process-global state — gcssysid, the ADSB
+    /// callbacks, speech and UI-progress hooks — none of which affects telemetry
+    /// or command I/O on independent links.) The tests are independent: the
+    /// read-only ones do not care whether the vehicle is armed or flying. When no
+    /// SITL binary is available every test is marked inconclusive.
+    /// </summary>
+    [TestClass]
+    public class SitlTests
+    {
+        private const uint CopterGuidedMode = 4;          // ArduCopter GUIDED custom_mode
+        private const uint CopterAutoMode = 3;            // ArduCopter AUTO custom_mode
+        private const uint CopterLandMode = 9;            // ArduCopter LAND custom_mode
+        private const byte MavModeFlagSafetyArmed = 128;  // MAV_MODE_FLAG.SAFETY_ARMED
+
+        private static SitlFixture _sitl;
+        private static string _knownParam;
+
+        private static MAVLinkInterface Mav => _sitl.Mav;
+        private static byte Sysid => _sitl.Sysid;
+        private static byte Compid => _sitl.Compid;
+
+        [ClassInitialize]
+        public static void StartSitl(TestContext _)
+        {
+            if (!SitlFixture.IsAvailable)
+                return;
+
+            _sitl = SitlFixture.StartCopter();
+            // Download the parameter list once, as the GUI does on connect, so
+            // setParamAsync can resolve parameters by name.
+            var paramlist = Mav.getParamListAsync(Sysid, Compid).GetAwaiter().GetResult();
+            _knownParam = new[] { "WPNAV_SPEED", "PILOT_SPEED_UP", "ANGLE_MAX" }
+                              .FirstOrDefault(paramlist.ContainsKey)
+                          ?? paramlist.First().Name;
+        }
+
+        [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
+        public static void StopSitl() => _sitl?.Dispose();
+
+        [TestInitialize]
+        public void RequireSitl()
+        {
+            if (_sitl == null)
+                Assert.Inconclusive("SITL_BIN_DIR not set or binary missing; skipping SITL integration test.");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task Heartbeat_IsReceived()
+        {
+            var hb = await Mav.getHeartBeatAsync();
+            Assert.IsNotNull(hb);
+            Assert.IsTrue(Sysid > 0, "expected a non-zero system id after heartbeat");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task ParameterDownload_ReturnsManyParameters()
+        {
+            var paramlist = await Mav.getParamListAsync(Sysid, Compid);
+            // ArduCopter exposes hundreds of parameters; a healthy download is well over 100.
+            Assert.IsTrue(paramlist.Count > 100, $"expected >100 params, got {paramlist.Count}");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task SetParam_ThenGetParam_RoundTrips()
+        {
+            var paramlist = await Mav.getParamListAsync(Sysid, Compid);
+            Assert.IsTrue(paramlist.Count > 0, "no parameters downloaded");
+
+            // Choose an existing parameter rather than hard-coding a name, since
+            // ArduPilot renames/regroups parameters across versions. Prefer a
+            // historically stable, writable one; fall back to whatever is present.
+            string name = new[] { "WPNAV_SPEED", "PILOT_SPEED_UP", "ANGLE_MAX" }
+                              .FirstOrDefault(paramlist.ContainsKey)
+                          ?? paramlist.First().Name;
+
+            double original = paramlist[name].Value;
+
+            // Round-trip the value through a real PARAM_SET / PARAM_VALUE exchange.
+            // force:true ensures the set is sent even when the value is unchanged,
+            // so the value stays in range and we exercise the full wire path.
+            bool set = await Mav.setParamAsync(Sysid, Compid, name, original, force: true);
+            Assert.IsTrue(set, $"failed to set {name}");
+
+            float readback = await Mav.GetParamAsync(Sysid, Compid, name);
+            Assert.AreEqual(original, readback, Math.Max(1e-3, Math.Abs(original) * 1e-4),
+                $"readback of {name} did not match");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task MissionUpload_ThenDownload_RoundTrips()
+        {
+            var mission = new List<Locationwp>
+            {
+                // index 0 is home in Mission Planner's convention
+                new Locationwp().Set(-35.363261, 149.165230, 0, (ushort)MAVLink.MAV_CMD.WAYPOINT),
+                new Locationwp().Set(0, 0, 20, (ushort)MAVLink.MAV_CMD.TAKEOFF),
+                new Locationwp().Set(-35.359800, 149.164300, 30, (ushort)MAVLink.MAV_CMD.WAYPOINT),
+                new Locationwp().Set(-35.360000, 149.167000, 40, (ushort)MAVLink.MAV_CMD.WAYPOINT),
+            };
+
+            await mav_mission.upload(Mav, Sysid, Compid, MAVLink.MAV_MISSION_TYPE.MISSION, mission);
+
+            var downloaded = await mav_mission.download(Mav, Sysid, Compid, MAVLink.MAV_MISSION_TYPE.MISSION);
+
+            Assert.AreEqual(mission.Count, downloaded.Count, "round-tripped mission item count");
+
+            // The two navigation waypoints (indices 2 and 3) must survive unchanged.
+            foreach (int i in new[] { 2, 3 })
+            {
+                Assert.AreEqual((ushort)MAVLink.MAV_CMD.WAYPOINT, downloaded[i].id);
+                Assert.AreEqual(mission[i].lat, downloaded[i].lat, 1e-5, $"lat mismatch at {i}");
+                Assert.AreEqual(mission[i].lng, downloaded[i].lng, 1e-5, $"lng mismatch at {i}");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task HomePosition_IsReported()
+        {
+            var home = await Mav.getHomePositionAsync(Sysid, Compid);
+            // Home should be near the launch location we passed to SITL.
+            Assert.AreEqual(-35.363261, home.lat, 0.01, "home latitude near launch point");
+            Assert.AreEqual(149.165230, home.lng, 0.01, "home longitude near launch point");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task Gps_AcquiresThreeDimensionalFix()
+        {
+            byte fix = await WaitForGpsFix(TimeSpan.FromSeconds(60));
+            // GPS_FIX_TYPE_3D_FIX == 3; SITL typically reports a higher quality fix.
+            Assert.IsTrue(fix >= 3, $"expected a 3D GPS fix (>=3), got fix_type {fix}");
+        }
+
+        // --- MAVLinkInterface async I/O behaviour ------------------------------
+        // These validate the asynchronous I/O itself against the live stream:
+        // the read pump, concurrent-read serialisation via the internal readlock,
+        // the async retry/timeout path, and the synchronous AwaitSync wrappers.
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task ReadPacketAsync_StreamsMultipleMessageTypes()
+        {
+            var seen = new HashSet<uint>();
+            for (int i = 0; i < 30 && seen.Count < 3; i++)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg != null && msg.Length > 5)
+                    seen.Add(msg.msgid);
+            }
+
+            // A live SITL link continuously streams heartbeat, attitude, GPS, etc.
+            Assert.IsTrue(seen.Count >= 3,
+                $"expected several distinct streaming message types, saw {seen.Count}");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task ConcurrentReadPacketAsync_AllComplete_SerializedByReadLock()
+        {
+            // Fire many reads at once against the single shared BaseStream. Without
+            // the internal readlock these would race and corrupt the parser; with
+            // it they serialise and every one completes.
+            const int n = 12;
+            var tasks = Enumerable.Range(0, n).Select(_ => Mav.readPacketAsync()).ToArray();
+
+            var results = await Task.WhenAll(tasks);
+
+            // WhenAll completing without exception/deadlock is the core proof that
+            // the readlock serialised concurrent access to the shared stream.
+            Assert.AreEqual(n, results.Length);
+            int valid = results.Count(r => r != null && r.Length > 5);
+            Assert.IsTrue(valid >= n - 2, $"expected almost all concurrent reads to carry payloads, got {valid}/{n}");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task InterfaceStaysUsable_AfterConcurrentReads()
+        {
+            // Hammer the link concurrently, then confirm the readlock was released
+            // and a normal request/response round-trip still works.
+            await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Mav.readPacketAsync()));
+
+            float value = await Mav.GetParamAsync(Sysid, Compid, _knownParam);
+            Assert.IsFalse(float.IsNaN(value), $"GetParamAsync({_knownParam}) returned NaN after concurrent reads");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task GetParamAsync_UnknownParameter_ThrowsTimeout()
+        {
+            // No PARAM_VALUE will ever match this name, so the async retry/timeout
+            // path must surface a TimeoutException rather than hang.
+            await Assert.ThrowsExceptionAsync<TimeoutException>(
+                () => Mav.GetParamAsync(Sysid, Compid, "ZZ_NOPARAM"));
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task SyncAndAsyncHeartbeat_BothReturnHeartbeat()
+        {
+            // The async call and its AwaitSync() wrapper must both work over real I/O.
+            var asyncHb = await Mav.getHeartBeatAsync();
+            var syncHb = Mav.getHeartBeat();
+
+            Assert.IsNotNull(asyncHb);
+            Assert.IsNotNull(syncHb);
+            Assert.AreEqual((uint)MAVLink.MAVLINK_MSG_ID.HEARTBEAT, asyncHb.msgid);
+            Assert.AreEqual((uint)MAVLink.MAVLINK_MSG_ID.HEARTBEAT, syncHb.msgid);
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task ArmInGuided_Takeoff_ReachesAltitude()
+        {
+            const double targetAlt = 10.0;
+
+            // 1. Get into GUIDED. GUIDED only engages once the EKF has a position
+            //    estimate, so a successful switch also means we are ready to arm.
+            bool guided = await EnsureGuided(TimeSpan.FromSeconds(120));
+            Assert.IsTrue(guided, "vehicle did not enter GUIDED (no position estimate?) within timeout");
+
+            // 2. Arm (retry while prearm settles), then confirm via heartbeat.
+            bool armed = await TryArm(TimeSpan.FromSeconds(60));
+            Assert.IsTrue(armed, "vehicle did not arm in GUIDED within the timeout");
+            Assert.IsTrue(await WaitForArmedState(true, TimeSpan.FromSeconds(15)),
+                "arm command returned success but heartbeat never reported armed");
+
+            // 3. Command takeoff (param7 = altitude in m), retrying in case the
+            //    first command races the armed-state transition.
+            bool accepted = await TakeoffWithRetries(targetAlt, TimeSpan.FromSeconds(30));
+            Assert.IsTrue(accepted, "takeoff command was not accepted");
+
+            // 4. Watch live telemetry until the vehicle reaches ~90% of target.
+            double reached = await WaitForAltitude(targetAlt * 0.9, TimeSpan.FromSeconds(120));
+            Assert.IsTrue(reached >= targetAlt * 0.9,
+                $"expected to climb to >= {targetAlt * 0.9:0.0} m, reached {reached:0.0} m");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task AutoMission_AdvancesThroughWaypoints()
+        {
+            // Self-contained: get the vehicle armed and airborne first so this
+            // test does not depend on the order of the other flight test.
+            Assert.IsTrue(await EnsureGuided(TimeSpan.FromSeconds(120)), "could not enter GUIDED");
+            Assert.IsTrue(await TryArm(TimeSpan.FromSeconds(60)), "could not arm");
+            await WaitForArmedState(true, TimeSpan.FromSeconds(15));
+            await TakeoffWithRetries(10.0, TimeSpan.FromSeconds(30));
+            await WaitForAltitude(8.0, TimeSpan.FromSeconds(60));
+
+            // Upload a short mission: takeoff, two waypoints near home, then RTL.
+            var mission = new List<Locationwp>
+            {
+                new Locationwp().Set(-35.363261, 149.165230, 0, (ushort)MAVLink.MAV_CMD.WAYPOINT),    // 0 home
+                new Locationwp().Set(0, 0, 15, (ushort)MAVLink.MAV_CMD.TAKEOFF),                       // 1 takeoff
+                new Locationwp().Set(-35.362000, 149.165230, 20, (ushort)MAVLink.MAV_CMD.WAYPOINT),    // 2
+                new Locationwp().Set(-35.362000, 149.167000, 20, (ushort)MAVLink.MAV_CMD.WAYPOINT),    // 3
+                new Locationwp().Set(0, 0, 0, (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH),               // 4 RTL
+            };
+            await mav_mission.upload(Mav, Sysid, Compid, MAVLink.MAV_MISSION_TYPE.MISSION, mission);
+
+            // Switch to AUTO and confirm the vehicle starts executing the mission
+            // by watching the active waypoint index advance to a navigation item.
+            SetCustomMode(CopterAutoMode);
+            ushort seq = await WaitForMissionSeq(2, TimeSpan.FromSeconds(120));
+            Assert.IsTrue(seq >= 2, $"AUTO mission did not advance to a waypoint (reached seq {seq})");
+        }
+
+        [TestMethod]
+        [TestCategory("Sitl")]
+        public async Task Land_DescendsAndDisarms()
+        {
+            // Self-contained: take off first, then land.
+            Assert.IsTrue(await EnsureGuided(TimeSpan.FromSeconds(120)), "could not enter GUIDED");
+            Assert.IsTrue(await TryArm(TimeSpan.FromSeconds(60)), "could not arm");
+            await WaitForArmedState(true, TimeSpan.FromSeconds(15));
+            await TakeoffWithRetries(15.0, TimeSpan.FromSeconds(30));
+            await WaitForAltitude(12.0, TimeSpan.FromSeconds(60));
+
+            // Switch to LAND and confirm the vehicle descends and disarms.
+            SetCustomMode(CopterLandMode);
+            bool disarmed = await WaitForArmedState(false, TimeSpan.FromSeconds(120));
+            Assert.IsTrue(disarmed, "vehicle did not disarm after landing");
+        }
+
+        // --- GUIDED flight helpers --------------------------------------------
+
+        /// <summary>Repeatedly request GUIDED until a heartbeat confirms it engaged.</summary>
+        private static async Task<bool> EnsureGuided(TimeSpan timeout)
+        {
+            // Set the mode by numeric custom_mode rather than by name: name
+            // translation depends on cs.firmware, which the GUI populates via
+            // UpdateCurrentSettings and is not set in this headless harness.
+            var guided = new MAVLink.mavlink_set_mode_t
+            {
+                target_system = Sysid,
+                base_mode = (byte)MAVLink.MAV_MODE_FLAG.CUSTOM_MODE_ENABLED,
+                custom_mode = CopterGuidedMode,
+            };
+
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                Mav.setMode(Sysid, Compid, guided);
+
+                var window = DateTime.UtcNow + TimeSpan.FromSeconds(3);
+                while (DateTime.UtcNow < window)
+                {
+                    var hb = await ReadHeartbeat(TimeSpan.FromSeconds(1));
+                    if (hb.HasValue && hb.Value.custom_mode == CopterGuidedMode)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>Attempt to arm repeatedly until it succeeds or the deadline passes.</summary>
+        private static async Task<bool> TryArm(TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    if (await Mav.doARMAsync(Sysid, Compid, true))
+                        return true;
+                }
+                catch
+                {
+                    // arm rejected (prearm not ready yet) — keep trying
+                }
+                await Task.Delay(2000);
+            }
+            return false;
+        }
+
+        /// <summary>Send the takeoff command, retrying until accepted or timeout.</summary>
+        private static async Task<bool> TakeoffWithRetries(double targetAlt, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    if (await Mav.doCommandAsync(Sysid, Compid, MAVLink.MAV_CMD.TAKEOFF,
+                            0, 0, 0, 0, 0, 0, (float)targetAlt))
+                        return true;
+                }
+                catch
+                {
+                    // transiently rejected — retry
+                }
+                await Task.Delay(1500);
+            }
+            return false;
+        }
+
+        /// <summary>Pump heartbeats until the armed flag matches, or timeout.</summary>
+        private static async Task<bool> WaitForArmedState(bool wantArmed, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                var hb = await ReadHeartbeat(TimeSpan.FromSeconds(2));
+                if (hb.HasValue)
+                {
+                    bool isArmed = (hb.Value.base_mode & MavModeFlagSafetyArmed) != 0;
+                    if (isArmed == wantArmed)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Pump packets and return the relative altitude (m) once it reaches
+        /// <paramref name="minAltitude"/>, or the last value seen at timeout.
+        /// </summary>
+        private static async Task<double> WaitForAltitude(double minAltitude, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            double alt = 0;
+            while (DateTime.UtcNow < deadline)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg == null)
+                    continue;
+
+                if (msg.msgid == (uint)MAVLink.MAVLINK_MSG_ID.GLOBAL_POSITION_INT)
+                {
+                    var pos = msg.ToStructure<MAVLink.mavlink_global_position_int_t>();
+                    alt = pos.relative_alt / 1000.0; // mm -> m
+                    if (alt >= minAltitude)
+                        return alt;
+                }
+            }
+            return alt;
+        }
+
+        /// <summary>Set a flight mode by numeric custom_mode (firmware-independent).</summary>
+        private static void SetCustomMode(uint customMode)
+        {
+            Mav.setMode(Sysid, Compid, new MAVLink.mavlink_set_mode_t
+            {
+                target_system = Sysid,
+                base_mode = (byte)MAVLink.MAV_MODE_FLAG.CUSTOM_MODE_ENABLED,
+                custom_mode = customMode,
+            });
+        }
+
+        /// <summary>Pump packets until MISSION_CURRENT reports seq >= min, or timeout.</summary>
+        private static async Task<ushort> WaitForMissionSeq(ushort minSeq, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            ushort seq = 0;
+            while (DateTime.UtcNow < deadline)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg == null)
+                    continue;
+
+                if (msg.msgid == (uint)MAVLink.MAVLINK_MSG_ID.MISSION_CURRENT)
+                {
+                    seq = msg.ToStructure<MAVLink.mavlink_mission_current_t>().seq;
+                    if (seq >= minSeq)
+                        return seq;
+                }
+            }
+            return seq;
+        }
+
+        /// <summary>Pump packets until GPS_RAW_INT reports a usable fix, or timeout.</summary>
+        private static async Task<byte> WaitForGpsFix(TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            byte fix = 0;
+            while (DateTime.UtcNow < deadline)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg == null)
+                    continue;
+
+                if (msg.msgid == (uint)MAVLink.MAVLINK_MSG_ID.GPS_RAW_INT)
+                {
+                    fix = msg.ToStructure<MAVLink.mavlink_gps_raw_int_t>().fix_type;
+                    if (fix >= 3)
+                        return fix;
+                }
+            }
+            return fix;
+        }
+
+        /// <summary>Read packets until a HEARTBEAT arrives, or the window elapses.</summary>
+        private static async Task<MAVLink.mavlink_heartbeat_t?> ReadHeartbeat(TimeSpan window)
+        {
+            var deadline = DateTime.UtcNow + window;
+            while (DateTime.UtcNow < deadline)
+            {
+                var msg = await Mav.readPacketAsync();
+                if (msg != null && msg.msgid == (uint)MAVLink.MAVLINK_MSG_ID.HEARTBEAT)
+                    return msg.ToStructure<MAVLink.mavlink_heartbeat_t>();
+            }
+            return null;
+        }
+    }
+}

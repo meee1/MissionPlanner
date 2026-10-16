@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace MissionPlanner.Utilities.Tests
 {
     [TestClass()]
+    [TestCategory("Network")]
     public class DownloadTests
     {
         [TestMethod()]
