@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- netstandard2.0 only. It is consumed by both the legacy net472 desktop/Xamarin stack and the
+         net8 .NET MAUI head (net8 can reference netstandard2.0). A net8.0 target was tried but its
+         hand-rolled System.Drawing types (KnownColor, SystemColors, ColorTranslator, ...) collide
+         with the in-box System.Drawing.Primitives 8.0 that ships in the net8 shared framework
+         (CS0433). Resolving that overlap is deferred to when the MAUI app itself is built. -->
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>System.Drawing</RootNamespace>
 
@@ -18,7 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
+    <!-- SkiaSharp 3.119.x across the whole stack (Utilities, Controls, SvgNet, MissionPlannerLib,
+         desktop head) and the MAUI head's SkiaSharp.Views.Maui, so the rendering surface unifies at
+         the app level. Bumped from 2.80.2 to get the WinUI SKGLViewHandler that 2.88.x lacked. -->
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
     <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
   </ItemGroup>
 

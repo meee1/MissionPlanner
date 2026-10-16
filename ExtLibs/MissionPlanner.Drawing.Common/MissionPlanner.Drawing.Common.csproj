@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- netstandard2.0 only. A net8.0 target was tried, but on net8 the type-forwards in Consts.cs
+         (KnownColor, SystemColors, ColorTranslator, ...) become ambiguous between MissionPlanner.Drawing
+         and the in-box System.Drawing.Primitives 8.0 (CS0433). netstandard2.0 is consumable by the net8
+         MAUI head; resolving the net8 type overlap is deferred to when the MAUI app is built. -->
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>System.Drawing</RootNamespace>
     <AssemblyName>System.Drawing.Common</AssemblyName>

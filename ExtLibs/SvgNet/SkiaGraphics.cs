@@ -79,12 +79,44 @@ namespace System
                         fontcache[id] = SKTypeface.FromFamilyName(id);
                 }
 
+            // SkiaSharp 3.x: SKPaint no longer carries Typeface/TextSize (those moved to SKFont).
             return new SKPaint
             {
-                Typeface = fontcache[id],
-                TextSize = font.SizeInPoints * 1.33334f,
                 StrokeWidth = 2,
             };
+        }
+
+        // Companion to SKPaint(this Font): the text size/typeface that SkiaSharp 3.x moved off SKPaint.
+        public static SKFont SKFont(this Font font)
+        {
+            var fm = SKFontManager.Default;
+            var id = "";
+            lock (fontcache)
+                if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh")
+                {
+                    id = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+                    if (!fontcache.ContainsKey(id))
+                        fontcache[id] = fm.MatchCharacter("YaHei", new[] {"zh"}, '飞');
+                }
+                else if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ja")
+                {
+                    id = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+                    if (!fontcache.ContainsKey(id))
+                        fontcache[id] = fm.MatchCharacter("", new[] {"ja"}, 'フ');
+                }
+                else if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "kr")
+                {
+                    id = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+                    if (!fontcache.ContainsKey(id))
+                        fontcache[id] = fm.MatchCharacter("", new[] {"kr"}, '비');
+                }
+                else
+                {
+                    if (!fontcache.ContainsKey(id))
+                        fontcache[id] = SKTypeface.FromFamilyName(id);
+                }
+
+            return new SKFont(fontcache[id], font.SizeInPoints * 1.33334f);
         }
 
         public static SKPoint SKPoint(this PointF pnt)
@@ -117,7 +149,7 @@ namespace System
                             ((LinearGradientBrush) brush).LinearColors[0].SKColor(),
                             ((LinearGradientBrush) brush).LinearColors[1].SKColor()
                         }
-                        , null, SKShaderTileMode.Clamp, SKMatrix.MakeIdentity())
+                        , null, SKShaderTileMode.Clamp, SKMatrix.CreateIdentity())
                 };
             }
 
@@ -152,7 +184,7 @@ namespace System
 
             //var hdc = g.GetHdc();
 
-            ret._surface = SKSurface.Create(imageWidth, imageHeight, SKImageInfo.PlatformColorType, SKAlphaType.Premul);
+            ret._surface = SKSurface.Create(new SKImageInfo(imageWidth, imageHeight, SKImageInfo.PlatformColorType, SKAlphaType.Premul));
 
             return ret;
         }
@@ -192,7 +224,8 @@ namespace System
 
         public SkiaGraphics()
         {
-            _surface = SKSurface.Create(9999, 9999, SKColorType.Bgra8888, SKAlphaType.Opaque);
+            // SkiaSharp 3.x removed the (int,int,SKColorType,SKAlphaType) overload; build an SKImageInfo.
+            _surface = SKSurface.Create(new SKImageInfo(9999, 9999, SKColorType.Bgra8888, SKAlphaType.Opaque));
         }
 
         public SkiaGraphics(SKSurface surface)
@@ -210,7 +243,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
              */
             //_surface = SKSurface.Create(GRContext.Create(GRBackend.OpenGL,GRGlInterface.AssembleInterface(handle,)))();
 
-            _surface = SKSurface.Create(width, height, SKImageInfo.PlatformColorType, SKAlphaType.Opaque);
+            _surface = SKSurface.Create(new SKImageInfo(width, height, SKImageInfo.PlatformColorType, SKAlphaType.Opaque));
 
             //_rec.BeginRecording(new SKRect(0, 0, width, height));
         }
@@ -1195,7 +1228,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (string.IsNullOrEmpty(text))
                 return new SizeF();
             var bound = new SKRect();
-            font.SKPaint().MeasureText(text, ref bound);
+            font.SKFont().MeasureText(text, out bound);
             return new SizeF(bound.Width + 5, bound.Height);
         }
 
@@ -1226,7 +1259,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (string.IsNullOrEmpty(text))
                 return new SizeF();
             var bound = new SKRect();
-            font.SKPaint().MeasureText(text, ref bound);
+            font.SKFont().MeasureText(text, out bound);
             return new SizeF(bound.Width /* + origin.X*/, bound.Height /* + origin.Y*/);
         }
 
@@ -1269,8 +1302,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             {
                 //checkthis
                 var old = _image.TotalMatrix;
-                var extra = SKMatrix.MakeRotation(angle);
-                SKMatrix.PreConcat(ref old, extra);
+                var extra = SKMatrix.CreateRotation(angle);
+                old = old.PreConcat(extra);
                 _image.SetMatrix(old);
             }
         }
@@ -1293,7 +1326,8 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (order == MatrixOrder.Append)
             {
                 var old = _image.TotalMatrix;
-                old.SetScaleTranslate(sx, sy, old.TransX, old.TransY);
+                // SkiaSharp 3.x: SKMatrix is immutable; SetScaleTranslate (instance) -> CreateScaleTranslation (static).
+                old = SKMatrix.CreateScaleTranslation(sx, sy, old.TransX, old.TransY);
                 _image.SetMatrix(old);
             }
         }
@@ -1367,7 +1401,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (order == MatrixOrder.Append)
             {
                 var old = _image.TotalMatrix;
-                old.SetScaleTranslate(old.ScaleX, old.ScaleY, f, f1);
+                old = SKMatrix.CreateScaleTranslation(old.ScaleX, old.ScaleY, f, f1);
                 _image.SetMatrix(old);
             }
         }
@@ -1442,13 +1476,10 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (string.IsNullOrEmpty(s))
                 return;
             var pnt = brush.SKPaint();
-            // Find the text bounds
+            // SkiaSharp 3.x: text size/typeface live on SKFont; SKCanvas.DrawText takes (font, paint).
             var textBounds = SKRect.Empty;
-            var fnt = font.SKPaint();
-            fnt.MeasureText(s, ref textBounds);
-
-            pnt.TextSize = fnt.TextSize;
-            pnt.Typeface = fnt.Typeface;
+            var fnt = font.SKFont();
+            fnt.MeasureText(s, out textBounds);
 
             pnt.StrokeWidth = 1;
 
@@ -1456,7 +1487,7 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             {
                 DrawText(_image, s,
                     new SKRect(layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height),
-                    pnt);
+                    fnt, pnt);
                 return;
             }
 
@@ -1466,13 +1497,13 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             if (format.LineAlignment == StringAlignment.Center) // vertical
                 layoutRectangle.Y += layoutRectangle.Height / 2 - textBounds.Height / 2;
 
-            _image.DrawText(s, layoutRectangle.X, layoutRectangle.Y + textBounds.Height, pnt);
+            _image.DrawText(s, layoutRectangle.X, layoutRectangle.Y + textBounds.Height, SKTextAlign.Left, fnt, pnt);
         }
 
-        private void DrawText(SKCanvas canvas, string text, SKRect area, SKPaint paint)
+        private void DrawText(SKCanvas canvas, string text, SKRect area, SKFont font, SKPaint paint)
         {
-            var lineHeight = paint.TextSize * 1.1f;
-            var lines = SplitLines(text, paint, area.Width);
+            var lineHeight = font.Size * 1.1f;
+            var lines = SplitLines(text, font, area.Width);
             var height = lines.Count() * lineHeight;
 
             var y = area.MidY - 2 - height / 2;
@@ -1481,11 +1512,11 @@ GRBackendRenderTargetDesc backendRenderTargetDescription = new GRBackendRenderTa
             {
                 y += lineHeight;
                 var x = area.MidX - line.Width / 2;
-                canvas.DrawText(line.Value, x, y, paint);
+                canvas.DrawText(line.Value, x, y, SKTextAlign.Left, font, paint);
             }
         }
 
-        private Line[] SplitLines(string text, SKPaint paint, float maxWidth)
+        private Line[] SplitLines(string text, SKFont paint, float maxWidth)
         {
             var spaceWidth = paint.MeasureText(" ");
             var lines = text.Split('\n');
