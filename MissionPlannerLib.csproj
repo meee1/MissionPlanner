@@ -71,6 +71,7 @@
     <Compile Remove="ExtLibs\md5sum\**" />
     <Compile Remove="ExtLibs\MetaDataExtractorCSharp240d\**" />
     <Compile Remove="ExtLibs\MissionPlanner.Drawing.Common\**" />
+    <Compile Remove="ExtLibs\MissionPlanner.Drawing.Unity\**" />
     <Compile Remove="ExtLibs\MissionPlanner.Drawing\**" />
     <Compile Remove="ExtLibs\MissionPlanner.Gridv2\**" />
     <Compile Remove="ExtLibs\MissionPlanner.Stats\**" />
@@ -170,6 +171,7 @@
     <EmbeddedResource Remove="ExtLibs\md5sum\**" />
     <EmbeddedResource Remove="ExtLibs\MetaDataExtractorCSharp240d\**" />
     <EmbeddedResource Remove="ExtLibs\MissionPlanner.Drawing.Common\**" />
+    <EmbeddedResource Remove="ExtLibs\MissionPlanner.Drawing.Unity\**" />
     <EmbeddedResource Remove="ExtLibs\MissionPlanner.Drawing\**" />
     <EmbeddedResource Remove="ExtLibs\MissionPlanner.Gridv2\**" />
     <EmbeddedResource Remove="ExtLibs\MissionPlanner.Stats\**" />
@@ -268,6 +270,7 @@
     <None Remove="ExtLibs\md5sum\**" />
     <None Remove="ExtLibs\MetaDataExtractorCSharp240d\**" />
     <None Remove="ExtLibs\MissionPlanner.Drawing.Common\**" />
+    <None Remove="ExtLibs\MissionPlanner.Drawing.Unity\**" />
     <None Remove="ExtLibs\MissionPlanner.Drawing\**" />
     <None Remove="ExtLibs\MissionPlanner.Gridv2\**" />
     <None Remove="ExtLibs\MissionPlanner.Stats\**" />

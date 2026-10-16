@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Assembly name mirrors System.Drawing so it replaces it at runtime in Unity -->
+    <RootNamespace>System.Drawing</RootNamespace>
+    <AssemblyName>MissionPlanner.Drawing.Unity</AssemblyName>
+    <AssemblyVersion>4.0.0.2</AssemblyVersion>
+    <FileVersion>4.6.57.0</FileVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    Unity ships its own mscorlib / netstandard subset plus UnityEngine.dll.
+    These hints point at the Unity Editor installation on a typical Linux machine.
+    Override UNITY_MANAGED_DIR if your Unity is installed elsewhere.
+
+    e.g.  dotnet build /p:UNITY_MANAGED_DIR="/opt/unity/Editor/Data/Managed"
+  -->
+  <PropertyGroup>
+    <UNITY_MANAGED_DIR Condition="'$(UNITY_MANAGED_DIR)'==''">$(HOME)/Unity/Hub/Editor/2022.3.0f1/Editor/Data/Managed</UNITY_MANAGED_DIR>
+    <UNITY_ENGINE_DLL>$(UNITY_MANAGED_DIR)/UnityEngine.dll</UNITY_ENGINE_DLL>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(UNITY_ENGINE_DLL)')">
+    <Reference Include="UnityEngine">
+      <HintPath>$(UNITY_ENGINE_DLL)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- All System.Drawing types are self-contained in this project.
+       No SkiaSharp, no MissionPlanner.Drawing dependency. -->
+
+</Project>

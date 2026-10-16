@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Xamarin.Unity – Unity render host for MissionPlanner
+    =====================================================
+    This project mirrors the role of Xamarin.Android: it provides the
+    platform-specific "glue" that lets the shared MissionPlannerLib code run
+    inside a Unity application.
+
+    Build without Unity Editor:
+        dotnet build
+
+    Build inside Unity (asmdef):
+        The Xamarin.Unity.asmdef assembly definition in this folder lets Unity's
+        Roslyn compiler pick up all *.cs files; the .csproj is for IDE /
+        CI support only.
+
+    To point at a different Unity installation set the UNITY_MANAGED_DIR property:
+        dotnet build /p:UNITY_MANAGED_DIR="/opt/unity/Editor/Data/Managed"
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>MissionPlanner.Unity</RootNamespace>
+    <AssemblyName>MissionPlanner.Unity</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <!-- Unity managed DLLs -->
+  <PropertyGroup>
+    <UNITY_MANAGED_DIR Condition="'$(UNITY_MANAGED_DIR)'==''">$(HOME)/Unity/Hub/Editor/2022.3.0f1/Editor/Data/Managed</UNITY_MANAGED_DIR>
+    <UNITY_ENGINE_DLL>$(UNITY_MANAGED_DIR)/UnityEngine.dll</UNITY_ENGINE_DLL>
+    <UNITY_UI_DLL>$(UNITY_MANAGED_DIR)/UnityEngine.UI.dll</UNITY_UI_DLL>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(UNITY_ENGINE_DLL)')">
+    <Reference Include="UnityEngine">
+      <HintPath>$(UNITY_ENGINE_DLL)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(UNITY_UI_DLL)')">
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(UNITY_UI_DLL)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared cross-platform MissionPlanner logic -->
+    <ProjectReference Include="..\..\..\..\MissionPlannerLib.csproj" />
+    <!-- Unity-specific System.Drawing implementation -->
+    <ProjectReference Include="..\..\MissionPlanner.Drawing.Unity\MissionPlanner.Drawing.Unity.csproj">
+      <Aliases>UnityDrawing</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interfaces\Interfaces.csproj" />
+    <ProjectReference Include="..\..\Comms\MissionPlanner.Comms.csproj" />
+    <ProjectReference Include="..\..\Utilities\MissionPlanner.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>
