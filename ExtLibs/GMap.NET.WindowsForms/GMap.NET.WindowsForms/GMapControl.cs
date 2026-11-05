@@ -22,7 +22,6 @@ namespace GMap.NET.WindowsForms
     using GMap.NET.MapProviders;
 
 #if !PocketPC
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Collections.Generic;
     using GMap.NET.Projections;
     using SkiaSharp;
@@ -1387,6 +1386,8 @@ namespace GMap.NET.WindowsForms
 
         public Color EmptyMapBackground = Color.WhiteSmoke;
 
+        SolidBrush _scaleBrush;
+
 #if !DESIGN
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -1424,9 +1425,12 @@ namespace GMap.NET.WindowsForms
 
                 var ts = (DateTime.Now - start);
 
-                Console.WriteLine("map render {0}", ts.TotalSeconds);
 
-                e.Graphics.DrawImageUnscaled(Image.FromStream(new MemoryStream(sk.WriteImage())), 0, 0);
+                using (var ms = new MemoryStream(sk.WriteImage()))
+                using (var img = Image.FromStream(ms))
+                {
+                    e.Graphics.DrawImageUnscaled(img, 0, 0);
+                }
 
                 base.OnPaint(e);
 
@@ -1683,7 +1687,13 @@ namespace GMap.NET.WindowsForms
 #if !PocketPC
             if (MapScaleInfoEnabled)
             {
-                var brush = new SolidBrush(ScalePen.Color);
+                var brush = _scaleBrush;
+                if (brush == null || brush.Color != ScalePen.Color)
+                {
+                    brush?.Dispose();
+                    _scaleBrush = brush = new SolidBrush(ScalePen.Color);
+                }
+
                 double transform = 1;
                 if (MapRenderTransform.HasValue)
                     transform = MapRenderTransform.Value;
@@ -3040,56 +3050,8 @@ namespace GMap.NET.WindowsForms
 
 #if !PocketPC
 
-        #region Serialization
-
-        static readonly BinaryFormatter BinaryFormatter = new BinaryFormatter();
         private SKSurface _skSurface;
         private SKSize _screenCanvasSize;
-
-        /// <summary>
-        /// Serializes the overlays.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        public void SerializeOverlays(Stream stream)
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException("stream");
-            }
-
-            // Create an array from the overlays
-            GMapOverlay[] overlayArray = new GMapOverlay[this.Overlays.Count];
-            this.Overlays.CopyTo(overlayArray, 0);
-
-            // Serialize the overlays
-            BinaryFormatter.Serialize(stream, overlayArray);
-        }
-
-        /// <summary>
-        /// De-serializes the overlays.
-        /// </summary>
-        /// <param name="stream">The stream.</param>
-        public void DeserializeOverlays(Stream stream)
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException("stream");
-            }
-
-            // De-serialize the overlays
-            GMapOverlay[] overlayArray = BinaryFormatter.Deserialize(stream) as GMapOverlay[];
-
-            // Populate the collection of overlays.
-            foreach (GMapOverlay overlay in overlayArray)
-            {
-                overlay.Control = this;
-                this.Overlays.Add(overlay);
-            }
-
-            this.ForceUpdateOverlays();
-        }
-
-        #endregion
 
 #endif
     }
