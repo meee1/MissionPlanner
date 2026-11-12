@@ -1294,7 +1294,14 @@ namespace MissionPlanner
             _connectionControl.CMB_serialport.Items.Clear();
 
             _connectionControl.CMB_serialport.Items.Add("AUTO");
-            _connectionControl.CMB_serialport.Items.AddRange(SerialPort.GetPortNames());
+            try
+            {
+                _connectionControl.CMB_serialport.Items.AddRange(SerialPort.GetPortNames());
+            }
+            catch (Exception ex)
+            {
+                log.Error("Failed to populate serial port dropdown.", ex);
+            }
 
             _connectionControl.CMB_serialport.Items.Add("TCP");
             _connectionControl.CMB_serialport.Items.Add("UDP");
@@ -2066,6 +2073,10 @@ namespace MissionPlanner
             log.Info("stop WarningEngine");
             Warnings.WarningEngine.Stop();
 
+            log.Info("stop CoT output");
+            // its last messages mark each track stale, so TAK greys them out now, not when they expire
+            CotSender.Current?.Stop();
+
             log.Info("stop GStreamer");
             GCSViews.FlightData.hudGStreamer.Stop();
 
@@ -2623,7 +2634,7 @@ namespace MissionPlanner
             {
                 try
                 {
-                    await Task.Delay(1).ConfigureAwait(false); // was 5
+                    await PollDelay.Wait().ConfigureAwait(false); // was 5
 
                     try
                     {
@@ -3690,7 +3701,7 @@ namespace MissionPlanner
                     FlightData.BUT_playlog_Click(null, null);
                 }
                 else if (cmds.ContainsKey("file") && File.Exists(cmds["file"]) &&
-                         (cmds["file"].ToLower().EndsWith(".log") || cmds["file"].ToLower().EndsWith(".bin")))
+                         (cmds["file"].EndsWith(".log", StringComparison.OrdinalIgnoreCase) || cmds["file"].EndsWith(".bin", StringComparison.OrdinalIgnoreCase)))
                 {
                     LogBrowse logbrowse = new LogBrowse();
                     ThemeManager.ApplyThemeTo(logbrowse);
@@ -4438,8 +4449,8 @@ namespace MissionPlanner
         {
             try
             {
-                System.Diagnostics.Process.Start(
-                    "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=mich146%40hotmail%2ecom&lc=AU&item_name=Michael%20Oborne&no_note=0&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHostedGuest");
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                    "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=mich146%40hotmail%2ecom&lc=AU&item_name=Michael%20Oborne&no_note=0&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHostedGuest") { UseShellExecute = true });
             }
             catch
             {
@@ -4685,7 +4696,7 @@ namespace MissionPlanner
         {
             try
             {
-                System.Diagnostics.Process.Start("https://ardupilot.org/?utm_source=Menu&utm_campaign=MP");
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://ardupilot.org/?utm_source=Menu&utm_campaign=MP") { UseShellExecute = true });
             }
             catch
             {

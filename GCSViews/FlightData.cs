@@ -196,7 +196,7 @@ namespace MissionPlanner.GCSViews
             HighLatency_Enable,
             HighLatency_Disable,
             Toggle_Safety_Switch,
-            Do_Parachute,
+            Parachute_Release,
             Engine_Start,
             Engine_Stop,
             Terminate_Flight,
@@ -686,7 +686,14 @@ namespace MissionPlanner.GCSViews
 
                     log.Info("Open logfile " + file);
 
-                    MainV2.comPort.getHeartBeat();
+                    // the GCS that recorded the log may have another sysid than ours, and if its heartbeat comes
+                    // first it becomes the current MAV; getHeartBeat skips GCS heartbeats, so take the vehicle from it
+                    var hb = MainV2.comPort.getHeartBeat();
+                    if (hb.Length > 5)
+                    {
+                        MainV2.comPort.sysidcurrent = hb.sysid;
+                        MainV2.comPort.compidcurrent = hb.compid;
+                    }
 
                     tracklog.Value = 0;
                     tracklog.Minimum = 0;
@@ -1159,7 +1166,7 @@ namespace MissionPlanner.GCSViews
                         {
                             StreamReader tr;
 
-                            if (logfile.ToLower().EndsWith(".bin"))
+                            if (logfile.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
                             {
                                 using (tr = new StreamReader(logfile))
                                 {
@@ -1322,7 +1329,7 @@ namespace MissionPlanner.GCSViews
                 {
                     string newlogfile = null;
 
-                    if (ofd.FileName.ToLower().EndsWith(".bin"))
+                    if (ofd.FileName.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
                     {
                         newlogfile = Path.GetTempFileName() + ".log";
 
@@ -1783,7 +1790,7 @@ namespace MissionPlanner.GCSViews
 
                     int param1 = 0;
                     int param2 = 0;
-                    int param3 = 1;
+                    int param3 = 0;
 
                     // request gyro
                     if (CMB_action.Text == actions.Preflight_Calibration.ToString())
@@ -1797,6 +1804,17 @@ namespace MissionPlanner.GCSViews
                     {
                         MainV2.comPort.doCommand(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, MAVLink.MAV_CMD.DO_FLIGHTTERMINATION, 1.0f, 0, 0, 0, 0, 0, 0);
                         ((Control)sender).Enabled = true;
+                        return;
+                    }
+
+                    if (CMB_action.Text == actions.Parachute_Release.ToString())
+                    {
+                        if (!MainV2.comPort.doCommand(MAVLink.MAV_CMD.DO_PARACHUTE,
+                                (float) MAVLink.PARACHUTE_ACTION.PARACHUTE_RELEASE, 0, 0, 0, 0, 0, 0))
+                        {
+                            CustomMessageBox.Show(Strings.CommandFailed + " " + MAVLink.MAV_CMD.DO_PARACHUTE, Strings.ERROR);
+                        }
+                        ((Control) sender).Enabled = true;
                         return;
                     }
 
@@ -4025,7 +4043,7 @@ namespace MissionPlanner.GCSViews
 
                             fenceoverlay.CreateOverlay(PointLatLngAlt.Zero,
                                 MainV2.comPort.MAV.fencepoints.Values.Select(a => (Locationwp) a).ToList(), 0, 0,
-                                CurrentState.multiplieralt);
+                                CurrentState.multiplieralt, MainV2.comPort.MAV.cs.HomeLocation);
 
                             var fence = mymap.Overlays.Where(a => a.Id == "fence");
                             if (fence.Count() > 0)
@@ -4134,11 +4152,15 @@ namespace MissionPlanner.GCSViews
 
                             // add new - populate camera_feedback to map
                             double oldtime = double.MinValue;
+                            // the photos already on the map, by their time
+                            var photosshown = new HashSet<object>();
+                            foreach (var p in photosoverlay.Markers)
+                                photosshown.Add(p.Tag);
                             foreach (var mark in MainV2.comPort.MAV.camerapoints.ToArray())
                             {
                                 var timesincelastshot = (mark.time_usec / 1000.0) / 1000.0 - oldtime;
                                 MainV2.comPort.MAV.cs.timesincelastshot = timesincelastshot;
-                                bool contains = photosoverlay.Markers.Any(p => p.Tag.Equals(mark.time_usec));
+                                bool contains = photosshown.Contains(mark.time_usec);
                                 if (!contains)
                                 {
                                     if (timesincelastshot < min_interval)
@@ -4370,8 +4392,9 @@ namespace MissionPlanner.GCSViews
                         prop.Update(MainV2.comPort.MAV.cs.HomeLocation, MainV2.comPort.MAV.cs.Location,
                             MainV2.comPort.MAV.cs.battery_kmleft);
 
-                        prop.alt = MainV2.comPort.MAV.cs.alt;
-                        prop.altasl = MainV2.comPort.MAV.cs.altasl;
+                        // in metres, like the terrain they are compared with
+                        prop.alt = MainV2.comPort.MAV.cs.alt / CurrentState.multiplieralt;
+                        prop.altasl = MainV2.comPort.MAV.cs.altasl / CurrentState.multiplieralt;
                         prop.center = gMapControl1.Position;
 
                         // Update camera bounds
@@ -6156,48 +6179,58 @@ namespace MissionPlanner.GCSViews
 
         }
 
+        /// <summary>
+        /// the CurrentState properties in the order the status tab lists them, the tab is redrawn at 10hz
+        /// </summary>
+        private static PropertyInfo[] statusTabProperties;
+
         private void tabStatus_Paint(object sender, PaintEventArgs e)
         {
-            var bmp = new Bitmap(tabStatus.DisplayRectangle.Width, tabStatus.DisplayRectangle.Height);
-            var g = Graphics.FromImage(bmp);
-            g.Clear(Color.Transparent);
+            if (statusTabProperties == null)
+                statusTabProperties = MainV2.comPort.MAV.cs.GetItemList(true)
+                    .Select(name => typeof(CurrentState).GetProperty(name)).ToArray();
 
-            int x = 10;
-            int y = 10;
-
-            var list = MainV2.comPort.MAV.cs.GetItemList(true);
-            var cs = bindingSourceStatusTab.Current as CurrentState;
-            var br = new SolidBrush(tabStatus.ForeColor);
-
-            foreach (var field in list)
+            using (var bmp = new Bitmap(tabStatus.DisplayRectangle.Width, tabStatus.DisplayRectangle.Height))
+            using (var g = Graphics.FromImage(bmp))
+            using (var br = new SolidBrush(tabStatus.ForeColor))
             {
-                g.DrawString(field, this.Font, br, new RectangleF(x, y, 120, 15));
+                g.Clear(Color.Transparent);
 
-                if (cs != null)
-                    g.DrawString(typeof(CurrentState).GetProperty(field).GetValue(cs)?.ToString(), this.Font,
-                        br, new RectangleF(x + 120, y, 50, 15));
+                int x = 10;
+                int y = 10;
 
-                x += 0;
-                y += 15;
+                var cs = bindingSourceStatusTab.Current as CurrentState;
 
-                if (y > tabStatus.Height - 30)
+                foreach (var field in statusTabProperties)
                 {
-                    x += 190;
-                    y = 10;
+                    g.DrawString(field.Name, this.Font, br, new RectangleF(x, y, 120, 15));
+
+                    if (cs != null)
+                        g.DrawString(field.GetValue(cs)?.ToString(), this.Font,
+                            br, new RectangleF(x + 120, y, 50, 15));
+
+                    x += 0;
+                    y += 15;
+
+                    if (y > tabStatus.Height - 30)
+                    {
+                        x += 190;
+                        y = 10;
+                    }
                 }
-            }
 
-            if (tabStatus.AutoScrollMinSize.Width < x)
-            {
-                typeof(Panel).InvokeMember("DoubleBuffered", BindingFlags.SetProperty
-                                                             | BindingFlags.Instance | BindingFlags.NonPublic, null,
-                    tabStatus, new object[] { true });
+                if (tabStatus.AutoScrollMinSize.Width < x)
+                {
+                    typeof(Panel).InvokeMember("DoubleBuffered", BindingFlags.SetProperty
+                                                                 | BindingFlags.Instance | BindingFlags.NonPublic, null,
+                        tabStatus, new object[] { true });
 
-                tabStatus.AutoScrollMinSize = new Size(x + 164, 0);
+                    tabStatus.AutoScrollMinSize = new Size(x + 164, 0);
+                }
+                e.Graphics.TranslateTransform(tabStatus.AutoScrollPosition.X,
+                    tabStatus.AutoScrollPosition.Y);
+                e.Graphics.DrawImageUnscaled(bmp, 0, 0);
             }
-            e.Graphics.TranslateTransform(tabStatus.AutoScrollPosition.X,
-                tabStatus.AutoScrollPosition.Y);
-            e.Graphics.DrawImageUnscaled(bmp, 0, 0);
         }
 
         private void gMapControl1_MouseUp(object sender, MouseEventArgs e)
